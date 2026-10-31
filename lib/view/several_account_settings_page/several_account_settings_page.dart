@@ -1,0 +1,116 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:flutter_svg/flutter_svg.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/several_account_settings_page/word_mute_page/word_mute_page.dart";
+
+@RoutePage()
+class SeveralAccountSettingsPage extends StatelessWidget {
+  final Account account;
+
+  const SeveralAccountSettingsPage({required this.account, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          S.of(context).accountSetting(account.i.name ?? account.i.username),
+        ),
+      ),
+      body: ListView(
+        children: [
+          ListTile(
+            onTap: () async => await context.pushRoute(
+              SeveralAccountGeneralSettingsRoute(account: account),
+            ),
+            title: Text(S.of(context).generalSettings),
+            leading: const Icon(Icons.settings),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(ProfileEditRoute(account: account)),
+            title: Text(S.of(context).editProfile),
+            leading: const Icon(Icons.edit),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(ReactionDeckRoute(account: account)),
+            title: Text(S.of(context).reactionDeck),
+            leading: const Icon(Icons.favorite),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(ReactionMuteRoute(account: account)),
+            title: Text(S.of(context).reactionMute),
+            leading: SvgPicture.asset(
+              "assets/images/muted_reactions.svg",
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).textTheme.bodyMedium!.color ??
+                    const Color(0xff5f6368),
+                BlendMode.srcIn,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async => await context.pushRoute(
+              WordMuteRoute(account: account, muteType: MuteType.soft),
+            ),
+            title: Text(S.of(context).wordMute),
+            leading: const Icon(Icons.comments_disabled),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async => await context.pushRoute(
+              WordMuteRoute(account: account, muteType: MuteType.hard),
+            ),
+            title: Text(S.of(context).hardWordMute),
+            leading: const Icon(Icons.comments_disabled),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(InstanceMuteRoute(account: account)),
+            title: Text(S.of(context).instanceMute),
+            leading: SvgPicture.asset(
+              "assets/images/muted_instances.svg",
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).textTheme.bodyMedium!.color ??
+                    const Color(0xff5f6368),
+                BlendMode.srcIn,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(MutedUsersRoute(account: account)),
+            title: Text(S.of(context).mutedUsers),
+            leading: const Icon(Icons.volume_off),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(BlockedUsersRoute(account: account)),
+            title: Text(S.of(context).blockedUsers),
+            leading: const Icon(Icons.block),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+          ListTile(
+            onTap: () async =>
+                await context.pushRoute(CacheManagementRoute(account: account)),
+            title: Text(S.of(context).cacheSettings),
+            leading: const Icon(Icons.cached),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+}

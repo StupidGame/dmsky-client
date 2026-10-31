@@ -1,0 +1,71 @@
+{
+    "limitedApiServers": [
+        {
+            "host": "novelskey.tarbin.net"
+        },
+        {
+            "host": "otoskey.tarbin.net"
+        },
+        {
+            "host": "nijimiss.moe"
+        }
+    ],
+    "particularTimelinePresets": [
+        {
+            "host": "misskey.io",
+            "name": "ローカルタイムライン（1次元）",
+            "endpoint": "notes/local-timeline",
+            "websocketChannelName": "localTimeline",
+            "parameters": "{\"dimension\": 1}"
+        },
+        {
+            "host": "mi.taichan.site",
+            "name": "ホームタイムライン（ローカルのみ）",
+            "endpoint": "notes/timeline",
+            "websocketChannelName": "localTimeline",
+            "parameters": "{\"onlyLocal\": true}"
+        },
+        {
+            "host": "mi.taichan.site",
+            "name": "ソーシャルタイムライン（ローカルのみ）",
+            "endpoint": "notes/hybrid-timeline",
+            "websocketChannelName": "hybridTimeline",
+            "parameters": "{\"onlyLocal\": true}"
+        },
+        {
+            "host": "misskey.flowers",
+            "name": "はなモード",
+            "endpoint": "notes/hanami-timeline",
+            "websocketChannelName": "hanamiTimeline",
+            "parameters": "{}"
+        },
+        {
+            "host": "misskey.niri.la",
+            "name": "ぶいみみリレー",
+            "endpoint": "notes/vmimi-relay-timeline",
+            "websocketChannelName": "vmimiRelayTimeline",
+            "parameters": "{}"
+        },
+        {
+            "host": "misskey.niri.la",
+            "name": "ぶいみみリレーソーシャル",
+            "endpoint": "notes/vmimi-relay-hybrid-timeline",
+            "websocketChannelName": "vmimiRelayHybridTimeline",
+            "parameters": "{}"
+        },
+        {
+            "host": "buicha.social",
+            "name": "ぶいみみリレー",
+            "endpoint": "notes/vmimi-relay-timeline",
+            "websocketChannelName": "vmimiRelayTimeline",
+            "parameters": "{}"
+        },
+        {
+            "host": "buicha.social",
+            "name": "ぶいみみリレーソーシャル",
+            "endpoint": "notes/vmimi-relay-hybrid-timeline",
+            "websocketChannelName": "vmimiRelayHybridTimeline",
+            "parameters": "{}"
+        }
+    ]
+}

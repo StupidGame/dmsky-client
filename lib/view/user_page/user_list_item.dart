@@ -1,0 +1,133 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/common/avatar_icon.dart";
+import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
+import "package:misskey_dart/misskey_dart.dart";
+
+class UserListItem extends ConsumerWidget {
+  final User user;
+  final bool isDetail;
+
+  final void Function()? onTap;
+
+  const UserListItem({
+    required this.user,
+    super.key,
+    this.onTap,
+    this.isDetail = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return InkWell(
+      onTap:
+          onTap ??
+          () async => context.pushRoute(
+            UserRoute(
+              userId: user.id,
+              accountContext: ref.read(accountContextProvider),
+            ),
+          ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AvatarIcon(user: user),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UserInformation(user: user),
+                    Text(
+                      "@${user.username}${user.host != null ? "@${user.host}" : ""}",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (user is UserDetailedNotMeWithRelations && isDetail)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Wrap(
+                          alignment: WrapAlignment.end,
+                          runAlignment: WrapAlignment.end,
+                          children: [
+                            if ((user as UserDetailedNotMeWithRelations)
+                                .isFollowing)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    S.of(context).following,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                              ),
+                            if ((user as UserDetailedNotMeWithRelations)
+                                .isFollowed)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    S.of(context).followed,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                              ),
+                            if ((user as UserDetailedNotMeWithRelations)
+                                .isMuted)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    S.of(context).muting,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                              ),
+                            if ((user as UserDetailedNotMeWithRelations)
+                                .isBlocking)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    S.of(context).blocking,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    if (user is UserDetailed && isDetail)
+                      MfmText(
+                        mfmText: (user as UserDetailed).description ?? "",
+                        emoji: user.emojis,
+                        maxLines: 5,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

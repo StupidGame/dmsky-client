@@ -1,0 +1,97 @@
+import "package:flutter/material.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
+import "package:dmsky_client/view/common/pushable_listview.dart";
+import "package:misskey_dart/misskey_dart.dart";
+import "package:url_launcher/url_launcher.dart";
+
+class PlaySearch extends HookConsumerWidget {
+  final FocusNode? focusNode;
+
+  const PlaySearch({super.key, this.focusNode});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchQuery = useState("");
+    final searchController = useTextEditingController();
+    final listViewKey = useState(0);
+
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: S.of(context).search,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: searchQuery.value.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        searchController.clear();
+                        searchQuery.value = "";
+                        listViewKey.value++;
+                      },
+                    )
+                  : null,
+            ),
+            focusNode: focusNode,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) => searchQuery.value = value,
+          ),
+          const SizedBox(height: 10),
+          if (searchQuery.value.trim().isNotEmpty)
+            Expanded(
+              child: PushableListView<Flash>(
+                key: ValueKey(listViewKey.value),
+                listKey: "play_search_${searchQuery.value}",
+                initializeFuture: () async {
+                  final response = await ref
+                      .read(misskeyGetContextProvider)
+                      .flash
+                      .search(
+                        FlashSearchRequest(query: searchQuery.value.trim()),
+                      );
+                  return response.toList();
+                },
+                nextFuture: (_, _) async => [],
+                hideIsEmpty: false,
+                itemBuilder: (context, play) => Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    title: MfmText(
+                      mfmText: play.title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: play.summary.isNotEmpty
+                        ? MfmText(mfmText: play.summary)
+                        : null,
+                    onTap: () async {
+                      await launchUrl(
+                        Uri(
+                          scheme: "https",
+                          host: ref
+                              .read(accountContextProvider)
+                              .getAccount
+                              .host,
+                          pathSegments: ["play", play.id],
+                        ),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,314 @@
+import "package:dio/dio.dart";
+import "package:file/file.dart";
+import "package:file/local.dart";
+import "package:flutter/widgets.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter_cache_manager/flutter_cache_manager.dart"
+    hide FileSystem;
+import "package:freezed_annotation/freezed_annotation.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:hooks_riverpod/legacy.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/model/achievement.dart";
+import "package:dmsky_client/model/acct.dart";
+import "package:dmsky_client/model/tab_setting.dart";
+import "package:dmsky_client/model/tab_type.dart";
+import "package:dmsky_client/repository/account_repository.dart";
+import "package:dmsky_client/repository/account_settings_repository.dart";
+import "package:dmsky_client/repository/antenna_timeline_repository.dart";
+import "package:dmsky_client/repository/channel_time_line_repository.dart";
+import "package:dmsky_client/repository/custom_timeline_repository.dart";
+import "package:dmsky_client/repository/desktop_settings_repository.dart";
+import "package:dmsky_client/repository/emoji_repository.dart";
+import "package:dmsky_client/repository/favorite_repository.dart";
+import "package:dmsky_client/repository/general_settings_repository.dart";
+import "package:dmsky_client/repository/global_time_line_repository.dart";
+import "package:dmsky_client/repository/home_time_line_repository.dart";
+import "package:dmsky_client/repository/hybrid_timeline_repository.dart";
+import "package:dmsky_client/repository/import_export_repository.dart";
+import "package:dmsky_client/repository/local_time_line_repository.dart";
+import "package:dmsky_client/repository/note_repository.dart";
+import "package:dmsky_client/repository/role_timeline_repository.dart";
+import "package:dmsky_client/repository/shared_preference_controller.dart";
+import "package:dmsky_client/repository/tab_settings_repository.dart";
+import "package:dmsky_client/repository/time_line_repository.dart";
+import "package:dmsky_client/repository/user_list_time_line_repository.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/util/file_system_io.dart" as fs;
+import "package:dmsky_client/util/window_listener.dart";
+import "package:misskey_dart/misskey_dart.dart";
+import "package:riverpod/riverpod.dart";
+import "package:riverpod_annotation/riverpod_annotation.dart";
+
+part "providers.freezed.dart";
+part "providers.g.dart";
+
+@Riverpod(keepAlive: true)
+Dio dio(Ref ref) {
+  final dio = Dio();
+  dio.options.responseType = ResponseType.json;
+  return dio;
+}
+
+@Riverpod(keepAlive: true)
+FileSystem fileSystem(Ref ref) => const LocalFileSystem();
+
+/// 実績名の対訳表。表示言語を変えたら引き直す。
+@Riverpod(keepAlive: true)
+Future<Achievements> achievements(Ref ref) async {
+  final language = ref.watch(
+    generalSettingsRepositoryProvider.select(
+      (value) => value.settings.languages,
+    ),
+  );
+  return Achievements.load(language);
+}
+
+@Riverpod(keepAlive: true)
+@Deprecated(
+  "Most case will be replace misskeyGetContext or misskeyPostContext, but will be remain",
+)
+Misskey misskey(Ref ref, Account account) {
+  final hostWithPort = account.port != null
+      ? "${account.host}:${account.port}"
+      : account.host;
+
+  final apiUrl = account.scheme == "http" ? "http://$hostWithPort/api/" : null;
+
+  final streamingUrl = account.scheme == "http"
+      ? "ws://$hostWithPort/streaming/"
+      : null;
+
+  return Misskey(
+    token: account.token,
+    host: hostWithPort,
+    apiUrl: apiUrl,
+    streamingUrl: streamingUrl,
+    socketConnectionTimeout: const Duration(seconds: 20),
+  );
+}
+
+@Riverpod(keepAlive: true)
+Raw<AppRouter> appRouter(Ref ref) => AppRouter();
+
+@riverpod
+Misskey misskeyWithoutAccount(Ref ref, String hostOrUrl) {
+  // HTTP接続をサポートするためにカスタムURL指定
+  final uri = Uri.parse(
+    hostOrUrl.startsWith("http") ? hostOrUrl : "https://$hostOrUrl",
+  );
+
+  final hostWithPort = uri.hasPort ? "${uri.host}:${uri.port}" : uri.host;
+
+  final apiUrl = uri.scheme == "http" ? "http://$hostWithPort/api/" : null;
+
+  final streamingUrl = uri.scheme == "http"
+      ? "ws://$hostWithPort/streaming/"
+      : null;
+
+  return Misskey(
+    host: hostWithPort,
+    token: null,
+    apiUrl: apiUrl,
+    streamingUrl: streamingUrl,
+    socketConnectionTimeout: const Duration(seconds: 20),
+  );
+}
+
+final favoriteProvider =
+    ChangeNotifierProvider.family<FavoriteRepository, Account>(
+      (ref, account) => FavoriteRepository(
+        ref.read(misskeyProvider(account)),
+        ref.read(notesProvider(account)),
+      ),
+    );
+
+final notesProvider = ChangeNotifierProvider.family<NoteRepository, Account>(
+  (ref, account) => NoteRepository(ref.read(misskeyProvider(account)), account),
+);
+
+@Riverpod(dependencies: [accountContext])
+Raw<NoteRepository> notesWith(Ref ref) {
+  return ref.read(notesProvider(ref.read(accountContextProvider).getAccount));
+}
+
+@Riverpod(keepAlive: true)
+EmojiRepository emojiRepository(Ref ref, Account account) =>
+    EmojiRepositoryImpl(
+      misskey: ref.read(misskeyProvider(account)),
+      account: account,
+      accountSettingsRepository: ref.read(accountSettingsRepositoryProvider),
+      sharePreferenceController: ref.read(sharedPrefenceControllerProvider),
+    );
+
+@riverpod
+List<Account> accounts(Ref ref) => ref.watch(accountRepositoryProvider);
+
+@riverpod
+MeDetailed i(Ref ref, Acct acct) {
+  final accounts = ref.watch(accountsProvider);
+  final account = accounts.firstWhere((account) => account.acct == acct);
+  return account.i;
+}
+
+@riverpod
+Account account(Ref ref, Acct acct) => ref.watch(
+  accountsProvider.select(
+    (accounts) => accounts.firstWhere((account) => account.acct == acct),
+  ),
+);
+
+final tabSettingsRepositoryProvider = ChangeNotifierProvider(
+  (ref) => TabSettingsRepository(),
+);
+
+final accountSettingsRepositoryProvider = ChangeNotifierProvider(
+  (ref) => AccountSettingsRepository(),
+);
+
+final generalSettingsRepositoryProvider = ChangeNotifierProvider(
+  (ref) => GeneralSettingsRepository(),
+);
+
+final desktopSettingsRepositoryProvider = ChangeNotifierProvider(
+  (ref) => DesktopSettingsRepository(),
+);
+
+final errorEventProvider =
+    StateProvider<(Object? error, BuildContext? context)>(
+      (ref) => (null, null),
+    );
+
+final importExportRepositoryProvider = ChangeNotifierProvider(
+  (ref) => ImportExportRepository(ref),
+);
+
+@Riverpod(keepAlive: true)
+CacheManager cacheManager(Ref ref) => kIsWeb ? DefaultCacheManager() : CacheManager(
+  Config(
+    "libCachedImageData",
+    maxNrOfCacheObjects: 10000,
+    fileSystem: fs.IOFileSystem("libCachedImageData"),
+  ),
+);
+
+@Riverpod(keepAlive: true)
+MiriaWindowListener miriaWindowListener(Ref ref) => MiriaWindowListener(ref);
+
+@freezed
+abstract class AccountContext with _$AccountContext {
+  const factory AccountContext({
+    /// 他鯖を取得するなどの目的で、非ログイン状態として使用されるアカウント
+    required Account getAccount,
+    required Account postAccount,
+  }) = _AccountContext;
+
+  factory AccountContext.as(Account account) =>
+      AccountContext(getAccount: account, postAccount: account);
+
+  const AccountContext._();
+
+  bool get isSame => getAccount == postAccount;
+}
+
+@Riverpod(dependencies: [])
+AccountContext accountContext(Ref ref) => throw UnimplementedError();
+
+@Riverpod(dependencies: [accountContext])
+Misskey misskeyGetContext(Ref ref) {
+  final account = ref.read(
+    accountContextProvider.select((value) => value.getAccount),
+  );
+  return ref.read(misskeyProvider(account));
+}
+
+@Riverpod(dependencies: [accountContext])
+Misskey misskeyPostContext(Ref ref) {
+  final account = ref.read(
+    accountContextProvider.select((value) => value.postAccount),
+  );
+  return ref.read(misskeyProvider(account));
+}
+
+final timelineProvider =
+    ChangeNotifierProvider.family<TimelineRepository, TabSetting>((
+      ref,
+      setting,
+    ) {
+      final account = ref.read(accountProvider(setting.acct));
+
+      return switch (setting.tabType) {
+        TabType.localTimeline => LocalTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.homeTimeline => HomeTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.globalTimeline => GlobalTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.hybridTimeline => HybridTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.roleTimeline => RoleTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.channel => ChannelTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.userList => UserListTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.antenna => AntennaTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+        TabType.customTimeline => CustomTimelineRepository(
+          ref.read(misskeyProvider(account)),
+          account,
+          ref.read(notesProvider(account)),
+          ref.read(generalSettingsRepositoryProvider),
+          setting,
+          ref,
+        ),
+      };
+    });

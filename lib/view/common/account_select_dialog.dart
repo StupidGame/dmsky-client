@@ -1,0 +1,89 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/hooks/use_async.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/view/common/account_scope.dart";
+import "package:dmsky_client/view/common/avatar_icon.dart";
+import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
+
+@RoutePage()
+class AccountSelectDialog extends HookConsumerWidget {
+  const AccountSelectDialog({
+    super.key,
+    this.host,
+    this.remoteHost,
+    this.showWithoutLogin = true,
+  });
+
+  /// nullではないとき, 指定されたサーバーのアカウントのみ表示する
+  final String? host;
+
+  /// 相手先のホスト
+  final String? remoteHost;
+
+  // 相手先のサーバで開く（ログインなし）を表示
+  final bool showWithoutLogin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountsProvider);
+
+    final navigateAsRemote = useHandledFuture(() async {
+      final remoteHost = this.remoteHost;
+      if (remoteHost == null) return;
+      final meta = await ref
+          .read(misskeyWithoutAccountProvider(remoteHost))
+          .meta();
+
+      await ref
+          .read(appRouterProvider)
+          .maybePop(Account.demoAccount(remoteHost, meta));
+    });
+
+    return AlertDialog(
+      title: Text(S.of(context).openAsOtherAccount),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: ListView(
+          children: [
+            if (showWithoutLogin && remoteHost != null)
+              switch (navigateAsRemote.value) {
+                AsyncLoading() => const Center(
+                  child: CircularProgressIndicator.adaptive(),
+                ),
+                _ => ListTile(
+                  leading: const Icon(Icons.language),
+                  title: Text(S.of(context).remoteServerWithoutLogin),
+                  onTap: navigateAsRemote.executeOrNull,
+                ),
+              },
+            for (final account in accounts.where(
+              (account) => host == null || account.host == host,
+            ))
+              AccountContextScope.as(
+                account: account,
+                child: ListTile(
+                  leading: AvatarIcon(user: account.i),
+                  title: SimpleMfmText(
+                    account.i.name ?? account.i.username,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  subtitle: Text(
+                    account.acct.toString(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop(account);
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

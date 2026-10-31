@@ -1,0 +1,134 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/repository/account_repository.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/login_page/centraing_widget.dart";
+
+class PasswordLogin extends ConsumerStatefulWidget {
+  const PasswordLogin({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => PasswordLoginState();
+}
+
+class PasswordLoginState extends ConsumerState<PasswordLogin> {
+  final serverController = TextEditingController();
+  final userController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    serverController.dispose();
+    userController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> login() async {
+    await ref
+        .read(accountRepositoryProvider.notifier)
+        .loginAsPassword(
+          serverController.text,
+          userController.text,
+          passwordController.text,
+        );
+
+    if (!mounted) return;
+    await context.pushRoute(
+      TimeLineRoute(
+        initialTabSetting: ref
+            .read(tabSettingsRepositoryProvider)
+            .tabSettings
+            .first,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CenteringWidget(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("この機能はめいどるふぃんなどを想定していますが、現状機能しません。"),
+          Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: const {
+              0: IntrinsicColumnWidth(),
+              1: FlexColumnWidth(),
+            },
+            children: [
+              TableRow(
+                children: [
+                  const Text("サーバー"),
+                  TextField(
+                    enabled: false,
+                    controller: serverController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.dns),
+                    ),
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  const Padding(padding: EdgeInsets.only(bottom: 10)),
+                  Container(),
+                ],
+              ),
+              TableRow(
+                children: [
+                  const Text("ユーザー名"),
+                  TextField(
+                    enabled: false,
+                    controller: userController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.account_circle),
+                    ),
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  const Padding(padding: EdgeInsets.only(bottom: 10)),
+                  Container(),
+                ],
+              ),
+              TableRow(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: Text("パスワード"),
+                  ),
+                  TextField(
+                    enabled: false,
+                    controller: passwordController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.key),
+                    ),
+                    obscureText: true,
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  Container(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: ElevatedButton(
+                      onPressed: () async => login(),
+                      child: const Text("ログイン"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

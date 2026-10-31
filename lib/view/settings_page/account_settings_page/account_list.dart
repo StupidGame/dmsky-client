@@ -1,0 +1,138 @@
+import "package:dmsky_client/util/app_platform.dart";
+
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/repository/account_repository.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/common/avatar_icon.dart";
+
+@RoutePage()
+class AccountListPage extends ConsumerWidget {
+  const AccountListPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountsProvider);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.of(context).accountSettings),
+        leading: Container(),
+        actions: [
+          IconButton(
+            onPressed: () async => await context.pushRoute(const LoginRoute()),
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: ReorderableListView.builder(
+                buildDefaultDragHandles: false,
+                itemCount: accounts.length,
+                itemBuilder: (context, index) {
+                  final account = accounts[index];
+                  if (AppPlatform.isAndroid || AppPlatform.isIOS) {
+                    return ReorderableDelayedDragStartListener(
+                      key: Key("$index"),
+                      index: index,
+                      child: AccountListItem(account),
+                    );
+                  } else {
+                    return ReorderableDragStartListener(
+                      key: Key("$index"),
+                      index: index,
+                      child: AccountListItem(account),
+                    );
+                  }
+                },
+                onReorder: ref.read(accountRepositoryProvider.notifier).reorder,
+              ),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: ElevatedButton(
+                  onPressed: () async => await context.router.pushAndPopUntil(
+                    const SplashRoute(),
+                    predicate: (_) => false,
+                  ),
+                  child: Text(S.of(context).quitAccountSettings),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AccountListItem extends ConsumerWidget {
+  const AccountListItem(this.account, {super.key});
+
+  final Account account;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: AvatarIcon(user: account.i),
+      title: Text(
+        account.i.name ?? account.i.username,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      subtitle: Text(
+        account.acct.toString(),
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.pushRoute(SeveralAccountSettingsRoute(account: account));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  content: Text(S.of(context).confirmDelete),
+                  actions: [
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(S.of(context).cancel),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await ref
+                            .read(accountRepositoryProvider.notifier)
+                            .remove(account);
+                        if (!context.mounted) return;
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(S.of(context).doDeleting),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const Icon(Icons.drag_handle),
+        ],
+      ),
+    );
+  }
+}

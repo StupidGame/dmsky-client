@@ -1,0 +1,310 @@
+import "dart:async";
+
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/extensions/user_extension.dart";
+import "package:dmsky_client/hooks/use_async.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/model/note_search_condition.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/state_notifier/common/misskey_notes/misskey_note_notifier.dart";
+import "package:dmsky_client/view/common/account_scope.dart";
+import "package:dmsky_client/view/user_page/user_info_notifier.dart";
+import "package:misskey_dart/misskey_dart.dart";
+import "package:url_launcher/url_launcher.dart";
+
+enum UserControl {
+  createMute,
+  deleteMute,
+  createRenoteMute,
+  deleteRenoteMute,
+  createBlock,
+  deleteBlock,
+}
+
+@RoutePage()
+class UserControlDialog extends HookConsumerWidget implements AutoRouteWrapper {
+  final Account account;
+  final UserDetailed response;
+  final String? host;
+
+  const UserControlDialog({
+    required this.account,
+    required this.response,
+    this.host,
+    super.key,
+  });
+
+  @override
+  Widget wrappedRoute(BuildContext context) =>
+      AccountContextScope.as(account: account, child: this);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // readではなくwatchすること。readだとこのダイアログがnotifierを購読せず、
+    // 呼び出し元がuserInfoProviderを購読していない場合(タイムラインのノートメニュー
+    // から開いた場合など)にnotifierが破棄され、ミュート・ブロックが動作しなくなる。
+    final notifier = ref.watch(userInfoNotifierProxyProvider(response.id));
+
+    final createBlocking = useAsync(notifier.createBlocking);
+    final deleteBlocking = useAsync(notifier.deleteBlocking);
+    final createRenoteMute = useAsync(notifier.createRenoteMute);
+    final deleteRenoteMute = useAsync(notifier.deleteRenoteMute);
+    final createMute = useAsync(notifier.createMute);
+    final deleteMute = useAsync(notifier.deleteMute);
+    final copyName = useAsync(() async {
+      await Clipboard.setData(
+        ClipboardData(text: response.name ?? response.username),
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).doneCopy),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      Navigator.of(context).pop();
+    });
+    final copyScreenName = useAsync(() async {
+      await Clipboard.setData(ClipboardData(text: response.acct));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).doneCopy),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      Navigator.of(context).pop();
+    });
+    final copyLinks = useAsync(() async {
+      await Clipboard.setData(
+        ClipboardData(
+          text: Uri(
+            scheme: "https",
+            host: account.host,
+            path: response.acct,
+          ).toString(),
+        ),
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).doneCopy),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      Navigator.of(context).pop();
+    });
+    final openBrowserAsRemote = useAsync(() async {
+      final uri = response.url ?? response.uri;
+      if (uri == null) return;
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+    });
+    final openUserInOtherAccount = useAsync(
+      () async => ref
+          .read(misskeyNoteProvider.notifier)
+          .openUserInOtherAccount(response, host),
+    );
+
+    final isLoading = [
+      createBlocking.value,
+      deleteBlocking.value,
+      createRenoteMute.value,
+      deleteRenoteMute.value,
+      createMute.value,
+      deleteMute.value,
+    ].where((e) => e is AsyncData || e is AsyncLoading).isNotEmpty;
+
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator.adaptive());
+    }
+
+    final user = response;
+    return ListView(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.copy),
+          title: Text(S.of(context).copyName),
+          onTap: copyName.executeOrNull,
+        ),
+        ListTile(
+          leading: const Icon(Icons.alternate_email),
+          title: Text(S.of(context).copyUserScreenName),
+          onTap: copyScreenName.executeOrNull,
+        ),
+        ListTile(
+          leading: const Icon(Icons.link),
+          title: Text(S.of(context).copyLinks),
+          onTap: copyLinks.executeOrNull,
+        ),
+        ListTile(
+          leading: const Icon(Icons.open_in_browser),
+          title: Text(S.of(context).openBrowsers),
+          onTap: () async {
+            await launchUrl(
+              Uri(scheme: "https", host: account.host, path: response.acct),
+              mode: LaunchMode.externalApplication,
+            );
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+          },
+        ),
+        if (response.host != null)
+          ListTile(
+            leading: const Icon(Icons.rocket_launch),
+            title: Text(S.of(context).openBrowsersAsRemote),
+            onTap: openBrowserAsRemote.executeOrNull,
+          ),
+        ListTile(
+          leading: const Icon(Icons.open_in_new),
+          title: Text(S.of(context).openInAnotherAccount),
+          onTap: openUserInOtherAccount.executeOrNull,
+        ),
+        ListTile(
+          leading: const Icon(Icons.search),
+          title: Text(S.of(context).searchNote),
+          onTap: () async => context.pushRoute(
+            SearchRoute(
+              accountContext: ref.read(accountContextProvider),
+              initialNoteSearchCondition: NoteSearchCondition(user: response),
+            ),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.list),
+          title: Text(S.of(context).addToList),
+          onTap: () async => context.pushRoute(
+            UsersListModalRoute(account: account, user: response),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings_input_antenna),
+          title: Text(S.of(context).addToAntenna),
+          onTap: () async => context.pushRoute(
+            AntennaModalRoute(account: account, user: user),
+          ),
+        ),
+        if (user is UserDetailedNotMeWithRelations) ...[
+          if (user.isRenoteMuted)
+            ListTile(
+              leading: const Icon(Icons.repeat_rounded),
+              title: Text(S.of(context).deleteRenoteMute),
+              onTap: deleteRenoteMute.executeOrNull,
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.repeat_rounded),
+              title: Text(S.of(context).createRenoteMute),
+              onTap: createRenoteMute.executeOrNull,
+            ),
+          if (user.isMuted)
+            ListTile(
+              leading: const Icon(Icons.visibility),
+              title: Text(S.of(context).deleteMute),
+              onTap: deleteMute.executeOrNull,
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.visibility_off),
+              title: Text(S.of(context).createMute),
+              onTap: createMute.executeOrNull,
+            ),
+          if (user.isBlocking)
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: Text(S.of(context).deleteBlock),
+              onTap: deleteBlocking.executeOrNull,
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: Text(S.of(context).createBlock),
+              onTap: createBlocking.executeOrNull,
+            ),
+          ListTile(
+            leading: const Icon(Icons.report),
+            title: Text(S.of(context).reportAbuse),
+            onTap: () async {
+              await (
+                context.maybePop(),
+                context.pushRoute(
+                  AbuseRoute(account: account, targetUser: response),
+                ),
+              ).wait;
+            },
+          ),
+        ],
+        if (user is MeDetailed)
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: Text(S.of(context).editProfile),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async =>
+                await context.pushRoute(ProfileEditRoute(account: account)),
+          ),
+      ],
+    );
+  }
+}
+
+enum Expire {
+  indefinite(null),
+  minutes_10(Duration(minutes: 10)),
+  hours_1(Duration(hours: 1)),
+  day_1(Duration(days: 1)),
+  week_1(Duration(days: 7));
+
+  final Duration? expires;
+
+  const Expire(this.expires);
+
+  String displayName(BuildContext context) {
+    return switch (this) {
+      Expire.indefinite => S.of(context).unlimited,
+      Expire.minutes_10 => S.of(context).minutes10,
+      Expire.hours_1 => S.of(context).hours1,
+      Expire.day_1 => S.of(context).day1,
+      Expire.week_1 => S.of(context).week1,
+    };
+  }
+}
+
+@RoutePage()
+class ExpireSelectDialog extends HookWidget {
+  const ExpireSelectDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedExpire = useState<Expire?>(Expire.indefinite);
+
+    return AlertDialog(
+      title: Text(S.of(context).selectDuration),
+      content: DropdownButton<Expire>(
+        items: [
+          for (final value in Expire.values)
+            DropdownMenuItem<Expire>(
+              value: value,
+              child: Text(value.displayName(context)),
+            ),
+        ],
+        onChanged: (value) => selectedExpire.value = value,
+        value: selectedExpire.value,
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop(selectedExpire.value);
+          },
+          child: Text(S.of(context).done),
+        ),
+      ],
+    );
+  }
+}

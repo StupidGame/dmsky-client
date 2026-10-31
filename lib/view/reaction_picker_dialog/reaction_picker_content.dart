@@ -1,0 +1,239 @@
+import "dart:async";
+
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/misskey_emoji_data.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/repository/emoji_repository.dart";
+import "package:dmsky_client/view/common/misskey_notes/custom_emoji.dart";
+import "package:dmsky_client/view/dialogs/simple_message_dialog.dart";
+import "package:dmsky_client/view/themes/app_theme.dart";
+import "package:visibility_detector/visibility_detector.dart";
+
+class ReactionPickerContent extends ConsumerStatefulWidget {
+  final FutureOr Function(MisskeyEmojiData emoji) onTap;
+  final bool isAcceptSensitive;
+
+  const ReactionPickerContent({
+    required this.onTap,
+    required this.isAcceptSensitive,
+    super.key,
+  });
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      ReactionPickerContentState();
+}
+
+class ReactionPickerContentState extends ConsumerState<ReactionPickerContent> {
+  final categoryList = <String>[];
+  EmojiRepository get emojiRepository => ref.read(
+    emojiRepositoryProvider(ref.read(accountContextProvider).getAccount),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    categoryList
+      ..clear()
+      ..addAll(
+        emojiRepository.emoji
+                ?.map((e) => e.category)
+                .toSet()
+                .toList()
+                .nonNulls ??
+            [],
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EmojiSearch(
+            onTap: widget.onTap,
+            isAcceptSensitive: widget.isAcceptSensitive,
+          ),
+        ),
+        SliverList.builder(
+          itemCount: categoryList.length,
+          itemBuilder: (context, index) => ExpansionTile(
+            title: Text(categoryList[index]),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Wrap(
+                    spacing: 5,
+                    runSpacing: 5,
+                    crossAxisAlignment: WrapCrossAlignment.start,
+                    children: [
+                      for (final emoji in (emojiRepository.emoji ?? []).where(
+                        (element) => element.category == categoryList[index],
+                      ))
+                        EmojiButton(
+                          emoji: emoji.emoji,
+                          onTap: widget.onTap,
+                          isAcceptSensitive: widget.isAcceptSensitive,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class EmojiButton extends ConsumerStatefulWidget {
+  final MisskeyEmojiData emoji;
+  final FutureOr Function(MisskeyEmojiData emoji) onTap;
+  final bool isForceVisible;
+  final bool isAcceptSensitive;
+
+  const EmojiButton({
+    required this.emoji,
+    required this.onTap,
+    required this.isAcceptSensitive,
+    super.key,
+    this.isForceVisible = false,
+  });
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => EmojiButtonState();
+}
+
+class EmojiButtonState extends ConsumerState<EmojiButton> {
+  late var isVisibility = widget.isForceVisible;
+  late var isVisibilityOnceMore = widget.isForceVisible;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = !widget.isAcceptSensitive && widget.emoji.isSensitive;
+    return VisibilityDetector(
+      key: Key(widget.emoji.baseName),
+      onVisibilityChanged: (visibilityInfo) {
+        if (visibilityInfo.visibleFraction != 0) {
+          setState(() {
+            isVisibility = true;
+            isVisibilityOnceMore = true;
+          });
+        }
+      },
+      child: DecoratedBox(
+        decoration: disabled && isVisibility
+            ? BoxDecoration(color: Theme.of(context).disabledColor)
+            : const BoxDecoration(),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+            padding: const WidgetStatePropertyAll(EdgeInsets.all(5)),
+            elevation: const WidgetStatePropertyAll(0),
+            minimumSize: const WidgetStatePropertyAll(Size.zero),
+            overlayColor: WidgetStatePropertyAll(
+              AppTheme.of(context).colorTheme.accentedBackground,
+            ),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          onPressed: () async {
+            if (!isVisibility) return;
+            if (disabled) {
+              await SimpleMessageDialog.show(
+                context,
+                S.of(context).disabledUsingSensitiveCustomEmoji,
+              );
+            } else {
+              widget.onTap.call(widget.emoji);
+            }
+          },
+          child: isVisibility
+              ? SizedBox(
+                  height: MediaQuery.textScalerOf(context).scale(32),
+                  child: CustomEmoji(emojiData: widget.emoji),
+                )
+              : SizedBox(
+                  width: MediaQuery.textScalerOf(context).scale(32),
+                  height: MediaQuery.textScalerOf(context).scale(32),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class EmojiSearch extends ConsumerStatefulWidget {
+  final FutureOr Function(MisskeyEmojiData emoji) onTap;
+  final bool isAcceptSensitive;
+
+  const EmojiSearch({
+    required this.onTap,
+    required this.isAcceptSensitive,
+    super.key,
+  });
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => EmojiSearchState();
+}
+
+class EmojiSearchState extends ConsumerState<EmojiSearch> {
+  final emojis = <MisskeyEmojiData>[];
+
+  EmojiRepository get emojiRepository => ref.read(
+    emojiRepositoryProvider(ref.read(accountContextProvider).getAccount),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    emojis
+      ..clear()
+      ..addAll(emojiRepository.defaultEmojis().toList());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
+          autofocus: true,
+          onChanged: (value) {
+            Future(() async {
+              final result = await emojiRepository.searchEmojis(value);
+              if (!mounted) return;
+              setState(() {
+                emojis.clear();
+                emojis.addAll(result);
+              });
+            });
+          },
+        ),
+        const Padding(padding: EdgeInsets.only(top: 10)),
+        Align(
+          alignment: Alignment.topLeft,
+          child: Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            crossAxisAlignment: WrapCrossAlignment.start,
+            children: [
+              for (final emoji in emojis)
+                EmojiButton(
+                  emoji: emoji,
+                  onTap: widget.onTap,
+                  isForceVisible: true,
+                  isAcceptSensitive: widget.isAcceptSensitive,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

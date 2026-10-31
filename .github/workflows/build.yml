@@ -1,0 +1,151 @@
+name: Build all platforms
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      web_base_href:
+        description: "Web hosting path (must start and end with /)"
+        type: string
+        default: "/"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Analyze and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos lib
+      - name: Test
+        run: flutter test --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Android APK and AAB
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: ./.github/actions/setup-flutter
+      - name: Build APKs
+        run: flutter build apk --no-tree-shake-icons --release --split-per-abi
+      - name: Build app bundle
+        run: flutter build appbundle --no-tree-shake-icons --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmsky-client-android
+          path: |
+            build/app/outputs/flutter-apk/*-release.apk
+            build/app/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    name: iOS unsigned app
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
+      - name: Build without signing
+        run: flutter build ios --no-tree-shake-icons --release --no-codesign
+      - name: Package app, preserving permissions
+        run: tar -czf dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmsky-client-ios-unsigned
+          path: dmsky-client-ios-unsigned.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  linux:
+    name: Linux x64
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
+      - uses: ./.github/actions/setup-flutter
+      - name: Build Linux
+        run: flutter build linux --no-tree-shake-icons --release
+      - name: Package the complete bundle, preserving permissions
+        run: tar -czf dmsky-client-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmsky-client-linux-x64
+          path: dmsky-client-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  windows:
+    name: Windows x64
+    needs: verify
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
+      - name: Build Windows
+        run: flutter build windows --no-tree-shake-icons --release
+      - name: Include Visual C++ runtime and package the complete bundle
+        shell: pwsh
+        run: |
+          $bundle = 'build/windows/x64/runner/Release'
+          foreach ($library in @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')) {
+            Copy-Item (Join-Path $env:WINDIR "System32/$library") $bundle
+          }
+          Compress-Archive -Path "$bundle/*" -DestinationPath dmsky-client-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmsky-client-windows-x64
+          path: dmsky-client-windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  web:
+    name: Web
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
+      - name: Build Web
+        env:
+          DMSKY_WEB_BASE_HREF: ${{ inputs.web_base_href || '/' }}
+        run: flutter build web --no-wasm-dry-run --no-tree-shake-icons --release --base-href "$DMSKY_WEB_BASE_HREF"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmsky-client-web
+          path: build/web/
+          if-no-files-found: error
+          retention-days: 30

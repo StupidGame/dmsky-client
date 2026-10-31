@@ -1,0 +1,234 @@
+import "dart:typed_data";
+
+import "package:auto_route/auto_route.dart";
+import "package:collection/collection.dart";
+import "package:flutter/material.dart" hide Page;
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/model/antenna_settings.dart";
+import "package:dmsky_client/model/clip_settings.dart";
+import "package:dmsky_client/model/image_file.dart";
+import "package:dmsky_client/model/misskey_emoji_data.dart";
+import "package:dmsky_client/model/note_search_condition.dart";
+import "package:dmsky_client/model/server_preset.dart";
+import "package:dmsky_client/model/tab_setting.dart";
+import "package:dmsky_client/model/users_list_settings.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/view/abuse_dialog/abuse_dialog.dart";
+import "package:dmsky_client/view/announcements_page/announcements_page.dart";
+import "package:dmsky_client/view/antenna_page/antenna_notes_page.dart";
+import "package:dmsky_client/view/antenna_page/antenna_page.dart";
+import "package:dmsky_client/view/antenna_page/antenna_settings_dialog.dart";
+import "package:dmsky_client/view/channel_description_dialog.dart";
+import "package:dmsky_client/view/channels_page/channel_detail_page.dart";
+import "package:dmsky_client/view/channels_page/channels_page.dart";
+import "package:dmsky_client/view/chat_page/chat_home_page.dart";
+import "package:dmsky_client/view/chat_page/chat_message_detail_page.dart";
+import "package:dmsky_client/view/chat_page/chat_message_menu_sheet.dart";
+import "package:dmsky_client/view/chat_page/chat_room_create_page.dart";
+import "package:dmsky_client/view/chat_page/chat_search_page.dart";
+import "package:dmsky_client/view/chat_page/room_chat.dart";
+import "package:dmsky_client/view/chat_page/user_chat.dart";
+import "package:dmsky_client/view/clip_list_page/clip_detail_page.dart";
+import "package:dmsky_client/view/clip_list_page/clip_list_page.dart";
+import "package:dmsky_client/view/clip_list_page/clip_settings_dialog.dart";
+import "package:dmsky_client/view/clip_modal_sheet/clip_modal_sheet.dart";
+import "package:dmsky_client/view/common/account_select_dialog.dart";
+import "package:dmsky_client/view/common/color_picker_dialog.dart";
+import "package:dmsky_client/view/common/misskey_notes/reaction_user_dialog.dart";
+import "package:dmsky_client/view/common/misskey_notes/renote_modal_sheet.dart";
+import "package:dmsky_client/view/common/misskey_notes/renote_user_dialog.dart";
+import "package:dmsky_client/view/drafts_page/drafts_dialog.dart";
+import "package:dmsky_client/view/drafts_page/drafts_page.dart";
+import "package:dmsky_client/view/explore_page/explore_page.dart";
+import "package:dmsky_client/view/explore_page/explore_role_users_page.dart";
+import "package:dmsky_client/view/favorited_note_page/favorited_note_page.dart";
+import "package:dmsky_client/view/federation_page/federation_page.dart";
+import "package:dmsky_client/view/games_page/misskey_games_page.dart";
+import "package:dmsky_client/view/hashtag_page/hashtag_page.dart";
+import "package:dmsky_client/view/login_page/login_page.dart";
+import "package:dmsky_client/view/login_page/misskey_server_list_dialog.dart";
+import "package:dmsky_client/view/misskey_page_page/misskey_page_page.dart";
+import "package:dmsky_client/view/note_create_page/drive_file_select_dialog.dart";
+import "package:dmsky_client/view/note_create_page/drive_modal_sheet.dart";
+import "package:dmsky_client/view/note_create_page/note_create_page.dart";
+import "package:dmsky_client/view/note_detail_page/note_detail_page.dart";
+import "package:dmsky_client/view/note_modal_sheet/note_modal_sheet.dart";
+import "package:dmsky_client/view/notes_after_renote_page/notes_after_renote_page.dart";
+import "package:dmsky_client/view/notification_page/notification_page.dart";
+import "package:dmsky_client/view/photo_edit_page/license_confirm_dialog.dart";
+import "package:dmsky_client/view/photo_edit_page/photo_edit_page.dart";
+import "package:dmsky_client/view/profile_edit_page/profile_edit_page.dart";
+import "package:dmsky_client/view/reaction_picker_dialog/reaction_picker_dialog.dart";
+import "package:dmsky_client/view/search_page/search_page.dart";
+import "package:dmsky_client/view/server_detail_dialog.dart";
+import "package:dmsky_client/view/settings_page/account_settings_page/account_list.dart";
+import "package:dmsky_client/view/settings_page/app_info_page/app_info_page.dart";
+import "package:dmsky_client/view/settings_page/general_settings_page/general_settings_page.dart";
+import "package:dmsky_client/view/settings_page/import_export_page/folder_select_dialog.dart";
+import "package:dmsky_client/view/settings_page/import_export_page/import_export_page.dart";
+import "package:dmsky_client/view/settings_page/settings_page.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/antenna_select_dialog.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/channel_select_dialog.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/role_select_dialog.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/tab_settings_list_page.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/tab_settings_page.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/timeline_preset_dialog.dart";
+import "package:dmsky_client/view/settings_page/tab_settings_page/user_list_select_dialog.dart";
+import "package:dmsky_client/view/several_account_settings_page/blocked_users_page/blocked_users_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/cache_management_page/cache_management_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/instance_mute_page/instance_mute_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/muted_users_page/muted_users_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/reaction_deck_page/reaction_deck_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/reaction_mute_page/reaction_mute_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/several_account_general_settings_page/several_account_general_settings_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/several_account_settings_page.dart";
+import "package:dmsky_client/view/several_account_settings_page/word_mute_page/word_mute_page.dart";
+import "package:dmsky_client/view/share_extension_page/share_extension_page.dart";
+import "package:dmsky_client/view/sharing_account_select_page/account_select_page.dart";
+import "package:dmsky_client/view/splash_page/splash_page.dart";
+import "package:dmsky_client/view/time_line_page/time_line_page.dart";
+import "package:dmsky_client/view/user_page/antenna_modal_sheet.dart";
+import "package:dmsky_client/view/user_page/update_memo_dialog.dart";
+import "package:dmsky_client/view/user_page/user_control_dialog.dart";
+import "package:dmsky_client/view/user_page/user_followee.dart";
+import "package:dmsky_client/view/user_page/user_follower.dart";
+import "package:dmsky_client/view/user_page/user_page.dart";
+import "package:dmsky_client/view/user_page/users_list_modal_sheet.dart";
+import "package:dmsky_client/view/user_select_dialog.dart";
+import "package:dmsky_client/view/users_list_page/users_list_detail_page.dart";
+import "package:dmsky_client/view/users_list_page/users_list_page.dart";
+import "package:dmsky_client/view/users_list_page/users_list_settings_dialog.dart";
+import "package:dmsky_client/view/users_list_page/users_list_timeline_page.dart";
+import "package:misskey_dart/misskey_dart.dart";
+
+part "app_router.gr.dart";
+
+@AutoRouterConfig(replaceInRouteName: "Page|Dialog|Sheet,Route")
+class AppRouter extends RootStackRouter {
+  @override
+  List<AutoRoute> get routes => [
+    AutoRoute(page: SplashRoute.page, initial: true),
+    AutoRoute(page: TimeLineRoute.page),
+    AutoRoute(page: NoteDetailRoute.page),
+    AutoRoute(page: UserRoute.page),
+    AutoRoute(page: UserFollowerRoute.page),
+    AutoRoute(page: UserFolloweeRoute.page),
+    AutoRoute(page: NoteCreateRoute.page),
+    AutoRoute(page: PhotoEditRoute.page),
+    AutoRoute(page: NotesAfterRenoteRoute.page),
+    AutoRoute(page: AntennaRoute.page),
+    AutoRoute(page: AntennaNotesRoute.page),
+    AutoRoute(page: UsersListRoute.page),
+    AutoRoute(page: UsersListTimelineRoute.page),
+    AutoRoute(page: UsersListDetailRoute.page),
+    AutoRoute(page: NotificationRoute.page),
+    AutoRoute(page: FavoritedNoteRoute.page),
+    AutoRoute(page: ClipListRoute.page),
+    AutoRoute(page: ClipDetailRoute.page),
+    AutoRoute(page: DraftsRoute.page),
+    AutoRoute(page: ChannelsRoute.page),
+    AutoRoute(page: ChannelDetailRoute.page),
+    AutoRoute(page: HashtagRoute.page),
+    AutoRoute(page: ExploreRoute.page),
+    AutoRoute(page: ExploreRoleUsersRoute.page),
+    AutoRoute(page: SearchRoute.page),
+    AutoRoute(page: FederationRoute.page),
+    AutoRoute(page: AnnouncementRoute.page),
+    AutoRoute(page: LoginRoute.page),
+    AutoRoute(page: SettingsRoute.page),
+    AutoRoute(page: GeneralSettingsRoute.page),
+    AutoRoute(page: TabSettingsListRoute.page),
+    AutoRoute(page: TabSettingsRoute.page),
+    AutoRoute(page: ImportExportRoute.page),
+    AutoRoute(page: AccountListRoute.page),
+    AutoRoute(page: AppInfoRoute.page),
+    AutoRoute(page: SeveralAccountSettingsRoute.page),
+    AutoRoute(page: ProfileEditRoute.page),
+    AutoRoute(page: ReactionDeckRoute.page),
+    AutoRoute(page: ReactionMuteRoute.page),
+    AutoRoute(page: WordMuteRoute.page),
+    AutoRoute(page: InstanceMuteRoute.page),
+    AutoRoute(page: MutedUsersRoute.page),
+    AutoRoute(page: BlockedUsersRoute.page),
+    AutoRoute(page: CacheManagementRoute.page),
+    AutoRoute(page: SeveralAccountGeneralSettingsRoute.page),
+    AutoRoute(page: SharingAccountSelectRoute.page),
+    AutoRoute(page: MisskeyGamesRoute.page),
+    // きしょ……
+    AutoRoute(page: MisskeyRouteRoute.page),
+    AutoRoute(page: ChatHomeRoute.page),
+    AutoRoute(page: ChatRoomCreateRoute.page),
+    AutoRoute(page: RoomChatRoute.page),
+    AutoRoute(page: UserChatRoute.page),
+    AutoRoute(page: ChatSearchRoute.page),
+    AutoRoute(page: ChatMessageDetailRoute.page),
+
+    AutoRoute(path: "/share-extension", page: ShareExtensionRoute.page),
+
+    // ダイアログ
+    AutoDialogRoute(page: AbuseRoute.page),
+    AutoDialogRoute(page: RenoteUserRoute.page),
+    AutoDialogRoute(page: ChannelDescriptionRoute.page),
+    AutoDialogRoute<Expire>(page: ExpireSelectRoute.page),
+    AutoDialogRoute(page: UpdateMemoRoute.page),
+    AutoDialogRoute<bool>(page: LicenseConfirmRoute.page),
+    AutoDialogRoute<Color>(page: ColorPickerRoute.page),
+    AutoDialogRoute(page: MisskeyServerListRoute.page),
+    AutoDialogRoute(page: ServerDetailRoute.page),
+    AutoDialogRoute(page: ReactionUserRoute.page),
+    AutoDialogRoute<CommunityChannel>(page: ChannelSelectRoute.page),
+    AutoDialogRoute<ClipSettings>(page: ClipSettingsRoute.page),
+    AutoDialogRoute<MisskeyEmojiData>(page: ReactionPickerRoute.page),
+    AutoDialogRoute<Account>(page: AccountSelectRoute.page),
+    AutoDialogRoute<User>(page: UserSelectRoute.page),
+    AutoDialogRoute<RolesListResponse>(page: RoleSelectRoute.page),
+    AutoDialogRoute<Antenna>(page: AntennaSelectRoute.page),
+    AutoDialogRoute<UsersList>(page: UserListSelectRoute.page),
+    AutoDialogRoute<UsersListSettings>(page: UsersListSettingsRoute.page),
+    AutoDialogRoute<AntennaSettings>(page: AntennaSettingsRoute.page),
+    AutoDialogRoute<FolderResult>(page: FolderSelectRoute.page),
+    AutoDialogRoute<List<DriveFile>>(page: DriveFileSelectRoute.page),
+    AutoDialogRoute<TimelinePreset>(page: TimelinePresetRoute.page),
+    AutoDialogRoute(page: DraftsModalRoute.page),
+
+    // モーダルシート
+    AutoModalRouteSheet(page: UserControlRoute.page),
+    AutoModalRouteSheet(page: NoteModalRoute.page),
+    AutoModalRouteSheet(page: RenoteModalRoute.page),
+    AutoModalRouteSheet(page: AntennaModalRoute.page),
+    AutoModalRouteSheet(page: ClipModalRoute.page),
+    AutoModalRouteSheet(page: UsersListModalRoute.page),
+    AutoModalRouteSheet<DriveModalSheetReturnValue>(page: DriveModalRoute.page),
+    AutoModalRouteSheet<ChatMessageMenuAction>(page: ChatMessageMenuRoute.page),
+  ];
+}
+
+/// ダイアログ
+class AutoDialogRoute<ReturnT extends Object> extends CustomRoute {
+  AutoDialogRoute({required super.page})
+    : super(
+        transitionsBuilder: TransitionsBuilders.fadeIn,
+        duration: const Duration(milliseconds: 200),
+        fullscreenDialog: false,
+        customRouteBuilder: <T>(context, child, page) => DialogRoute<T>(
+          context: context,
+          builder: (context) => child,
+          settings: page,
+        ),
+      );
+}
+
+/// モーダルボトムシート
+class AutoModalRouteSheet<ReturnT extends Object> extends CustomRoute {
+  AutoModalRouteSheet({required super.page})
+    : super(
+        transitionsBuilder: TransitionsBuilders.slideBottom,
+        duration: const Duration(milliseconds: 200),
+        customRouteBuilder: <T>(context, child, page) =>
+            ModalBottomSheetRoute<T>(
+              builder: (context) => child,
+              isScrollControlled: false,
+              settings: page,
+            ),
+      );
+}

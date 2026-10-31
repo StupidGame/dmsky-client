@@ -1,0 +1,661 @@
+import "package:auto_route/auto_route.dart";
+import "package:collection/collection.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:hooks_riverpod/legacy.dart";
+import "package:dmsky_client/extensions/date_time_extension.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/misskey_emoji_data.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/repository/account_repository.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/chat_page/chat_home_page.dart";
+import "package:dmsky_client/view/common/account_scope.dart";
+import "package:dmsky_client/view/common/dialog/dialog_state.dart";
+import "package:dmsky_client/view/common/misskey_notes/custom_emoji.dart";
+import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
+import "package:dmsky_client/view/common/misskey_notes/misskey_note.dart"
+    as misskey_note;
+import "package:dmsky_client/view/common/misskey_notes/network_image.dart";
+import "package:dmsky_client/view/common/pushable_listview.dart";
+import "package:dmsky_client/view/notification_page/notification_page_data.dart";
+import "package:dmsky_client/view/user_page/user_list_item.dart";
+import "package:misskey_dart/misskey_dart.dart";
+import "package:riverpod_annotation/riverpod_annotation.dart";
+
+part "notification_page.g.dart";
+
+@RoutePage()
+class NotificationPage extends ConsumerWidget implements AutoRouteWrapper {
+  final AccountContext accountContext;
+
+  const NotificationPage({required this.accountContext, super.key});
+
+  @override
+  Widget wrappedRoute(BuildContext context) =>
+      AccountContextScope(context: accountContext, child: this);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final misskey = ref.read(misskeyPostContextProvider);
+    final canChat = accountContext.postAccount.i.canChat == true;
+    return DefaultTabController(
+      length: 3 + (canChat ? 1 : 0),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(S.of(context).notification),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: S.of(context).notificationAll),
+              Tab(text: S.of(context).notificationForMe),
+              if (canChat) Tab(text: S.of(context).chat),
+              Tab(text: S.of(context).notificationDirect),
+            ],
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+          child: TabBarView(
+            children: [
+              PushableListView<NotificationData>(
+                initializeFuture: () async {
+                  final localize = S.of(context);
+                  final achievements = await ref.read(
+                    achievementsProvider.future,
+                  );
+                  final result = await misskey.i.notifications(
+                    const INotificationsRequest(limit: 50, markAsRead: true),
+                  );
+                  ref
+                      .read(notesWithProvider)
+                      .registerAll(result.map((e) => e.note).nonNulls);
+
+                  await ref
+                      .read(accountRepositoryProvider.notifier)
+                      .readAllNotification(accountContext.postAccount);
+                  return result.toNotificationData(localize, achievements);
+                },
+                nextFuture: (lastElement, _) async {
+                  final localize = S.of(context);
+                  final achievements = await ref.read(
+                    achievementsProvider.future,
+                  );
+                  final result = await misskey.i.notifications(
+                    INotificationsRequest(limit: 50, untilId: lastElement.id),
+                  );
+                  ref
+                      .read(notesWithProvider)
+                      .registerAll(result.map((e) => e.note).nonNulls);
+                  return result.toNotificationData(localize, achievements);
+                },
+                itemBuilder: (context, notification) => Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: NotificationItem(notification: notification),
+                  ),
+                ),
+              ),
+              PushableListView<Note>(
+                initializeFuture: () async {
+                  final notes = await ref
+                      .read(misskeyPostContextProvider)
+                      .notes
+                      .mentions(const NotesMentionsRequest());
+                  ref.read(notesWithProvider).registerAll(notes);
+                  return notes.toList();
+                },
+                nextFuture: (item, _) async {
+                  final notes = await ref
+                      .read(misskeyPostContextProvider)
+                      .notes
+                      .mentions(NotesMentionsRequest(untilId: item.id));
+                  ref.read(notesWithProvider).registerAll(notes);
+                  return notes.toList();
+                },
+                itemBuilder: (context, note) {
+                  return misskey_note.MisskeyNote(note: note);
+                },
+              ),
+              if (canChat) const ChatHome(),
+              PushableListView<Note>(
+                initializeFuture: () async {
+                  final notes = await ref
+                      .read(misskeyPostContextProvider)
+                      .notes
+                      .mentions(
+                        const NotesMentionsRequest(
+                          visibility: NoteVisibility.specified,
+                        ),
+                      );
+                  ref.read(notesWithProvider).registerAll(notes);
+                  return notes.toList();
+                },
+                nextFuture: (item, _) async {
+                  final notes = await ref
+                      .read(misskeyPostContextProvider)
+                      .notes
+                      .mentions(
+                        NotesMentionsRequest(
+                          untilId: item.id,
+                          visibility: NoteVisibility.specified,
+                        ),
+                      );
+                  ref.read(notesWithProvider).registerAll(notes);
+                  return notes.toList();
+                },
+                itemBuilder: (context, note) {
+                  return misskey_note.MisskeyNote(note: note);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+final showActionsProvider = StateProvider.autoDispose
+    .family<bool, NotificationData>((ref, _) => true);
+
+@Riverpod(dependencies: [misskeyPostContext])
+Future<List<FollowRequest>> followRequests(Ref ref) async {
+  final response = await ref
+      .watch(misskeyPostContextProvider)
+      .following
+      .requests
+      .list(const FollowingRequestsListRequest());
+  return response.toList();
+}
+
+class NotificationItem extends ConsumerWidget {
+  final NotificationData notification;
+
+  const NotificationItem({required this.notification, super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notification = this.notification;
+    final showActions = ref.watch(showActionsProvider(notification));
+    final followRequests = ref.watch(followRequestsProvider);
+
+    switch (notification) {
+      case RenoteReactionNotificationData():
+        final hasRenote = notification.renoteUsers.isNotEmpty;
+        final hasReaction = notification.reactionUsers.isNotEmpty;
+        return Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 30, right: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 5.0),
+                child: Row(
+                  children: [
+                    if (hasReaction && hasRenote)
+                      Expanded(
+                        child: SimpleMfmText(
+                          S
+                              .of(context)
+                              .renoteAndReactionsNotification(
+                                notification.reactionUsers.first.$2?.name ??
+                                    notification
+                                        .reactionUsers
+                                        .first
+                                        .$2
+                                        ?.username,
+                                notification.renoteUsers.first?.name ??
+                                    notification.renoteUsers.first?.username,
+                              ),
+                          emojis:
+                              Map.of(
+                                notification.reactionUsers.first.$2?.emojis ??
+                                    {},
+                              )..addAll(
+                                notification.renoteUsers.first?.emojis ?? {},
+                              ),
+                        ),
+                      ),
+                    if (hasReaction && !hasRenote)
+                      Expanded(
+                        child: SimpleMfmText(
+                          S
+                              .of(context)
+                              .reactionNotification(
+                                notification.reactionUsers.first.$2?.name ??
+                                    notification
+                                        .reactionUsers
+                                        .first
+                                        .$2
+                                        ?.username,
+                              ),
+                          emojis:
+                              notification.reactionUsers.first.$2?.emojis ?? {},
+                        ),
+                      ),
+                    if (hasRenote && !hasReaction)
+                      Expanded(
+                        child: SimpleMfmText(
+                          S
+                              .of(context)
+                              .renoteNotification(
+                                notification.renoteUsers.first?.name ??
+                                    notification.renoteUsers.first?.username,
+                              ),
+                          emojis: notification.renoteUsers.first?.emojis ?? {},
+                        ),
+                      ),
+                    Text(notification.createdAt.differenceNow(context)),
+                  ],
+                ),
+              ),
+              if (notification.note != null)
+                misskey_note.MisskeyNote(
+                  note: notification.note!,
+                  recursive: 2,
+                  isDisplayBorder: false,
+                ),
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Column(
+                  children: [
+                    if (hasRenote)
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(5),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(S.of(context).renotedUsersInNotification),
+                            Column(
+                              children: [
+                                for (final user
+                                    in notification.renoteUsers.nonNulls)
+                                  UserListItem(user: user),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (hasReaction && hasRenote)
+                      const Padding(padding: EdgeInsets.only(bottom: 10)),
+                    if (hasReaction)
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(S.of(context).reactionUsersInNotification),
+                            for (final reaction
+                                in notification.reactionUsers.mapIndexed(
+                                  (index, element) => (index, element),
+                                )) ...[
+                              if (reaction.$2.$1 != null &&
+                                      (reaction.$1 > 0 &&
+                                          notification
+                                                  .reactionUsers[reaction.$1 -
+                                                      1]
+                                                  .$1 !=
+                                              reaction.$2.$1) ||
+                                  reaction.$1 == 0)
+                                CustomEmoji(
+                                  emojiData: MisskeyEmojiData.fromEmojiName(
+                                    emojiName: reaction.$2.$1!,
+                                    repository: ref.read(
+                                      emojiRepositoryProvider(
+                                        ref
+                                            .read(accountContextProvider)
+                                            .getAccount,
+                                      ),
+                                    ),
+                                    emojiInfo:
+                                        notification.note?.reactionEmojis,
+                                  ),
+                                  fontSizeRatio: 2,
+                                ),
+                              if (reaction.$2.$2 != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20),
+                                  child: UserListItem(user: reaction.$2.$2!),
+                                ),
+                            ],
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case MentionQuoteNotificationData():
+        return Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+          child: Column(
+            children: [
+              if (notification.note != null)
+                misskey_note.MisskeyNote(note: notification.note!),
+            ],
+          ),
+        );
+      case FollowNotificationData():
+        final user = notification.user;
+        final type = notification.type;
+
+        return Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            top: 10,
+            bottom: 10,
+            right: 10,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: SimpleMfmText(
+                      notification.type.name(
+                        context,
+                        (user?.name ?? user?.username) ?? "",
+                      ),
+                      emojis: user?.emojis ?? {},
+                    ),
+                  ),
+                  Text(notification.createdAt.differenceNow(context)),
+                ],
+              ),
+              if (user != null) UserListItem(user: user),
+              if (showActions && user != null)
+                if (notification.type ==
+                    FollowNotificationDataType.receiveFollowRequest)
+                  followRequests.maybeWhen(
+                    data: (requests) {
+                      final isPending = requests.any(
+                        (request) => request.follower.id == user.id,
+                      );
+                      if (isPending) {
+                        return Row(
+                          children: [
+                            const Spacer(flex: 3),
+                            Flexible(
+                              flex: 5,
+                              fit: FlexFit.tight,
+                              child: ElevatedButton(
+                                onPressed: () async => handleFollowRequest(
+                                  ref,
+                                  accept: true,
+                                  userId: user.id,
+                                ),
+                                child: Text(S.of(context).accept),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              flex: 5,
+                              fit: FlexFit.tight,
+                              child: OutlinedButton(
+                                onPressed: () async => handleFollowRequest(
+                                  ref,
+                                  accept: false,
+                                  userId: user.id,
+                                ),
+                                child: Text(S.of(context).reject),
+                              ),
+                            ),
+                            const Spacer(flex: 3),
+                          ],
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                    orElse: () => Container(),
+                  ),
+              if (type is FollowRequestAccepted && type.message != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 85),
+                  child: SimpleMfmText(
+                    S.of(context).messageForFollower(type.message ?? ""),
+                  ),
+                ),
+            ],
+          ),
+        );
+      case SimpleNotificationData():
+        return Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            top: 10,
+            bottom: 10,
+            right: 10,
+          ),
+          child: Row(
+            children: [
+              Expanded(child: Text(notification.text)),
+              Text(notification.createdAt.differenceNow(context)),
+            ],
+          ),
+        );
+      case PollNotification():
+        return Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(S.of(context).finishedVotedNotification),
+                    ),
+                    Text(notification.createdAt.differenceNow(context)),
+                  ],
+                ),
+              ),
+              misskey_note.MisskeyNote(
+                note: notification.note!,
+                isDisplayBorder: false,
+              ),
+            ],
+          ),
+        );
+      case ScheduledNoteNotification(:final note):
+        return Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        S.of(context).scheduledNotePostedNotification,
+                      ),
+                    ),
+                    Text(notification.createdAt.differenceNow(context)),
+                  ],
+                ),
+              ),
+              if (note != null)
+                misskey_note.MisskeyNote(note: note, isDisplayBorder: false),
+            ],
+          ),
+        );
+      case NoteNotification(:final note):
+        final user = note?.user;
+        return Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (user != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: SimpleMfmText(
+                    S.of(context).notedNotification(user.name ?? user.username),
+                    emojis: user.emojis,
+                  ),
+                ),
+              if (note != null) misskey_note.MisskeyNote(note: note),
+            ],
+          ),
+        );
+      case RoleNotification():
+        return Padding(
+          padding: const EdgeInsets.only(
+            top: 10,
+            bottom: 10,
+            right: 10,
+            left: 10.0,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SimpleMfmText(
+                  S
+                      .of(context)
+                      .roleAssignedNotification(notification.role?.name ?? ""),
+                ),
+              ),
+            ],
+          ),
+        );
+      case AppNotificationData():
+        // icon はアプリが自由に入れる文字列なので、絶対 URL のときだけ画像に
+        // する。そうでなければ汎用のアイコンで代替する
+        final icon = notification.icon?.hasScheme ?? false
+            ? notification.icon
+            : null;
+        final header = notification.header;
+        return Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            top: 10,
+            bottom: 10,
+            right: 10,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: SizedBox.square(
+                    dimension: 40,
+                    child: icon != null
+                        ? NetworkImageView(
+                            url: icon.toString(),
+                            type: ImageType.serverIcon,
+                            fit: BoxFit.cover,
+                          )
+                        : ColoredBox(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            child: Icon(
+                              Icons.apps,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SimpleMfmText(
+                            header ?? S.of(context).appNotification,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ),
+                        Text(notification.createdAt.differenceNow(context)),
+                      ],
+                    ),
+                    MfmText(mfmText: notification.body),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      case InvitedChatRoomNotification():
+        return SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              top: 10,
+              bottom: 10,
+              right: 10,
+              left: 10.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SimpleMfmText(
+                  S
+                      .of(context)
+                      .chatRoomInvitation(
+                        notification.invitation.room?.name ?? "???",
+                      ),
+                ),
+                ElevatedButton(
+                  onPressed: () async => context.pushRoute(
+                    ChatHomeRoute(
+                      accountContext: ref.read(accountContextProvider),
+                      initialTab: 1,
+                    ),
+                  ),
+                  child: Text(S.of(context).goToChat),
+                ),
+              ],
+            ),
+          ),
+        );
+    }
+  }
+
+  Future<void> handleFollowRequest(
+    WidgetRef ref, {
+    required bool accept,
+    required String userId,
+  }) async {
+    await ref.read(dialogStateProvider.notifier).guard(() async {
+      final misskey = ref.watch(misskeyPostContextProvider);
+
+      if (accept) {
+        await misskey.following.requests.accept(
+          FollowingRequestsAcceptRequest(userId: userId),
+        );
+      } else {
+        await misskey.following.requests.reject(
+          FollowingRequestsRejectRequest(userId: userId),
+        );
+      }
+
+      ref.invalidate(followRequestsProvider);
+      ref.read(showActionsProvider(notification).notifier).state = false;
+    });
+  }
+}

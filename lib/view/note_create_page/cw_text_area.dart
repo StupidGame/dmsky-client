@@ -1,0 +1,59 @@
+import "package:flutter/material.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/state_notifier/note_create_page/note_create_state_notifier.dart";
+import "package:dmsky_client/view/note_create_page/note_create_page.dart";
+import "package:dmsky_client/view/themes/app_theme.dart";
+
+class CwTextArea extends HookConsumerWidget {
+  const CwTextArea({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cwController = ref.watch(cwInputTextProvider);
+    final focusNode = ref.watch(cwFocusProvider);
+
+    useEffect(() {
+      void listener() {
+        ref.read(noteCreateProvider.notifier).setCwText(cwController.text);
+      }
+
+      cwController.addListener(listener);
+      return () => cwController.removeListener(listener);
+    }, [cwController]);
+
+    ref.listen(noteCreateProvider.select((value) => value.cwText), (_, next) {
+      if (next != cwController.text) cwController.text = next;
+    });
+
+    final cw = ref.watch(noteCreateProvider.select((value) => value.isCw));
+
+    if (!cw) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Theme.of(context).dividerColor),
+          ),
+        ),
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: cwController,
+              focusNode: focusNode,
+              keyboardType: TextInputType.multiline,
+              decoration: AppTheme.of(context).noteTextStyle.copyWith(
+                hintText: S.of(context).contentWarning,
+                contentPadding: const EdgeInsets.all(5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

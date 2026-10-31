@@ -1,0 +1,246 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:json5/json5.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/model/misskey_emoji_data.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/common/misskey_notes/custom_emoji.dart";
+import "package:dmsky_client/view/dialogs/simple_confirm_dialog.dart";
+import "package:dmsky_client/view/several_account_settings_page/reaction_deck_page/add_reactions_dialog.dart";
+import "package:reorderables/reorderables.dart";
+
+enum ReactionDeckPageMenuType { addMany, copy, clear }
+
+@RoutePage()
+class ReactionDeckPage extends ConsumerStatefulWidget {
+  final Account account;
+
+  const ReactionDeckPage({required this.account, super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      ReactionDeckPageState();
+}
+
+class ReactionDeckPageState extends ConsumerState<ReactionDeckPage> {
+  final List<MisskeyEmojiData> reactions = [];
+
+  void save() {
+    final currentData = ref
+        .read(accountSettingsRepositoryProvider)
+        .fromAccount(widget.account);
+    ref
+        .read(accountSettingsRepositoryProvider)
+        .save(
+          currentData.copyWith(
+            reactions: reactions.map((e) => e.baseName).toList(),
+          ),
+        );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    reactions
+      ..clear()
+      ..addAll(
+        ref.read(emojiRepositoryProvider(widget.account)).defaultEmojis(),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(S.of(context).reactionDeck)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: ReorderableWrap(
+                      scrollPhysics: const NeverScrollableScrollPhysics(),
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: [
+                        for (final reaction in reactions)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                reactions.remove(reaction);
+                                save();
+                              });
+                            },
+                            child: CustomEmoji(
+                              emojiData: reaction,
+                              fontSizeRatio: 2,
+                              isAttachTooltip: false,
+                            ),
+                          ),
+                      ],
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          final element = reactions.removeAt(oldIndex);
+                          reactions.insert(newIndex, element);
+                          save();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () async {
+                        final reaction = await context
+                            .pushRoute<MisskeyEmojiData>(
+                              ReactionPickerRoute(
+                                account: widget.account,
+                                isAcceptSensitive: true,
+                              ),
+                            );
+                        if (reaction == null) return;
+                        if (reactions.any(
+                          (element) => element.baseName == reaction.baseName,
+                        )) {
+                          // already added.
+                          return;
+                        }
+                        setState(() {
+                          reactions.add(reaction);
+                          save();
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
+                    Expanded(
+                      child: Text(S.of(context).editReactionDeckDescription),
+                    ),
+                  ],
+                ),
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                Wrap(
+                  direction: Axis.horizontal,
+                  alignment: WrapAlignment.center,
+                  spacing: 10,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await showAddReactionsDialog(context: context);
+                      },
+                      icon: const Icon(Icons.file_download_outlined),
+                      label: Text(S.of(context).bulkAddReactions),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await copyReactions(context: context);
+                      },
+                      icon: const Icon(Icons.copy_all),
+                      label: Text(S.of(context).copy),
+                    ),
+                    OutlinedButton(
+                      onPressed: () async {
+                        await clearReactions(context: context);
+                      },
+                      child: const Icon(Icons.clear),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> showAddReactionsDialog({required BuildContext context}) async {
+    final endpoints = await ref
+        .read(misskeyProvider(widget.account))
+        .endpoints();
+    final domain = endpoints.contains("i/registry/scopes-with-domain")
+        ? "@"
+        : "system";
+    final useEmojiPalette =
+        endpoints.contains("chat/history") ||
+        !endpoints.contains("i/read-all-unread-notes");
+    if (!context.mounted) return;
+    final emojiNames = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => AddReactionsDialog(
+        account: widget.account,
+        domain: domain,
+        useEmojiPalette: useEmojiPalette,
+      ),
+    );
+    if (emojiNames == null) {
+      return;
+    }
+    final emojis = emojiNames
+        .map(
+          (emojiName) => MisskeyEmojiData.fromEmojiName(
+            emojiName: emojiName,
+            repository: ref.watch(emojiRepositoryProvider(widget.account)),
+          ),
+        )
+        .where((emoji) => emoji.runtimeType != NotEmojiData)
+        .where(
+          (emoji) =>
+              !reactions.any((element) => element.baseName == emoji.baseName),
+        );
+    setState(() {
+      reactions.addAll(emojis);
+      save();
+    });
+  }
+
+  Future<void> copyReactions({required BuildContext context}) async {
+    await Clipboard.setData(
+      ClipboardData(
+        text: JSON5.stringify(
+          reactions
+              .map(
+                (reaction) => switch (reaction) {
+                  UnicodeEmojiData(char: final char) => char,
+                  CustomEmojiData(hostedName: final name) => name,
+                  NotEmojiData() => null,
+                  MutedEmojiData() => null,
+                },
+              )
+              .nonNulls
+              .toList(),
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(S.of(context).doneCopy),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> clearReactions({required BuildContext context}) async {
+    if (await SimpleConfirmDialog.show(
+          context: context,
+          message: S.of(context).confirmClearReactionDeck,
+          primary: S.of(context).clearReactionDeck,
+          secondary: S.of(context).cancel,
+        ) ==
+        true) {
+      setState(() {
+        reactions.clear();
+        save();
+      });
+    }
+  }
+}

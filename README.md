@@ -1,0 +1,149 @@
+# DMSKY Client
+
+<p align="center"><img src="assets/branding/dmsky-emblem.png" alt="DMSKY" width="144"></p>
+
+[![Build all platforms](https://github.com/StupidGame/dmsky-client/actions/workflows/build.yml/badge.svg)](https://github.com/StupidGame/dmsky-client/actions/workflows/build.yml)
+
+[DMSKY](https://github.com/StupidGame/dmsky) のデザインを使う、Flutter 製の Misskey クライアントです。
+青い発光パネル、銀色の多重フレーム、金色の選択表示、都市背景とエンブレムを取り入れています。
+機能は [Miria](https://github.com/shiosyakeyakini-info/miria) を基盤とし、[Aria](https://github.com/poppingmoon/aria) も比較対象にしています。
+
+**開発中です。Aria・Miria の全機能との一致、およびすべてのサーバー・OS での動作確認が完了した製品ではありません。**
+実装状況と検証の違いは [機能対応表](docs/FEATURES.md) に記載しています。
+
+## 対応プラットフォーム・成果物
+
+| 環境 | Actions の成果物 | 備考 |
+| --- | --- | --- |
+| Android | ABI 別 APK・AAB | CI 用デバッグ鍵で署名したリリースビルド。ストア公開には専用の署名設定が必要 |
+| iOS | `dmsky-client-ios-unsigned.tar.gz` | 未署名の `Runner.app`。実機・TestFlight 配布には Apple の署名が必要 |
+| Linux x64 | `dmsky-client-linux-x64.tar.gz` | 実行ファイル・共有ライブラリ・データのバンドル |
+| Windows x64 | `dmsky-client-windows-x64.zip` | EXE・DLL・データのバンドル |
+| Web | `dmsky-client-web` | Web サーバーに置く静的ファイル一式 |
+
+## 主な機能
+
+- MiAuth・API キーログイン、複数サーバー・複数アカウント。
+- ホーム・ローカル・ソーシャル・グローバル・リスト・アンテナ・チャンネル・ロールのタイムライン。
+- タブ追加・並べ替え・設定、左右スワイプ、複数列のデッキ表示、ストリーミング。
+- 投稿、返信、Renote、引用、公開範囲、ローカル限定、CW、添付、NSFW、説明文、投票、下書き。
+- MFM、カスタム絵文字、リアクション選択・履歴・デッキ、リアクション・単語ミュート。
+- 通知、お気に入り、クリップ、リスト・アンテナ編集、チャンネル、検索・みつける。
+- プロフィール・フォロー関係・プロフィール編集、ミュート・ブロック、サーバー情報・お知らせ。
+- 対応サーバーでの個人・ルームチャット、添付、検索、メッセージ操作。
+- DMSKY ライト・ダークテーマ、フォント・文字サイズ、設定のインポート・エクスポート。
+
+サーバーのバージョン・権限・設定や OS によって利用できる機能が異なります。
+Aria 独自機能などの制限は [機能対応表](docs/FEATURES.md) を確認してください。
+
+## GitHub Actions でビルド
+
+### 手動実行
+
+1. [Actions](https://github.com/StupidGame/dmsky-client/actions/workflows/build.yml) の **Build all platforms** を選択します。
+2. **Run workflow** をクリックします。
+3. ブランチを選び、緑色の **Run workflow** をクリックします。
+4. アプリ本体の静的解析・テストが通ると、５環境のビルドが実行されます。
+5. 実行結果の **Artifacts** から成果物をダウンロードします。
+
+手動起動には書き込み権限と、既定ブランチ上のワークフローが必要です。
+
+### 自動実行
+
+`main`・`develop` への push、Pull Request、`v` から始まるタグの push でも実行します。
+ストアへの自動公開は行いません。成果物は30日、カバレッジは14日保存します。
+設定は [`.github/workflows/build.yml`](.github/workflows/build.yml) にあります。
+
+## 開発・起動
+
+Flutter **3.47.9** を [`.fvmrc`](.fvmrc) に固定しています。Dart は同梱版を使用します。
+Android は JDK 21・Android SDK、iOS は macOS・Xcode・CocoaPods、
+Windows は Visual Studio の「C++ によるデスクトップ開発」が必要です。
+
+```bash
+git clone https://github.com/StupidGame/dmsky-client.git
+cd dmsky-client
+flutter pub get --enforce-lockfile
+flutter run
+```
+
+FVM を使う場合は `fvm install` 後、`flutter` を `fvm flutter` に読み替えます。
+
+Linux の依存関係の例（Ubuntu 24.04）：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev \
+  libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
+flutter run -d linux
+```
+
+Android の共有ストレージ（`/sdcard`・`/mnt/sdcard` 等）は開発用シンボリックリンクを作れません。
+該当する場合は Termux のホーム等、通常のファイルシステムに clone してビルドしてください。
+
+## ログイン
+
+サーバーのアドレス（例：`misskey.example`）を入力し、**MiAuth** でブラウザーを開きます。
+サーバーで許可した後、アプリへ戻って認証完了のボタンを押してください。
+Web では「認証リンクを準備」→「サーバーで認証する」の順に進みます。
+API キーによるログインにも対応しています。
+
+認証情報はセキュアストレージへ保存します。Web は HTTPS または localhost が必要です。
+接続先の CORS 設定も影響します。HTTP の開発サーバーは `http://localhost:3000` のように明示してください。
+モバイル OS で HTTP を使う場合は別途開発用の通信許可が必要です。
+
+## ローカルでビルド
+
+タブに任意の Material Icon を指定できるため、アイコンの削減を無効にします。
+
+```bash
+flutter build apk --release --split-per-abi --no-tree-shake-icons
+flutter build appbundle --release --no-tree-shake-icons
+flutter build ios --release --no-codesign --no-tree-shake-icons
+flutter build linux --release --no-tree-shake-icons
+flutter build windows --release --no-tree-shake-icons
+flutter build web --no-wasm-dry-run --release --base-href / --no-tree-shake-icons
+```
+
+iOS・Linux・Windows は対応する OS 上でビルドします。
+Linux・Windows は実行ファイルだけでなく、生成されたフォルダー全体を配布してください。
+Web は `build/web` を Web サーバーに配置します。`index.html` を直接開く方法には対応しません。
+
+## 検証・再生成
+
+```bash
+flutter analyze --no-fatal-infos lib
+flutter test --coverage
+```
+
+生成済み Dart ファイルも含んでいます。モデル・ルート・翻訳を変更した場合は再生成します。
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+flutter gen-l10n
+dart run flutter_launcher_icons
+```
+
+## 構成
+
+| 場所 | 内容 |
+| --- | --- |
+| `lib/view/themes/dmsky_circuit.dart` | 色・フレーム・ボタン・ブランド表示 |
+| `lib/view/login_page/` | ログイン・MiAuth・API キー |
+| `lib/view/time_line_page/` | タイムライン・タブ・デッキ |
+| `lib/view/` | 投稿・通知・チャット・プロフィール等 |
+| `lib/repository/` | API・ストリーミング・アカウント・設定 |
+| `lib/state_notifier/` | 画面の状態・操作 |
+| `assets/branding/` | DMSKY の背景・エンブレム・アイコン |
+| `test/` | 継承したテストと DMSKY の検証 |
+
+## ライセンス・謝辞
+
+**GNU AGPL v3**。詳細は [LICENSE](LICENSE) と [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
+
+- [Miria](https://github.com/shiosyakeyakini-info/miria)：アプリとテストの基盤。
+- [DMSKY](https://github.com/StupidGame/dmsky)：配色・フレーム・背景・エンブレム。
+- [Misskey](https://github.com/misskey-dev/misskey)：サーバーとプロトコル。
+- [Aria](https://github.com/poppingmoon/aria)：機能の比較対象。
+
+Misskey・Miria・Aria の公式アプリではありません。開発者・貢献者の皆さまへ感謝します。

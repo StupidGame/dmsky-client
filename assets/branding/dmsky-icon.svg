@@ -1,0 +1,37 @@
+<!-- SPDX-FileCopyrightText: 2026 DMSKY contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-only -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">DMSKY</title>
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#e0eff7"/>
+      <stop offset=".28" stop-color="#7d93a6"/>
+      <stop offset=".52" stop-color="#d2e4ee"/>
+      <stop offset=".7" stop-color="#3f566d"/>
+      <stop offset="1" stop-color="#a5c6dc"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#144883"/>
+      <stop offset="1" stop-color="#081c3a"/>
+    </linearGradient>
+    <linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#a6ffff"/>
+      <stop offset=".45" stop-color="#21d6fa"/>
+      <stop offset="1" stop-color="#2871dd"/>
+    </linearGradient>
+    <path id="frame" d="m256 64 166 96v192l-166 96L90 352V160z"/>
+  </defs>
+  <path fill="#071426" d="M0 0h512v512H0z"/>
+  <use href="#frame" fill="url(#screen)" stroke="#020a16" stroke-width="32" stroke-linejoin="bevel"/>
+  <use href="#frame" fill="none" stroke="url(#metal)" stroke-width="22" stroke-linejoin="bevel"/>
+  <use href="#frame" fill="none" stroke="#d9f6ff" stroke-width="2"/>
+  <path fill="none" stroke="#39dffa" stroke-width="4" d="m256 84 148 85v174l-148 85-148-85V169z"/>
+  <path fill="none" stroke="#17344f" stroke-width="5" d="m256 101 133 77v156l-133 77-133-77V178z"/>
+  <path fill="url(#crystal)" stroke="#9cffff" stroke-width="2" d="m256 132 31 70 75-8-43 62 43 62-75-8-31 70-31-70-75 8 43-62-43-62 75 8z"/>
+  <path fill="#c2ffff" d="m256 132-31 70 31 54zM150 194l43 62h63zM150 318l75-8 31-54z"/>
+  <path fill="#1469bf" d="m256 380 31-70-31-54zM362 318l-43-62h-63zM362 194l-75 8-31 54z"/>
+  <path fill="#55eaf9" d="m256 132 31 70-31 54zM362 194l-43 62h-63zM256 380l-31-70 31-54z"/>
+  <path fill="#eefeff" stroke="#f6cc6b" stroke-width="4" d="m256 230 23 13v26l-23 13-23-13v-26z"/>
+  <path fill="none" stroke="#f5cb6c" stroke-width="7" stroke-linecap="square" d="m229 79 27-15 27 15m-54 354 27 15 27-15"/>
+  <path fill="none" stroke="#8ff6ff" stroke-width="6" d="M90 192v40m332 48v40"/>
+</svg>

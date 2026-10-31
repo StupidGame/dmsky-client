@@ -1,0 +1,68 @@
+import "package:auto_route/auto_route.dart";
+import "package:flutter/material.dart";
+import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/l10n/app_localizations.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/view/common/account_scope.dart";
+import "package:dmsky_client/view/common/pushable_listview.dart";
+import "package:dmsky_client/view/user_page/user_list_item.dart";
+import "package:misskey_dart/misskey_dart.dart";
+
+@RoutePage()
+class RenoteUserDialog extends ConsumerWidget implements AutoRouteWrapper {
+  final Account account;
+  final String noteId;
+
+  @override
+  Widget wrappedRoute(BuildContext context) =>
+      AccountContextScope.as(account: account, child: this);
+
+  const RenoteUserDialog({
+    required this.account,
+    required this.noteId,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AlertDialog(
+      title: Text(S.of(context).renotedUsers),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        height: MediaQuery.of(context).size.width * 0.8,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: PushableListView<Note>(
+            initializeFuture: () async {
+              final response = await ref
+                  .read(misskeyGetContextProvider)
+                  .notes
+                  .renotes(NotesRenoteRequest(noteId: noteId));
+              ref
+                  .read(notesWithProvider)
+                  .registerAll(response.where((e) => e.text != null));
+              return response.toList();
+            },
+            nextFuture: (lastItem, _) async {
+              final response = await ref
+                  .read(misskeyGetContextProvider)
+                  .notes
+                  .renotes(
+                    NotesRenoteRequest(noteId: noteId, untilId: lastItem.id),
+                  );
+              ref
+                  .read(notesWithProvider)
+                  .registerAll(response.where((e) => e.text != null));
+              return response.toList();
+            },
+            itemBuilder: (context, note) {
+              return UserListItem(user: note.user);
+            },
+            showAd: false,
+          ),
+        ),
+      ),
+    );
+  }
+}
