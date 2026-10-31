@@ -1,6 +1,7 @@
 # Android の固定署名鍵
 
-配布する APK は **universal APK** です。`armeabi-v7a`・`arm64-v8a`・`x86_64` を１つに収録します。
+標準で配布する APK は、この端末向けの **arm64 APK** です。ビルドする ABI を１つに絞ります。
+手動実行で `universal` を選ぶと、`armeabi-v7a`・`arm64-v8a`・`x86_64` を１つの APK に収録します。
 更新時の署名は同じ RSA-4096 の鍵を使用し、ビルドごとに新しい鍵を作りません。
 
 | ファイル・設定 | 内容 |
@@ -40,12 +41,12 @@ gh secret set ANDROID_SIGNING_PASSPHRASE \
 1. Secret を使い、GPG を通して署名設定を復号します。
 2. キーストアのチェックサムと公開証明書の指紋を確認します。
 3. runner の一時領域へキーストアを権限 `0600` で復元します。
-4. 固定鍵で universal APK と AAB を署名します。
-5. `apksigner` で署名証明書を照合し、APK に３種類の ABI が含まれることを検査します。
-6. `dmsky-client-android` に APK・AAB・署名指紋・SHA256SUMS を保存します。
+4. 固定鍵で APK を署名します。AAB は手動実行の `build_aab` が有効なときだけ、選択した ABI で作成します。
+5. `apksigner` で署名証明書を照合し、選択した ABI が含まれることを検査します。
+6. `dmsky-client-android` に APK・署名指紋・SHA256SUMS と、作成した場合は AAB を保存します。
 7. 終了時に復号した一時ファイルを削除します。
 
-APK の名前は `dmsky-client-universal.apk` です。
+標準 APK は `dmsky-client-arm64.apk`、universal 版は `dmsky-client-universal.apk` です。
 `versionCode` にはワークフロー実行番号を使い、同じ署名で継続して更新できるようにしています。
 Secret が未登録・誤りの場合はリリースビルドを失敗させ、デバッグ鍵や代替鍵へ切り替えません。
 Pull Request のコードに署名鍵を渡さないため、署名付き Android ジョブは push・手動実行時のみ動かします。
@@ -60,11 +61,12 @@ python3 tool/decrypt_android_signing.py
 set -a
 . /tmp/dmsky-client-signing/signing.env
 set +a
-flutter build apk --release --target-platform android-arm,android-arm64,android-x64 --no-tree-shake-icons
+flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons
 python3 tool/verify_android_signature.py build/app/outputs/flutter-apk/app-release.apk
 ```
 
 デバッグ開発は従来どおり `flutter run` または `flutter build apk --debug` が使えます。
+universal 版を検証するときは `--variant universal` を指定します。
 Google Play App Signing を使う場合は、この鍵をアップロード鍵とするか、ストア側の設定に合わせて判断してください。
 
 ## 参考

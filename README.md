@@ -15,7 +15,7 @@
 
 | 環境 | Actions の成果物 | 備考 |
 | --- | --- | --- |
-| Android | universal APK・AAB | 固定のリリース鍵で署名。arm32・arm64・x64 を１つの APK に収録 |
+| Android | arm64 APK（標準） | 固定のリリース鍵で署名。universal APK・AAB は手動実行時のオプション |
 | iOS | `dmsky-client-ios-unsigned.tar.gz` | 未署名の `Runner.app`。実機・TestFlight 配布には Apple の署名が必要 |
 | Linux x64 | `dmsky-client-linux-x64.tar.gz` | 実行ファイル・共有ライブラリ・データのバンドル |
 | Windows x64 | `dmsky-client-windows-x64.zip` | EXE・DLL・データのバンドル |
@@ -48,6 +48,8 @@ Aria 独自機能などの制限は [機能対応表](docs/FEATURES.md) を確�
 
 手動起動には書き込み権限と、既定ブランチ上のワークフローが必要です。
 Android は最初に [署名鍵の設定](docs/ANDROID_SIGNING.md) が必要です。
+標準は軽量な `arm64` APK です。手動実行の `android_apk` で `universal` を選択でき、
+`build_aab` を有効にしたときだけ AAB も作成します。
 
 ### 自動実行
 
@@ -99,8 +101,10 @@ API キーによるログインにも対応しています。
 タブに任意の Material Icon を指定できるため、アイコンの削減を無効にします。
 
 ```bash
+flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons
+# 必要な場合のみ、全 ABI の APK や AAB を作成
 flutter build apk --release --target-platform android-arm,android-arm64,android-x64 --no-tree-shake-icons
-flutter build appbundle --release --no-tree-shake-icons
+flutter build appbundle --release --target-platform android-arm64 --no-tree-shake-icons
 flutter build ios --release --no-codesign --no-tree-shake-icons
 flutter build linux --release --no-tree-shake-icons
 flutter build windows --release --no-tree-shake-icons
