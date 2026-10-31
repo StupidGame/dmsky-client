@@ -15,7 +15,7 @@
 
 | 環境 | Actions の成果物 | 備考 |
 | --- | --- | --- |
-| Android | ABI 別 APK・AAB | CI 用デバッグ鍵で署名したリリースビルド。ストア公開には専用の署名設定が必要 |
+| Android | universal APK・AAB | 固定のリリース鍵で署名。arm32・arm64・x64 を１つの APK に収録 |
 | iOS | `dmsky-client-ios-unsigned.tar.gz` | 未署名の `Runner.app`。実機・TestFlight 配布には Apple の署名が必要 |
 | Linux x64 | `dmsky-client-linux-x64.tar.gz` | 実行ファイル・共有ライブラリ・データのバンドル |
 | Windows x64 | `dmsky-client-windows-x64.zip` | EXE・DLL・データのバンドル |
@@ -47,10 +47,12 @@ Aria 独自機能などの制限は [機能対応表](docs/FEATURES.md) を確�
 5. 実行結果の **Artifacts** から成果物をダウンロードします。
 
 手動起動には書き込み権限と、既定ブランチ上のワークフローが必要です。
+Android は最初に [署名鍵の設定](docs/ANDROID_SIGNING.md) が必要です。
 
 ### 自動実行
 
 `main`・`develop` への push、Pull Request、`v` から始まるタグの push でも実行します。
+署名鍵を使う Android 配布ビルドは push・手動実行のみで、Pull Request では実行しません。
 ストアへの自動公開は行いません。成果物は30日、カバレッジは14日保存します。
 設定は [`.github/workflows/build.yml`](.github/workflows/build.yml) にあります。
 
@@ -97,7 +99,7 @@ API キーによるログインにも対応しています。
 タブに任意の Material Icon を指定できるため、アイコンの削減を無効にします。
 
 ```bash
-flutter build apk --release --split-per-abi --no-tree-shake-icons
+flutter build apk --release --target-platform android-arm,android-arm64,android-x64 --no-tree-shake-icons
 flutter build appbundle --release --no-tree-shake-icons
 flutter build ios --release --no-codesign --no-tree-shake-icons
 flutter build linux --release --no-tree-shake-icons
@@ -106,6 +108,7 @@ flutter build web --no-wasm-dry-run --release --base-href / --no-tree-shake-icon
 ```
 
 iOS・Linux・Windows は対応する OS 上でビルドします。
+Android のリリースビルドは、[固定鍵を復号した署名環境](docs/ANDROID_SIGNING.md) が必要です。デバッグ鍵への自動切り替えはしません。
 Linux・Windows は実行ファイルだけでなく、生成されたフォルダー全体を配布してください。
 Web は `build/web` を Web サーバーに配置します。`index.html` を直接開く方法には対応しません。
 
@@ -136,6 +139,8 @@ dart run flutter_launcher_icons
 | `lib/state_notifier/` | 画面の状態・操作 |
 | `assets/branding/` | DMSKY の背景・エンブレム・アイコン |
 | `test/` | 継承したテストと DMSKY の検証 |
+| `android/signing/` | 暗号化した固定署名鍵と公開証明書 |
+| `tool/` | 署名鍵の復号・APK の証明書と ABI の検証 |
 
 ## ライセンス・謝辞
 

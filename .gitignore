@@ -57,4 +57,7 @@ android/local.properties
 *.keystore
 *.jks
 *.p12
+*.pem
+!android/signing/certificate.pem
+/dist/
 *.mobileprovision
