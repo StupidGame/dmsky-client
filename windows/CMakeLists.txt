@@ -57,6 +57,15 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# The pinned permission_handler_windows still uses /await and C++/WinRT's
+# experimental coroutine header. MSVC 14.5x requires this opt-in (STL1011).
+# Keep the compatibility definition local to that dependency.
+if(TARGET permission_handler_windows_plugin)
+  target_compile_definitions(permission_handler_windows_plugin PRIVATE
+    _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS
+  )
+endif()
+
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
