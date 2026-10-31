@@ -10,13 +10,14 @@ import zipfile
 
 
 def validate_certificate_report(output, expected):
-    # apksigner uses either "Signer #1" or SDK-specific signer labels for v3.1.
-    # See AOSP ApkSignerTool.java's printCertificate calls. Multiple SDK ranges
-    # may repeat the same certificate; every signer must still be our fixed key.
+    # Android SDK reports use numbered, SDK-specific, or scheme-specific labels
+    # (for example "V2 Signer:"). Multiple schemes or SDK ranges may repeat the
+    # same certificate; every reported app signer must still be our fixed key.
     found = {
         digest.lower()
         for digest in re.findall(
-            r"^Signer (?:#\d+|\([^\r\n]+\)) certificate SHA-256 digest:\s*([a-fA-F0-9]{64})\s*$",
+            r"^(?:Signer (?:#\d+|\([^\r\n]+\))|V[1-4](?:\.\d+)? Signer):? "
+            r"certificate SHA-256 digest:[ \t]*([a-fA-F0-9]{64})[ \t\r]*$",
             output,
             re.MULTILINE,
         )

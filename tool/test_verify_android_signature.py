@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from verify_android_signature import validate_certificate_report
 
@@ -6,6 +7,32 @@ from verify_android_signature import validate_certificate_report
 class CertificateReportTest(unittest.TestCase):
     key = "a" * 64
     other_key = "b" * 64
+
+    def test_actual_android_sdk_v2_report(self):
+        root = Path(__file__).resolve().parents[1]
+        report = (root / "tool/testdata/apksigner-v2.txt").read_text()
+        expected = (root / "android/signing/certificate.sha256").read_text().strip()
+        validate_certificate_report(report, expected)
+
+    def test_actual_report_with_wrong_key_is_rejected(self):
+        report = (Path(__file__).parent / "testdata/apksigner-v2.txt").read_text()
+        with self.assertRaises(SystemExit):
+            validate_certificate_report(report, self.other_key)
+
+    def test_different_key_in_another_signature_scheme_is_rejected(self):
+        with self.assertRaises(SystemExit):
+            validate_certificate_report(
+                f"V2 Signer: certificate SHA-256 digest: {self.key}\n"
+                f"V3 Signer: certificate SHA-256 digest: {self.other_key}\n",
+                self.key,
+            )
+
+    def test_same_key_in_multiple_signature_schemes(self):
+        validate_certificate_report(
+            f"V2 Signer: certificate SHA-256 digest: {self.key}\n"
+            f"V3.1 Signer: certificate SHA-256 digest: {self.key}\n",
+            self.key,
+        )
 
     def test_numbered_signer(self):
         validate_certificate_report(

@@ -1,0 +1,18 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v3.2 scheme (APK Signature Scheme v3.2): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+V2 Signer: certificate DN: O=DMSKY, CN=DMSKY Client
+V2 Signer: certificate SHA-256 digest: 89c7824f35d3498b4009a6eb1296431b7bae4db747a30ea66f200526cddc23b8
+V2 Signer: certificate SHA-1 digest: 27073b2f61cbf985ce91153abb41685cec13cc03
+V2 Signer: certificate MD5 digest: ea1977f4ab0cc9be13d3c06f9ac6bb88
+V2 Signer: key algorithm: RSA
+V2 Signer: key size (bits): 4096
+V2 Signer: public key SHA-256 digest: 6b6d01511a2811ffe09debf04e5a91e0e494e4e6e397a4c742efc45c0df9ca80
+V2 Signer: public key SHA-1 digest: 7cec418fbcdde13523ac647fee85b6609d4a0211
+V2 Signer: public key MD5 digest: fcbcf7bd0d120a909badd529033346a3
