@@ -1603,7 +1603,7 @@ class SJa extends S {
 
   @override
   String get instanceMuteDescription2 =>
-      'ミュートしたサーバーのユーザーへの返信を含めて、設定したサーバーの全てのノートとリノートをミュートします。\n改行で区切って設定します。';
+      'ミュートしたサーバーのユーザーへの返信を含め、指定したサーバーのすべてのノートとリノートを非表示にします。\nサーバーは改行で区切って指定します。';
 
   @override
   String get reactionMute => 'リアクションミュート';
@@ -1688,7 +1688,7 @@ class SJa extends S {
 
   @override
   String get disableFederationDescription =>
-      '連合をなしにしても、非公開になりません。ほとんどの場合、連合なしにする必要はありません。';
+      '連合への配信を無効にしても、投稿は非公開になりません。通常、この設定を有効にする必要はありません。';
 
   @override
   String get reactionAcceptance => 'リアクションの受け入れ';
