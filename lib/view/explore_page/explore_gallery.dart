@@ -14,7 +14,7 @@ class ExploreGallery extends ConsumerWidget {
     final misskey = ref.watch(misskeyGetContextProvider);
 
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Column(
         children: [
           Material(
@@ -25,6 +25,8 @@ class ExploreGallery extends ConsumerWidget {
                 Tab(text: "新着"),
                 Tab(text: "おすすめ"),
                 Tab(text: "人気"),
+                Tab(text: "自分の投稿"),
+                Tab(text: "いいね"),
               ],
             ),
           ),
@@ -42,6 +44,16 @@ class ExploreGallery extends ConsumerWidget {
                   ),
                 ),
                 _GalleryList(future: () => misskey.gallery.popular()),
+                _GalleryList(
+                  future: () => misskey.i.gallery.posts(
+                    const IGalleryPostsRequest(limit: 100),
+                  ),
+                ),
+                _GalleryList(
+                  future: () async => (await misskey.i.gallery.likes(
+                    const IGalleryLikesRequest(limit: 100),
+                  )).map((item) => item.post),
+                ),
               ],
             ),
           ),
