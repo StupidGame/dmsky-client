@@ -81,7 +81,7 @@ class SJa extends S {
   String get list => 'リスト';
 
   @override
-  String get explore => 'みつける';
+  String get explore => '探索';
 
   @override
   String get highlight => 'ハイライト';
@@ -99,7 +99,7 @@ class SJa extends S {
   String get hashtag => 'ハッシュタグ';
 
   @override
-  String get otherServers => 'よそのサーバー';
+  String get otherServers => '他のサーバー';
 
   @override
   String get follow => 'フォロー';
@@ -111,7 +111,7 @@ class SJa extends S {
   String get managing => '管理中';
 
   @override
-  String get done => 'ほい';
+  String get done => '完了';
 
   @override
   String get public => 'パブリック';
@@ -147,7 +147,7 @@ class SJa extends S {
   String get contact => '連絡先';
 
   @override
-  String get serverRules => 'サーバーのきめごと';
+  String get serverRules => 'サーバールール';
 
   @override
   String get tos => '利用規約';
@@ -159,19 +159,19 @@ class SJa extends S {
   String get impressum => '運営者情報';
 
   @override
-  String get willDelete => '削除するで';
+  String get willDelete => '削除しますか？';
 
   @override
-  String get cancel => 'やっぱやめる';
+  String get cancel => 'キャンセル';
 
   @override
   String get noneAction => 'なにもしない';
 
   @override
-  String get pleaseInput => '入れてや';
+  String get pleaseInput => '入力してください';
 
   @override
-  String get pleaseSelect => '選んでや';
+  String get pleaseSelect => '選択してください';
 
   @override
   String get login => 'ログイン';
@@ -240,7 +240,7 @@ class SJa extends S {
   String get antennaSourceHome => 'ホーム';
 
   @override
-  String get antennaSourceAll => 'ぜんぶ';
+  String get antennaSourceAll => 'すべて';
 
   @override
   String get antennaSourceUser => 'ユーザー';
@@ -290,7 +290,7 @@ class SJa extends S {
   String get receiveLocalAvailability => 'ローカルのみの指定はMisskey 2023.10.2以降で有効です。';
 
   @override
-  String get confirmDeletingAntenna => 'アンテナ削除するか？';
+  String get confirmDeletingAntenna => 'このアンテナを削除しますか？';
 
   @override
   String channelJoinningCounts(int usersCount) {
@@ -322,10 +322,10 @@ class SJa extends S {
   String get favorited => 'お気に入り中';
 
   @override
-  String get willFavorite => 'お気に入りに入れるで';
+  String get willFavorite => 'お気に入りに追加しますか？';
 
   @override
-  String get willFollow => 'フォローするで';
+  String get willFollow => 'フォローしますか？';
 
   @override
   String get channelInformation => 'チャンネル情報';
@@ -349,16 +349,16 @@ class SJa extends S {
   String get createClip => 'クリップを作成';
 
   @override
-  String get confirmDeleteClip => 'このクリップ削除してええか？';
+  String get confirmDeleteClip => 'このクリップを削除しますか？';
 
   @override
   String get clipName => 'クリップ名';
 
   @override
-  String get clipDescription => '説明（省略してもええよ）';
+  String get clipDescription => '説明（省略可）';
 
   @override
-  String get alreadyAddedClip => 'すでにクリップに追加されてるノートみたいやねん';
+  String get alreadyAddedClip => 'このノートはすでにクリップに追加されています';
 
   @override
   String get deleteClip => 'クリップから削除する';
@@ -389,11 +389,11 @@ class SJa extends S {
 
   @override
   String mutedNotePlaceholder(String userName) {
-    return '$userNameが何か言うとるわ';
+    return '\$1の投稿は非表示になっています';
   }
 
   @override
-  String get showCw => '隠してあるのんの続きを見して';
+  String get showCw => '内容を表示';
 
   @override
   String get showReactionedNote => '続きを表示';
@@ -416,7 +416,7 @@ class SJa extends S {
   }
 
   @override
-  String get confirmDeleteReaction => 'リアクション取り消してもええか？';
+  String get confirmDeleteReaction => 'リアクションを取り消しますか？';
 
   @override
   String get cancelReaction => '取り消す';
@@ -480,7 +480,7 @@ class SJa extends S {
   String get deleteRenote => 'リノートを解除する';
 
   @override
-  String get confirmDelete => 'ほんまに消してええな？';
+  String get confirmDelete => '本当に削除しますか？';
 
   @override
   String get doDeleting => '消す！';
@@ -542,13 +542,13 @@ class SJa extends S {
   String get renoteInChannel => 'チャンネルへリノート';
 
   @override
-  String get renoteInOtherChannel => 'よそのチャンネルへリノート';
+  String get renoteInOtherChannel => '別のチャンネルにリノート';
 
   @override
   String get quotedRenoteInChannel => 'チャンネルへ引用';
 
   @override
-  String get quotedRenoteInOtherChannel => 'よそのチャンネルへ引用';
+  String get quotedRenoteInOtherChannel => '別のチャンネルに引用';
 
   @override
   String get renotedUsers => 'リノートしたユーザー';
@@ -557,10 +557,10 @@ class SJa extends S {
   String get otherComplementReactions => '他のん';
 
   @override
-  String get openAsOtherAccount => '開くアカウントを選んでや';
+  String get openAsOtherAccount => '開くアカウントを選択';
 
   @override
-  String get pickColor => '色を選んでや';
+  String get pickColor => '色を選択';
 
   @override
   String get decideColor => 'これにする';
@@ -595,7 +595,7 @@ class SJa extends S {
   String get replyNotePlaceholder => '何て送る？';
 
   @override
-  String get defaultNotePlaceholder => '何してはる？';
+  String get defaultNotePlaceholder => '今、何を投稿しますか？';
 
   @override
   String get hasMediaButCannotEdit => 'メディアがあります（編集はできません）';
@@ -610,7 +610,7 @@ class SJa extends S {
 
   @override
   String followRequestAcceptedNotification(String userName) {
-    return '$userNameがフォローしてもええでってなったで';
+    return '\$1がフォローを許可しました';
   }
 
   @override
@@ -619,10 +619,10 @@ class SJa extends S {
   }
 
   @override
-  String get achievementEarnedNotification => '実績を解除したみたいや';
+  String get achievementEarnedNotification => '実績を獲得しました';
 
   @override
-  String get testNotification => 'テストやで';
+  String get testNotification => 'テスト通知';
 
   @override
   String get renotedUsersInNotification => 'リノートしてくれはった人';
@@ -631,13 +631,13 @@ class SJa extends S {
   String get reactionUsersInNotification => 'リアクションしてくれはった人';
 
   @override
-  String get finishedVotedNotification => '投票が終わったみたいや';
+  String get finishedVotedNotification => '投票が終了しました';
 
   @override
   String get scheduledNotePostedNotification => '予約投稿がノートされたで';
 
   @override
-  String get scheduledNotePostFailedNotification => '予約投稿がしくじったみたいや';
+  String get scheduledNotePostFailedNotification => '予約投稿に失敗しました';
 
   @override
   String renoteAndReactionsNotification(
@@ -664,11 +664,11 @@ class SJa extends S {
 
   @override
   String roleAssignedNotification(String role) {
-    return 'ロール「$role」に入れられたみたいや';
+    return 'ロール「\$1」が付与されました';
   }
 
   @override
-  String get appNotification => 'なんかのアプリからの通知らしいわ';
+  String get appNotification => 'アプリからの通知';
 
   @override
   String get someoneLogined => '自分のアカウントにログインがあったらしいで';
@@ -706,7 +706,7 @@ class SJa extends S {
   String get customEmojiLicensedByNone => '※このカスタム絵文字に対してライセンスは設定されていません。';
 
   @override
-  String get cancelEmojiChoosing => 'わからへんからやめとく';
+  String get cancelEmojiChoosing => '選択をキャンセル';
 
   @override
   String get doneEmojiChoosing => '使ってもだいじょうぶ';
@@ -721,7 +721,7 @@ class SJa extends S {
   String get continueEditingPhoto => 'もうちょっと続ける';
 
   @override
-  String get disabledUsingSensitiveCustomEmoji => 'ここでセンシティブなカスタム絵文字使われへんねやわ';
+  String get disabledUsingSensitiveCustomEmoji => 'ここではセンシティブなカスタム絵文字を使用できません';
 
   @override
   String get markAsSensitive => 'センシティブとしてマークする';
@@ -823,27 +823,27 @@ class SJa extends S {
   String get unsupportedPage => 'DMSKY Clientが対応してないページやわ　ブラウザで見てな';
 
   @override
-  String get canNotFavoriteMyPage => '自分のページにはふぁぼつけられへんねん';
+  String get canNotFavoriteMyPage => '自分のページはお気に入りに登録できません';
 
   @override
-  String get activeAnnouncements => 'いまの';
+  String get activeAnnouncements => '公開中';
 
   @override
-  String get inactiveAnnouncements => 'まえの';
+  String get inactiveAnnouncements => '過去のお知らせ';
 
   @override
-  String get announcementsForYou => 'あんた宛';
+  String get announcementsForYou => 'あなた宛て';
 
   @override
   String confirmAnnouncementsRead(Object title) {
-    return '「$title」の内容ちゃんと読んだか？';
+    return '「\$1」を確認しましたか？';
   }
 
   @override
-  String get readAnnouncement => '読んだ';
+  String get readAnnouncement => '確認しました';
 
   @override
-  String get didNotReadAnnouncement => 'もうちょい待って';
+  String get didNotReadAnnouncement => 'あとで確認する';
 
   @override
   String get onlineUsers => 'サーバーオンライン人数';
@@ -903,7 +903,7 @@ class SJa extends S {
   String get milliSeconds => 'ミリ秒';
 
   @override
-  String get pinnedUser => 'ピンどめ';
+  String get pinnedUser => 'ピン留め';
 
   @override
   String get sort => '並び順';
@@ -954,7 +954,7 @@ class SJa extends S {
   String get thrownUnknownError => '不明なエラー';
 
   @override
-  String get thrownError => 'エラーが起きたみたいや';
+  String get thrownError => 'エラーが発生しました';
 
   @override
   String get unsupportedServer => '非対応のサーバーです';
@@ -1190,7 +1190,7 @@ class SJa extends S {
   String get importFromThisFolder => 'このフォルダーからインポートする';
 
   @override
-  String get exportedFileNotFound => 'ここにDMSKY Clientの設定ファイルあれへんかったわ';
+  String get exportedFileNotFound => 'このフォルダーにDMSKY Clientの設定ファイルが見つかりません';
 
   @override
   String get importCompleted => 'インポート終わったで。';
@@ -1199,7 +1199,7 @@ class SJa extends S {
   String get exportToThisFolder => 'このフォルダーに保存する';
 
   @override
-  String get confirmOverwrite => 'ここにもうあるけど上書きするか？';
+  String get confirmOverwrite => '同名のファイルが存在します。上書きしますか？';
 
   @override
   String get overwrite => '上書きする';
@@ -1235,16 +1235,16 @@ class SJa extends S {
   String get days => '日';
 
   @override
-  String get pleaseInputSomething => 'なんか入れてや';
+  String get pleaseInputSomething => '内容を入力してください';
 
   @override
-  String get pleaseAddVoteChoice => '投票の選択肢を2つ以上入れてや';
+  String get pleaseAddVoteChoice => '投票の選択肢を2つ以上入力してください';
 
   @override
-  String get pleaseSpecifyExpirationDate => '投票がいつまでか入れてや';
+  String get pleaseSpecifyExpirationDate => '投票の終了日時を指定してください';
 
   @override
-  String get pleaseSpecifyExpirationDuration => '投票期間を入れてや';
+  String get pleaseSpecifyExpirationDuration => '投票期間を指定してください';
 
   @override
   String get cannotMentionToRemoteInLocalOnlyNote =>
@@ -1252,7 +1252,7 @@ class SJa extends S {
 
   @override
   String cannotPublicReplyToPrivateNote(String visibility) {
-    return 'リプライが$visibilityやから、パブリックにでけへん';
+    return '返信元の公開範囲が\$1のため、公開投稿にはできません';
   }
 
   @override
@@ -1260,7 +1260,7 @@ class SJa extends S {
       'サイレンスロールになっているため、パブリックで投稿することはできません。';
 
   @override
-  String get cannotFederateNoteToChannel => 'チャンネルのノートを連合にすることはでけへんねん。';
+  String get cannotFederateNoteToChannel => 'チャンネルの投稿は連合に配信できません。';
 
   @override
   String get cannotFederateReplyToLocalOnlyNote =>
@@ -1271,10 +1271,10 @@ class SJa extends S {
       'リノートしようとしてるノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。';
 
   @override
-  String get unexpectedSensitive => '上げようとしたファイルがサーバーから、センシティブと思われたんやけどどないする？';
+  String get unexpectedSensitive => 'アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？';
 
   @override
-  String get staySensitive => 'センシティブのままにしとく';
+  String get staySensitive => 'センシティブ設定を維持';
 
   @override
   String get unsetSensitive => 'センシティブやめる';
@@ -1442,7 +1442,7 @@ class SJa extends S {
       '全般設定と、この端末でログインしているアカウントに対応する設定が読み込まれます。';
 
   @override
-  String get pleaseSelectAccount => 'アカウントを選んでや';
+  String get pleaseSelectAccount => 'アカウントを選択してください';
 
   @override
   String get select => '選択';
@@ -1455,7 +1455,7 @@ class SJa extends S {
       '全般設定と、この端末でログインしているすべてのアカウントの設定を設定ファイルに保存します。';
 
   @override
-  String get pleaseSelectAccountToExportSettings => '設定ファイルを保存するアカウントを選んでや';
+  String get pleaseSelectAccountToExportSettings => '設定ファイルの保存先アカウントを選択してください';
 
   @override
   String get selectAntenna => 'アンテナ選択';
@@ -1556,12 +1556,12 @@ class SJa extends S {
 
   @override
   String confirmUnblockUser(String userName) {
-    return '$userNameのブロックを解除してもええか？';
+    return '\$1のブロックを解除しますか？';
   }
 
   @override
   String confirmUnmuteUser(String userName) {
-    return '$userNameのミュートを解除してもええか？';
+    return '\$1のミュートを解除しますか？';
   }
 
   @override
@@ -1713,10 +1713,10 @@ class SJa extends S {
   String get memo => 'メモ';
 
   @override
-  String get memoDescription => 'なんかメモることあったら書いとき';
+  String get memoDescription => 'メモする内容を入力してください';
 
   @override
-  String get confirmCreateBlock => 'ブロックしてもええか？';
+  String get confirmCreateBlock => 'このユーザーをブロックしますか？';
 
   @override
   String get createBlock => 'ブロックする';
@@ -1761,7 +1761,7 @@ class SJa extends S {
   String get selectDuration => '期限を選択してください。';
 
   @override
-  String get confirmUnfollow => 'フォロー解除してもええか？';
+  String get confirmUnfollow => 'フォローを解除しますか？';
 
   @override
   String get deleteFollow => '解除する';
@@ -1922,7 +1922,7 @@ class SJa extends S {
   }
 
   @override
-  String get failedFileSave => 'ファイルの保存に失敗したみたいや';
+  String get failedFileSave => 'ファイルを保存できませんでした';
 
   @override
   String get loopPlayback => 'ループ再生';
@@ -1944,17 +1944,17 @@ class SJa extends S {
 
   @override
   String invitedReversi(String users) {
-    return '$usersから招待されとるで';
+    return '\$1から招待されています';
   }
 
   @override
-  String get nonInvitedReversi => '招待はされとらへんみたいや';
+  String get nonInvitedReversi => '招待されていません';
 
   @override
   String get remoteServerWithoutLogin => '相手先のサーバー（ログインなし）';
 
   @override
-  String get nothingHere => 'なんもないで';
+  String get nothingHere => '表示できる内容はありません';
 
   @override
   String get cacheRefreshNow => 'いますぐキャッシュを更新';
@@ -2008,16 +2008,16 @@ class SJa extends S {
   String get chatInvitation => '招待';
 
   @override
-  String get chatOwnRooms => '自分で作ったやつ';
+  String get chatOwnRooms => '作成したルーム';
 
   @override
-  String get chatJoining => '入ってるルーム';
+  String get chatJoining => '参加中のルーム';
 
   @override
   String get chatNewChat => '新しいチャットを開始';
 
   @override
-  String get chatIgnored => '無視したで';
+  String get chatIgnored => '無視しました';
 
   @override
   String get chatNoDescription => '説明はありません';
@@ -2032,7 +2032,7 @@ class SJa extends S {
   String get chatSearch => 'チャット検索';
 
   @override
-  String get chatInvited => '招待したで';
+  String get chatInvited => '招待しました';
 
   @override
   String get chatRoomName => '名前';
@@ -2050,13 +2050,13 @@ class SJa extends S {
   String get chatCreator => 'チャットを立てた人';
 
   @override
-  String get confirmChatLeave => 'ほんまにチャットから退出してええな？';
+  String get confirmChatLeave => 'このチャットルームから退出しますか？';
 
   @override
   String get chatLeave => 'チャットから退出';
 
   @override
-  String get chatLeftRoom => 'チャットから退出したで';
+  String get chatLeftRoom => 'チャットルームから退出しました';
 
   @override
   String get chatRetry => '再試行';
@@ -2095,7 +2095,7 @@ class SJa extends S {
   String get chatNsfw => 'NSFW';
 
   @override
-  String get chatUpdateCompleted => '更新できたみたいや';
+  String get chatUpdateCompleted => 'チャットを更新しました';
 
   @override
   String chatRoomInvitation(String roomName) {
@@ -2103,25 +2103,25 @@ class SJa extends S {
   }
 
   @override
-  String get goToChat => 'みにいく';
+  String get goToChat => 'チャットを開く';
 
   @override
   String get noSearchResults => '検索結果が見つかりませんでした';
 
   @override
-  String get saveToDrafts => '下書きに保存しとく？';
+  String get saveToDrafts => '下書きに保存しますか？';
 
   @override
-  String get discard => 'やめとく';
+  String get discard => '破棄する';
 
   @override
   String get drafts => '下書き';
 
   @override
-  String get noDrafts => '下書きあらへんで';
+  String get noDrafts => '下書きはありません';
 
   @override
-  String get confirmDeleteDraft => 'この下書き削除してもええか？';
+  String get confirmDeleteDraft => 'この下書きを削除しますか？';
 
   @override
   String get emptyNote => '空っぽのノート';
