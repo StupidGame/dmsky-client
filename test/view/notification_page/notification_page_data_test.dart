@@ -136,6 +136,18 @@ void main() {
         "ユーザーからフォローリクエストが届きました",
       );
       expect(
+        localizations.followRequestAcceptedNotification("ユーザー"),
+        "ユーザーがフォローを許可しました",
+      );
+      expect(
+        localizations.renoteAndReactionsNotification("リアクションした人", "リノートした人"),
+        "リアクションした人さんがリアクションし、リノートした人さんがリノートしました",
+      );
+      expect(
+        localizations.roleAssignedNotification("テストロール"),
+        "ロール「テストロール」が付与されました",
+      );
+      expect(
         localizations.renoteNotification("ユーザー"),
         "ユーザーさんがリノートしました",
       );
