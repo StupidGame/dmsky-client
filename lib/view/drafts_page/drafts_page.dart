@@ -133,7 +133,7 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
       refreshVersion.value++;
     }
 
-    return FutureBuilder<List<NoteDraft>>(
+    return FutureBuilder<Iterable<NoteDraft>>(
       future: scheduledNotes,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -151,7 +151,7 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
           );
         }
 
-        final drafts = snapshot.data ?? const <NoteDraft>[];
+        final drafts = snapshot.data?.toList() ?? const <NoteDraft>[];
         if (drafts.isEmpty) {
           return RefreshIndicator(
             onRefresh: refresh,
