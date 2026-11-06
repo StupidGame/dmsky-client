@@ -228,8 +228,8 @@ void main() {
         // 4つのタブが表示されることを確認
         expect(find.text("ホーム"), findsOneWidget);
         expect(find.text("招待"), findsOneWidget);
-        expect(find.text("入ってるルーム"), findsOneWidget);
-        expect(find.text("自分で作ったやつ"), findsOneWidget);
+        expect(find.text("参加中のルーム"), findsOneWidget);
+        expect(find.text("作成したルーム"), findsOneWidget);
 
         // TabBarが存在することを確認
         expect(find.byType(TabBar), findsOneWidget);
