@@ -113,10 +113,9 @@ class NoteVote extends HookConsumerWidget {
                             child: FractionallySizedBox(
                               widthFactor: totalVotes == 0
                                   ? 0
-                                  : (choice.element.votes / totalVotes).clamp(
-                                      0.0,
-                                      1.0,
-                                    ),
+                                  : (choice.element.votes / math.max(totalVotes, 1))
+                                      .clamp(0.0, 1.0)
+                                      .toDouble(),
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -160,7 +159,7 @@ class NoteVote extends HookConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    "${choice.element.votes}票",
+                                    S.of(context).votesCount(choice.element.votes),
                                     style: textTheme.labelLarge?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontFeatures: const [],
