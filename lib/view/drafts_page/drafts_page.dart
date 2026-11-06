@@ -46,15 +46,25 @@ class DraftsPage extends ConsumerWidget implements AutoRouteWrapper {
   }
 }
 
-class _DraftsListView extends ConsumerWidget {
+class _DraftsListView extends HookConsumerWidget {
   const _DraftsListView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final revision = useState(0);
     final draftRepository = ref.watch(noteDraftRepositoryProvider.notifier);
+    final draftsFuture = useMemoized(
+      draftRepository.list,
+      [draftRepository, revision.value],
+    );
+
+    Future<void> refresh() async {
+      revision.value++;
+      await Future<void>.value();
+    }
 
     return FutureBuilder<List<NoteDraft>>(
-      future: draftRepository.list(),
+      future: draftsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
@@ -72,19 +82,27 @@ class _DraftsListView extends ConsumerWidget {
         final drafts = snapshot.data ?? [];
 
         if (drafts.isEmpty) {
-          return Center(
-            child: Text(
-              "下書きがありません",
-              style: Theme.of(context).textTheme.bodyLarge,
+          return RefreshIndicator(
+            onRefresh: refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 180),
+                Center(
+                  child: Text(
+                    "下書きがありません",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ],
             ),
           );
         }
 
         return RefreshIndicator(
-          onRefresh: () async {
-            await draftRepository.list();
-          },
+          onRefresh: refresh,
           child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             itemCount: drafts.length,
             itemBuilder: (context, index) {
               final draft = drafts[index];
@@ -102,6 +120,7 @@ class _DraftsListView extends ConsumerWidget {
                 },
                 onDelete: () async {
                   await draftRepository.delete(draft.id);
+                  await refresh();
                 },
               );
             },
