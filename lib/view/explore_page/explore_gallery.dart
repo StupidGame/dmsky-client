@@ -3,7 +3,7 @@ import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/providers.dart";
-import "package:misskey_dart/misskey_dart.dart";
+import "package:misskey_dart/misskey_dart.dart" hide Clip;
 
 /// Misskey ギャラリーの閲覧画面。
 class ExploreGallery extends ConsumerWidget {
