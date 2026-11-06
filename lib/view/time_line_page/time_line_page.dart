@@ -216,7 +216,11 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
       ),
     );
 
-    if (deckMode) return const TimelineTablet();
+    // Deck mode is designed for tablets and desktop. On phones its fixed-width
+    // columns can leave only a clipped fragment visible; use the regular
+    // timeline layout on compact screens even when the preference is enabled.
+    final isCompactScreen = MediaQuery.sizeOf(context).shortestSide < 600;
+    if (deckMode && !isCompactScreen) return const TimelineTablet();
 
     timelineRepository = ref.watch(timelineProvider(currentTabSetting));
     final socketTimeline = timelineRepository is SocketTimelineRepository
@@ -354,12 +358,6 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
               ),
             ),
             Container(
-              // decoration: filteringInputEmoji.isEmpty
-              //     ? BoxDecoration(
-              //         border: Border(
-              //             top: BorderSide(
-              //                 color: Theme.of(context).primaryColor)))
-              //     : null,
               child: Row(
                 children: [
                   Expanded(
