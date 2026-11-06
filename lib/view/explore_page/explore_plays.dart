@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/providers.dart";
-import "package:dmsky_client/view/common/futable_list_builder.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/search_page/play_search.dart";
 import "package:misskey_dart/misskey_dart.dart";
@@ -80,50 +79,75 @@ class _PlayList extends ConsumerWidget {
       accountContextProvider.select((value) => value.getAccount.host),
     );
 
-    return FutureListView<Flash>(
+    return FutureBuilder<Iterable<Flash>>(
       future: Future(future),
-      builder: (context, play) => Card(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: ListTile(
-          title: MfmText(
-            mfmText: play.title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text("Playを読み込めませんでした。\n${snapshot.error}"),
             ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (play.summary.isNotEmpty) MfmText(mfmText: play.summary),
-              const SizedBox(height: 4),
-              Text(
-                "@${play.user.username}",
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-          trailing: play.likedCount == null
-              ? null
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
+          );
+        }
+        final plays = snapshot.data?.toList() ?? const <Flash>[];
+        if (plays.isEmpty) {
+          return Center(child: Text(emptyMessage));
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          itemCount: plays.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 4),
+          itemBuilder: (context, index) {
+            final play = plays[index];
+            return Card(
+              margin: EdgeInsets.zero,
+              child: ListTile(
+                title: MfmText(
+                  mfmText: play.title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.favorite_border, size: 16),
-                    const SizedBox(width: 4),
-                    Text("${play.likedCount}"),
+                    if (play.summary.isNotEmpty) MfmText(mfmText: play.summary),
+                    const SizedBox(height: 4),
+                    Text(
+                      "@${play.user.username}",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
-          onTap: () async {
-            await launchUrl(
-              Uri(
-                scheme: "https",
-                host: host,
-                pathSegments: ["play", play.id],
+                trailing: play.likedCount == null
+                    ? null
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite_border, size: 16),
+                          const SizedBox(width: 4),
+                          Text("${play.likedCount}"),
+                        ],
+                      ),
+                onTap: () async {
+                  await launchUrl(
+                    Uri(
+                      scheme: "https",
+                      host: host,
+                      pathSegments: ["play", play.id],
+                    ),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
               ),
-              mode: LaunchMode.externalApplication,
             );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 }
