@@ -389,7 +389,7 @@ class SJa extends S {
 
   @override
   String mutedNotePlaceholder(String userName) {
-    return '\$1の投稿は非表示になっています';
+    return '$userNameの投稿は非表示になっています';
   }
 
   @override
@@ -610,7 +610,7 @@ class SJa extends S {
 
   @override
   String followRequestAcceptedNotification(String userName) {
-    return '\$1がフォローを許可しました';
+    return '$userNameがフォローを許可しました';
   }
 
   @override
@@ -664,7 +664,7 @@ class SJa extends S {
 
   @override
   String roleAssignedNotification(String role) {
-    return 'ロール「\$1」が付与されました';
+    return 'ロール「$role」が付与されました';
   }
 
   @override
@@ -836,7 +836,7 @@ class SJa extends S {
 
   @override
   String confirmAnnouncementsRead(Object title) {
-    return '「\$1」を確認しましたか？';
+    return '「$title」を確認しましたか？';
   }
 
   @override
@@ -1392,16 +1392,16 @@ class SJa extends S {
   String get fontStandard => 'フォント（標準）';
 
   @override
-  String get fontSerif => 'フォント（\$[font.serif 用）';
+  String get fontSerif => 'フォント（\$[font.serif]用）';
 
   @override
-  String get fontMonospace => 'フォント （\$[font.monospace やコードブロック 用）';
+  String get fontMonospace => 'フォント（\$[font.monospace]・コードブロック用）';
 
   @override
-  String get fontCursive => 'フォント （\$[font.cursive 用）';
+  String get fontCursive => 'フォント（\$[font.cursive]用）';
 
   @override
-  String get fontFantasy => 'フォント （\$[font.fantasy 用）';
+  String get fontFantasy => 'フォント（\$[font.fantasy]用）';
 
   @override
   String get fontSize => 'フォントサイズ';
@@ -1556,12 +1556,12 @@ class SJa extends S {
 
   @override
   String confirmUnblockUser(String userName) {
-    return '\$1のブロックを解除しますか？';
+    return '$userNameのブロックを解除しますか？';
   }
 
   @override
   String confirmUnmuteUser(String userName) {
-    return '\$1のミュートを解除しますか？';
+    return '$userNameのミュートを解除しますか？';
   }
 
   @override
@@ -1944,7 +1944,7 @@ class SJa extends S {
 
   @override
   String invitedReversi(String users) {
-    return '\$1から招待されています';
+    return '$usersから招待されています';
   }
 
   @override
