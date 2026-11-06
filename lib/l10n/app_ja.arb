@@ -54,7 +54,7 @@
   "impressum": "運営者情報",
   "willDelete": "削除しますか？",
   "cancel": "キャンセル",
-  "noneAction": "なにもしない",
+  "noneAction": "何もしない",
   "pleaseInput": "入力してください",
   "pleaseSelect": "選択してください",
   "login": "ログイン",
@@ -167,7 +167,7 @@
   "reportAbuse": "通報する",
   "closeTweet": "ツイートを閉じる",
   "closePlayer": "プレイヤーを閉じる",
-  "doneCopy": "コピーしたで",
+  "doneCopy": "コピーしました",
   "mutedNotePlaceholder": "{userName}の投稿は非表示になっています",
   "@mutedNotePlaceholder": {
     "placeholders": {
@@ -193,7 +193,7 @@
   "cancelReaction": "取り消す",
   "renotedBy": "がリノート",
   "selfRenotedBy": "がセルフリノート",
-  "savedImage": "画像保存したで",
+  "savedImage": "画像を保存しました",
   "tapToShow": "タップして表示",
   "copyContents": "内容をコピー",
   "copyLinks": "リンクをコピー",
@@ -211,7 +211,7 @@
   "confirmDeletedRecreate": "このノートを削除して再投稿しますか？リアクション、リノート、返信は引き継がれません。",
   "deleteRenote": "リノートを解除する",
   "confirmDelete": "本当に削除しますか？",
-  "doDeleting": "消す！",
+  "doDeleting": "削除する",
   "confirmPoll": "{choiced}に投票しますか？",
   "@confirmPoll": {
     "placeholders": {
@@ -272,7 +272,7 @@
   "quotedRenoteInChannel": "チャンネルへ引用",
   "quotedRenoteInOtherChannel": "別のチャンネルに引用",
   "renotedUsers": "リノートしたユーザー",
-  "otherComplementReactions": "他のん",
+  "otherComplementReactions": "他のリアクション",
   "openAsOtherAccount": "開くアカウントを選択",
   "pickColor": "色を選択",
   "decideColor": "これにする",
@@ -291,11 +291,11 @@
   "randomizeFileName": "ファイル名をランダムにする",
   "caption": "キャプション",
   "sensitiveSubTitle": "閲覧注意の設定を外した場合でも、自動で閲覧注意にマークされることがあります。",
-  "replyNotePlaceholder": "何て送る？",
+  "replyNotePlaceholder": "返信内容を入力",
   "defaultNotePlaceholder": "今、何を投稿しますか？",
   "hasMediaButCannotEdit": "メディアがあります（編集はできません）",
   "hasVoteButCannotEdit": "投票があります（編集はできません）",
-  "followedNotification": "{userName}からフォローされたで",
+  "followedNotification": "{userName}にフォローされました",
   "@followedNotification": {
     "placeholders": {
       "userName": {
@@ -311,7 +311,7 @@
       }
     }
   },
-  "receiveFollowRequestNotification": "{userName}がフォローさせてほしそうにしてるで",
+  "receiveFollowRequestNotification": "{userName}からフォローリクエストが届きました",
   "@receiveFollowRequestNotification": {
     "placeholders": {
       "userName": {
@@ -321,12 +321,12 @@
   },
   "achievementEarnedNotification": "実績を獲得しました",
   "testNotification": "テスト通知",
-  "renotedUsersInNotification": "リノートしてくれはった人",
-  "reactionUsersInNotification": "リアクションしてくれはった人",
+  "renotedUsersInNotification": "リノートしたユーザー",
+  "reactionUsersInNotification": "リアクションしたユーザー",
   "finishedVotedNotification": "投票が終了しました",
-  "scheduledNotePostedNotification": "予約投稿がノートされたで",
+  "scheduledNotePostedNotification": "予約投稿が投稿されました",
   "scheduledNotePostFailedNotification": "予約投稿に失敗しました",
-  "renoteAndReactionsNotification": "{reactionUser}さんたちがリアクションしはって、{renotedUser}さんたちがリノートしはったで",
+  "renoteAndReactionsNotification": "{reactionUser}さんがリアクションし、{renotedUser}さんがリノートしました",
   "@renoteAndReactionsNotification": {
     "placeholders": {
       "reactionUser": {
@@ -337,7 +337,7 @@
       }
     }
   },
-  "renoteNotification": "{renoteUser}さんたちがリノートしはったで",
+  "renoteNotification": "{renoteUser}さんがリノートしました",
   "@renoteNotification": {
     "placeholders": {
       "renoteUser": {
@@ -345,7 +345,7 @@
       }
     }
   },
-  "reactionNotification": "{reactionUser}さんたちがリアクションしはったで",
+  "reactionNotification": "{reactionUser}さんがリアクションしました",
   "@reactionNotification": {
     "placeholders": {
       "reactionUser": {
@@ -353,7 +353,7 @@
       }
     }
   },
-  "notedNotification": "{notedUser}さんがノートしはったで",
+  "notedNotification": "{notedUser}さんが投稿しました",
   "@notedNotification": {
     "placeholders": {
       "notedUser": {
@@ -370,10 +370,10 @@
     }
   },
   "appNotification": "アプリからの通知",
-  "someoneLogined": "自分のアカウントにログインがあったらしいで",
-  "unknownNotification": "知らんタイプの通知やわ",
-  "createTokenNotification": "アクセストークンが作成されたで",
-  "chatRoomInvitationReceivedNotification": "チャットルームに招待されたで",
+  "someoneLogined": "自分のアカウントへのログインがありました",
+  "unknownNotification": "不明な種類の通知です",
+  "createTokenNotification": "アクセストークンが作成されました",
+  "chatRoomInvitationReceivedNotification": "チャットルームに招待されました",
   "messageForFollower": "フォロワーへ 「{message}」",
   "@messageForFollower": {
     "placeholders": {
@@ -382,17 +382,17 @@
       }
     }
   },
-  "notificationAll": "みんな",
-  "notificationForMe": "自分宛て",
+  "notificationAll": "すべて",
+  "notificationForMe": "メンション",
   "notificationDirect": "ダイレクト",
   "editPhoto": "写真編集",
   "customEmojiLicensedBy": "このカスタム絵文字はこのようにライセンスされています。",
   "customEmojiLicensedByNone": "※このカスタム絵文字に対してライセンスは設定されていません。",
   "cancelEmojiChoosing": "選択をキャンセル",
-  "doneEmojiChoosing": "使ってもだいじょうぶ",
-  "confirmSavingPhoto": "保存しよる？",
+  "doneEmojiChoosing": "この絵文字を使用する",
+  "confirmSavingPhoto": "写真を保存しますか？",
   "doneEditingPhoto": "保存する",
-  "continueEditingPhoto": "もうちょっと続ける",
+  "continueEditingPhoto": "編集を続ける",
   "disabledUsingSensitiveCustomEmoji": "ここではセンシティブなカスタム絵文字を使用できません",
   "markAsSensitive": "センシティブとしてマークする",
   "publicSubTitle": "みんなに公開",
@@ -436,7 +436,7 @@
       }
     }
   },
-  "pageWrittenBy": "このページ書きはった人",
+  "pageWrittenBy": "このページを書いた人",
   "pageCreatedAt": "作成日: {createdAt}",
   "@pageCreatedAt": {
     "placeholders": {
@@ -455,7 +455,7 @@
       }
     }
   },
-  "unsupportedPage": "DMSKY Clientが対応してないページやわ　ブラウザで見てな",
+  "unsupportedPage": "DMSKY Clientが対応していないページです。ブラウザーで開いてください。",
   "canNotFavoriteMyPage": "自分のページはお気に入りに登録できません",
   "activeAnnouncements": "公開中",
   "inactiveAnnouncements": "過去のお知らせ",
@@ -502,10 +502,10 @@
   "serverInformation": "サーバー情報",
   "loginAsMiAuth": "MiAuthでログイン",
   "loginAsAPIKey": "APIキーでログイン",
-  "authorizate": "認証をする",
-  "reauthorizate": "再度認証をする",
+  "authorizate": "認証する",
+  "reauthorizate": "再認証する",
   "chooseLoginServer": "ログインするサーバーを選んでください",
-  "didAuthorize": "認証してきた",
+  "didAuthorize": "認証しました",
   "thrownConnectionError": "通信に失敗しました。",
   "thrownConnectionTimeout": "タイムアウトしました。",
   "thrownWebSocketException": "通信に失敗しました。",
@@ -698,13 +698,13 @@
   },
   "importFromThisFolder": "このフォルダーからインポートする",
   "exportedFileNotFound": "このフォルダーにDMSKY Clientの設定ファイルが見つかりません",
-  "importCompleted": "インポート終わったで。",
+  "importCompleted": "インポートが完了しました",
   "exportToThisFolder": "このフォルダーに保存する",
   "confirmOverwrite": "同名のファイルが存在します。上書きしますか？",
   "overwrite": "上書きする",
   "exportedFileComment": "DMSKY Client設定ファイル",
-  "exportCompleted": "エクスポート終わったで",
-  "cannotOpenLocalOnlyNoteFromRemote": "連合なしのノートを他のサーバーで開くことはできません",
+  "exportCompleted": "エクスポートが完了しました",
+  "cannotOpenLocalOnlyNoteFromRemote": "ローカル限定のノートは他のサーバーから開けません",
   "unlimited": "無期限",
   "specifyByDate": "日時指定",
   "specifyByDuration": "期間指定",
@@ -731,7 +731,7 @@
   "cannotFederateRenoteToLocalOnlyNote": "リノート元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。",
   "unexpectedSensitive": "アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？",
   "staySensitive": "センシティブ設定を維持",
-  "unsetSensitive": "センシティブやめる",
+  "unsetSensitive": "センシティブ設定を解除",
   "noteCreatedAt": "投稿時間: {createdAt}",
   "@noteCreatedAt": {
     "placeholders": {
@@ -747,7 +747,7 @@
   "tabSettings": "タブ設定",
   "settingsImportAndExport": "設定のインポート・エクスポート",
   "aboutMiria": "このアプリについて",
-  "quitAccountSettings": "アカウント設定をおわる",
+  "quitAccountSettings": "アカウント設定を終了",
   "packageName": "パッケージ名",
   "version": "バージョン",
   "developer": "開発者",
@@ -774,7 +774,7 @@
   "theme": "テーマ",
   "themeForLightMode": "ライトモードで使うテーマ",
   "themeForDarkMode": "ダークモードで使うテーマ",
-  "themeIsh": "{theme}っぽいの",
+  "themeIsh": "{theme}風",
   "@themeIsh": {
     "placeholders": {
       "theme": {
@@ -782,7 +782,7 @@
       }
     }
   },
-  "selectLightOrDarkMode": "ライトモード・ダークモードのつかいわけ",
+  "selectLightOrDarkMode": "ライトモードとダークモードの使い分け",
   "reaction": "リアクション",
   "emojiTapReaction": "ノート内の絵文字タップでリアクションする",
   "emojiTapReactionDescription": "ノート内の絵文字をタップしてリアクションします。MFMや外部サーバーの絵文字の場合うまく機能しないことがあります。",
@@ -797,7 +797,7 @@
   "cache": "キャッシュ",
   "cacheSize": "キャッシュサイズ",
   "cacheSizeError": "取得に失敗しました",
-  "clearCache": "キャッシュをクリア",
+  "clearCache": "キャッシュを削除",
   "getCacheSize": "サイズを取得",
   "selectFolder": "フォルダー選択",
   "settingsFileManagement": "設定ファイルの管理",
@@ -978,15 +978,15 @@
   "confirmDeleteList": "このリストを削除しますか？",
   "homeOnly": "ホームのみ",
   "followersOnly": "フォロワーのみ",
-  "originCombined": "全て",
+  "originCombined": "すべて",
   "followerAscendingOrder": "フォロワーが少ない順",
   "followerDescendingOrder": "フォロワーが多い順",
   "createdAtAscendingOrder": "古い順",
   "createdAtDescendingOrder": "新しい順",
   "updatedAtAscendingOrder": "更新されていない順",
   "updatedAtDescendingOrder": "更新された順",
-  "unsupportedFile": "対応してないファイルやわ",
-  "unsupportedFileWithFilename": "{filename}は対応してないファイルやわ",
+  "unsupportedFile": "対応していないファイルです",
+  "unsupportedFileWithFilename": "{filename}は対応していないファイルです",
   "@unsupportedFileWithFilename": {
     "placeholders": {
       "filename": {
@@ -1013,7 +1013,7 @@
   "remoteServerWithoutLogin": "相手先のサーバー（ログインなし）",
   "nothingHere": "表示できる内容はありません",
   "cacheRefreshNow": "いますぐキャッシュを更新",
-  "cacheManualUpdateCompleted": "情報の取得が完了したで",
+  "cacheManualUpdateCompleted": "情報を更新しました",
   "deckMode": "デッキモード",
   "enableDeckMode": "デッキモードにする",
   "template": "テンプレ",
@@ -1042,7 +1042,7 @@
   "chatRoomDescription": "説明",
   "chatUpdate": "更新",
   "chatDelete": "削除する",
-  "chatCreator": "チャットを立てた人",
+  "chatCreator": "チャットルームの作成者",
   "confirmChatLeave": "このチャットルームから退出しますか？",
   "chatLeave": "チャットから退出",
   "chatLeftRoom": "チャットルームから退出しました",
@@ -1059,7 +1059,7 @@
   "chatUnknownUser": "Unknown User",
   "chatNsfw": "NSFW",
   "chatUpdateCompleted": "チャットを更新しました",
-  "chatRoomInvitation": "チャットルームに招待されたで【{roomName}】",
+  "chatRoomInvitation": "チャットルーム「{roomName}」に招待されました",
   "@chatRoomInvitation": {
     "placeholders": {
       "roomName": {
@@ -1076,7 +1076,7 @@
   "confirmDeleteDraft": "この下書きを削除しますか？",
   "emptyNote": "空っぽのノート",
   "poll": "アンケート",
-  "continueEditing": "もうちょっと編集を続ける",
+  "continueEditing": "編集を続ける",
   "saveAndClose": "保存して閉じる",
   "discardAndReturn": "保存せずに戻る"
 }
