@@ -30,16 +30,16 @@ void main() {
     test("本文・ヘッダ・アイコンが保たれること", () async {
       final result = [
         appNotification(
-          body: "ビルドが通ったで",
-          header: "みりあ CI",
+          body: "ビルドに成功しました",
+          header: "DMSKY Client CI",
           icon: Uri.parse("https://example.test/icon.png"),
         ),
       ].toNotificationData(await localize(), achievements);
 
       expect(result, hasLength(1));
       final data = result.single as AppNotificationData;
-      expect(data.body, "ビルドが通ったで");
-      expect(data.header, "みりあ CI");
+      expect(data.body, "ビルドに成功しました");
+      expect(data.header, "DMSKY Client CI");
       expect(data.icon, Uri.parse("https://example.test/icon.png"));
     });
 
@@ -57,7 +57,7 @@ void main() {
     test("本文がなければ従来の固定文言にフォールバックすること", () async {
       final s = await localize();
       final result = [
-        appNotification(header: "みりあ CI"),
+        appNotification(header: "DMSKY Client CI"),
       ].toNotificationData(s, achievements);
 
       final data = result.single as SimpleNotificationData;
