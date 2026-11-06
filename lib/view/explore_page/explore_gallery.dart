@@ -80,22 +80,26 @@ class ExploreGallery extends HookConsumerWidget {
                   ),
                   _GalleryList(
                     revision: revision.value,
+                    onChanged: () => revision.value++,
                     future: () => misskey.gallery.featured(
                       const GalleryFeaturedRequest(limit: 100),
                     ),
                   ),
                   _GalleryList(
                     revision: revision.value,
+                    onChanged: () => revision.value++,
                     future: () => misskey.gallery.popular(),
                   ),
                   _GalleryList(
                     revision: revision.value,
+                    onChanged: () => revision.value++,
                     future: () => misskey.i.gallery.posts(
                       const IGalleryPostsRequest(limit: 100),
                     ),
                   ),
                   _GalleryList(
                     revision: revision.value,
+                    onChanged: () => revision.value++,
                     future: () async => (await misskey.i.gallery.likes(
                       const IGalleryLikesRequest(limit: 100),
                     )).map((item) => item.post),
@@ -261,7 +265,6 @@ class _GalleryPostDetail extends HookConsumerWidget {
           ),
         );
         onChanged();
-        onChanged();
         if (context.mounted) Navigator.of(context).pop();
       } catch (error) {
         if (context.mounted) {
@@ -295,6 +298,7 @@ class _GalleryPostDetail extends HookConsumerWidget {
         await misskey.gallery.posts.delete(
           GalleryPostsDeleteRequest(postId: post.id),
         );
+        onChanged();
         if (context.mounted) Navigator.of(context).pop();
       } catch (error) {
         if (context.mounted) {
