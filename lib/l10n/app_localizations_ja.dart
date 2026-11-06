@@ -563,7 +563,7 @@ class SJa extends S {
   String get pickColor => '色を選択';
 
   @override
-  String get decideColor => 'これにする';
+  String get decideColor => 'この色を選択';
 
   @override
   String accountSetting(String accountName) {
@@ -727,7 +727,7 @@ class SJa extends S {
   String get markAsSensitive => 'センシティブとしてマークする';
 
   @override
-  String get publicSubTitle => 'みんなに公開';
+  String get publicSubTitle => '全体に公開';
 
   @override
   String get homeSubTitle => 'ホームタイムラインのみに公開';
@@ -758,7 +758,7 @@ class SJa extends S {
   String get replyTo => '返信先';
 
   @override
-  String get addChoice => '増やす';
+  String get addChoice => '選択肢を追加';
 
   @override
   String choiceNumber(int choice) {
@@ -1661,7 +1661,7 @@ class SJa extends S {
   String get copy => 'コピー';
 
   @override
-  String get editReactionDeckDescription => '長押しして並び変え、押して削除、＋を押して追加します。';
+  String get editReactionDeckDescription => '長押しして並べ替え、タップして削除、＋をタップして追加します。';
 
   @override
   String get confirmClearReactionDeck => 'すでに設定済みのリアクションデッキをいったんすべてクリアしますか？';
@@ -1684,7 +1684,7 @@ class SJa extends S {
   String get noteVisibility => 'ノート公開範囲';
 
   @override
-  String get disableFederation => '連合をなしにします';
+  String get disableFederation => '連合への配信を無効にする';
 
   @override
   String get disableFederationDescription =>
@@ -1694,7 +1694,7 @@ class SJa extends S {
   String get reactionAcceptance => 'リアクションの受け入れ';
 
   @override
-  String get reactionAcceptanceAll => '全部';
+  String get reactionAcceptanceAll => 'すべて';
 
   @override
   String get forceShowAds => '広告を常に表示する';
@@ -1931,7 +1931,7 @@ class SJa extends S {
   String get misskeyGames => 'Misskey Games';
 
   @override
-  String get cookieCliker => 'Cookie Cliker';
+  String get cookieCliker => 'Cookie Clicker';
 
   @override
   String get bubbleGame => 'Bubble Game';
@@ -1957,7 +1957,7 @@ class SJa extends S {
   String get nothingHere => '表示できる内容はありません';
 
   @override
-  String get cacheRefreshNow => 'いますぐキャッシュを更新';
+  String get cacheRefreshNow => '今すぐキャッシュを更新';
 
   @override
   String get cacheManualUpdateCompleted => '情報を更新しました';
