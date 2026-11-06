@@ -73,6 +73,7 @@ class ExploreGallery extends HookConsumerWidget {
                 children: [
                   _GalleryList(
                     revision: revision.value,
+                    onChanged: () => revision.value++,
                     future: () => misskey.gallery.posts.posts(
                       const GalleryPostsRequest(limit: 100),
                     ),
@@ -111,9 +112,14 @@ class ExploreGallery extends HookConsumerWidget {
 
 class _GalleryList extends HookWidget {
   final int revision;
+  final VoidCallback onChanged;
   final Future<Iterable<GalleryPost>> Function() future;
 
-  const _GalleryList({required this.revision, required this.future});
+  const _GalleryList({
+    required this.revision,
+    required this.onChanged,
+    required this.future,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +145,10 @@ class _GalleryList extends HookWidget {
         return ListView.builder(
           padding: const EdgeInsets.all(8),
           itemCount: posts.length,
-          itemBuilder: (context, index) => _GalleryPostTile(post: posts[index]),
+          itemBuilder: (context, index) => _GalleryPostTile(
+            post: posts[index],
+            onChanged: onChanged,
+          ),
         );
       },
     );
@@ -148,8 +157,9 @@ class _GalleryList extends HookWidget {
 
 class _GalleryPostTile extends StatelessWidget {
   final GalleryPost post;
+  final VoidCallback onChanged;
 
-  const _GalleryPostTile({required this.post});
+  const _GalleryPostTile({required this.post, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +172,10 @@ class _GalleryPostTile extends StatelessWidget {
           context: context,
           isScrollControlled: true,
           useSafeArea: true,
-          builder: (_) => _GalleryPostDetail(post: post),
+          builder: (_) => _GalleryPostDetail(
+            post: post,
+            onChanged: onChanged,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,8 +223,12 @@ class _GalleryPostTile extends StatelessWidget {
 
 class _GalleryPostDetail extends HookConsumerWidget {
   final GalleryPost post;
+  final VoidCallback onChanged;
 
-  const _GalleryPostDetail({required this.post});
+  const _GalleryPostDetail({
+    required this.post,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -243,6 +260,8 @@ class _GalleryPostDetail extends HookConsumerWidget {
             isSensitive: data.isSensitive,
           ),
         );
+        onChanged();
+        onChanged();
         if (context.mounted) Navigator.of(context).pop();
       } catch (error) {
         if (context.mounted) {
@@ -448,6 +467,7 @@ Future<_GalleryEditorData?> _showGalleryEditor(
               children: [
                 TextField(
                   controller: titleController,
+                  onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(labelText: "タイトル"),
                   maxLength: 100,
                 ),
