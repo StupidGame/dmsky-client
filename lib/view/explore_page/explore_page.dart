@@ -8,6 +8,7 @@ import "package:dmsky_client/view/explore_page/explore_hashtags.dart";
 import "package:dmsky_client/view/explore_page/explore_highlight.dart";
 import "package:dmsky_client/view/explore_page/explore_pages.dart";
 import "package:dmsky_client/view/explore_page/explore_plays.dart";
+import "package:dmsky_client/view/explore_page/explore_gallery.dart";
 import "package:dmsky_client/view/explore_page/explore_role.dart";
 import "package:dmsky_client/view/explore_page/explore_server.dart";
 import "package:dmsky_client/view/explore_page/explore_users.dart";
@@ -25,7 +26,7 @@ class ExplorePage extends ConsumerWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 7,
+      length: 8,
       child: Scaffold(
         appBar: AppBar(
           title: Text(S.of(context).explore),
@@ -37,6 +38,7 @@ class ExplorePage extends ConsumerWidget implements AutoRouteWrapper {
               Tab(text: S.of(context).role),
               Tab(text: S.of(context).page),
               Tab(text: S.of(context).flash),
+              const Tab(text: "ギャラリー"),
               Tab(text: S.of(context).hashtag),
               Tab(text: S.of(context).otherServers),
             ],
@@ -50,6 +52,7 @@ class ExplorePage extends ConsumerWidget implements AutoRouteWrapper {
             ExploreRole(),
             ExplorePages(),
             ExplorePlay(),
+            ExploreGallery(),
             ExploreHashtags(),
             ExploreServer(),
           ],
