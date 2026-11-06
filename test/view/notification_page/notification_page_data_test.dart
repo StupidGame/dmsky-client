@@ -119,4 +119,32 @@ void main() {
       expect(data.text, isNot(s.unknownNotification));
     });
   });
+
+  group("日本語の通知表示", () {
+    test("通知タブと通知メッセージが自然な日本語であること", () async {
+      final localizations = await localize();
+
+      expect(localizations.notificationAll, "すべて");
+      expect(localizations.notificationForMe, "メンション");
+      expect(localizations.notificationDirect, "ダイレクト");
+      expect(
+        localizations.followedNotification("ユーザー"),
+        "ユーザーにフォローされました",
+      );
+      expect(
+        localizations.receiveFollowRequestNotification("ユーザー"),
+        "ユーザーからフォローリクエストが届きました",
+      );
+      expect(
+        localizations.renoteNotification("ユーザー"),
+        "ユーザーさんがリノートしました",
+      );
+      expect(
+        localizations.reactionNotification("ユーザー"),
+        "ユーザーさんがリアクションしました",
+      );
+      expect(localizations.unknownNotification, "不明な種類の通知です");
+    });
+  });
+
 }
