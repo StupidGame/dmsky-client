@@ -1808,7 +1808,7 @@ void main() {
           );
         });
 
-        testWidgets("「他のん」を押下するとリアクションピッカーが表示されること"
+        testWidgets("「他のリアクション」を押下するとリアクションピッカーが表示されること"
             "選択したカスタム絵文字が補完されること", (tester) async {
           VisibilityDetectorController.instance.updateInterval = Duration.zero;
 
@@ -1840,7 +1840,7 @@ void main() {
           await tester.enterText(find.byType(TextField).hitTestable(), ":");
           await tester.pumpAndSettle();
 
-          await tester.tap(find.text("他のん"));
+          await tester.tap(find.text("他のリアクション"));
           await tester.pumpAndSettle();
           await tester.tap(find.byType(CustomEmoji).at(1));
           await tester.pumpAndSettle();
