@@ -1,6 +1,8 @@
+import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/general_settings.dart";
+import "package:dmsky_client/model/tab_type.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/general_settings_repository.dart";
 import "package:dmsky_client/view/time_line_page/time_line_page.dart";
