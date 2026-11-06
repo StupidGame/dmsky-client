@@ -3,75 +3,123 @@ import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/router/app_router.dart";
 import "package:misskey_dart/misskey_dart.dart" hide Clip;
 
-/// Misskey ギャラリーの閲覧画面。
-class ExploreGallery extends ConsumerWidget {
+class ExploreGallery extends HookConsumerWidget {
   const ExploreGallery({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final misskey = ref.watch(misskeyGetContextProvider);
+    final account = ref.watch(accountContextProvider).postAccount;
+    final revision = useState(0);
 
-    return DefaultTabController(
-      length: 5,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: const TabBar(
-              isScrollable: true,
-              tabs: [
-                Tab(text: "新着"),
-                Tab(text: "おすすめ"),
-                Tab(text: "人気"),
-                Tab(text: "自分の投稿"),
-                Tab(text: "いいね"),
-              ],
-            ),
+    Future<void> createPost() async {
+      final data = await _showGalleryEditor(context, ref, account: account);
+      if (data == null) return;
+      if (data.fileIds.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("画像を1枚以上選択してください")),
+          );
+        }
+        return;
+      }
+      try {
+        await misskey.gallery.posts.create(
+          GalleryPostsCreateRequest(
+            title: data.title,
+            description: data.description,
+            fileIds: data.fileIds,
+            isSensitive: data.isSensitive,
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _GalleryList(
-                  future: () => misskey.gallery.posts.posts(
-                    const GalleryPostsRequest(limit: 100),
-                  ),
-                ),
-                _GalleryList(
-                  future: () => misskey.gallery.featured(
-                    const GalleryFeaturedRequest(limit: 100),
-                  ),
-                ),
-                _GalleryList(future: () => misskey.gallery.popular()),
-                _GalleryList(
-                  future: () => misskey.i.gallery.posts(
-                    const IGalleryPostsRequest(limit: 100),
-                  ),
-                ),
-                _GalleryList(
-                  future: () async => (await misskey.i.gallery.likes(
-                    const IGalleryLikesRequest(limit: 100),
-                  )).map((item) => item.post),
-                ),
-              ],
+        );
+        revision.value++;
+      } catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("ギャラリー投稿を作成できませんでした: $error")),
+          );
+        }
+      }
+    }
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: createPost,
+        icon: const Icon(Icons.add_photo_alternate_outlined),
+        label: const Text("投稿する"),
+      ),
+      body: DefaultTabController(
+        length: 5,
+        child: Column(
+          children: [
+            Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: const TabBar(
+                isScrollable: true,
+                tabs: [
+                  Tab(text: "新着"),
+                  Tab(text: "おすすめ"),
+                  Tab(text: "人気"),
+                  Tab(text: "自分の投稿"),
+                  Tab(text: "いいね"),
+                ],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _GalleryList(
+                    revision: revision.value,
+                    future: () => misskey.gallery.posts.posts(
+                      const GalleryPostsRequest(limit: 100),
+                    ),
+                  ),
+                  _GalleryList(
+                    revision: revision.value,
+                    future: () => misskey.gallery.featured(
+                      const GalleryFeaturedRequest(limit: 100),
+                    ),
+                  ),
+                  _GalleryList(
+                    revision: revision.value,
+                    future: () => misskey.gallery.popular(),
+                  ),
+                  _GalleryList(
+                    revision: revision.value,
+                    future: () => misskey.i.gallery.posts(
+                      const IGalleryPostsRequest(limit: 100),
+                    ),
+                  ),
+                  _GalleryList(
+                    revision: revision.value,
+                    future: () async => (await misskey.i.gallery.likes(
+                      const IGalleryLikesRequest(limit: 100),
+                    )).map((item) => item.post),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _GalleryList extends StatelessWidget {
+class _GalleryList extends HookWidget {
+  final int revision;
   final Future<Iterable<GalleryPost>> Function() future;
 
-  const _GalleryList({required this.future});
+  const _GalleryList({required this.revision, required this.future});
 
   @override
   Widget build(BuildContext context) {
+    final postsFuture = useMemoized(future, [revision]);
     return FutureBuilder<Iterable<GalleryPost>>(
-      future: Future(future),
+      future: postsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator.adaptive());
@@ -106,7 +154,6 @@ class _GalleryPostTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = post.files.firstOrNull;
-
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 5),
@@ -171,6 +218,73 @@ class _GalleryPostDetail extends HookConsumerWidget {
     final liked = useState(post.isLiked ?? false);
     final likeCount = useState(post.likedCount);
     final busy = useState(false);
+    final account = ref.watch(accountContextProvider).postAccount;
+    final misskey = ref.watch(misskeyGetContextProvider);
+    final isOwner = post.userId == account.i.id;
+
+    Future<void> editPost() async {
+      final data = await _showGalleryEditor(
+        context,
+        ref,
+        account: account,
+        initialTitle: post.title,
+        initialDescription: post.description ?? "",
+        initialFiles: post.files,
+        initialSensitive: post.isSensitive,
+      );
+      if (data == null) return;
+      try {
+        await misskey.gallery.posts.update(
+          GalleryPostsUpdateRequest(
+            postId: post.id,
+            title: data.title,
+            description: data.description,
+            fileIds: data.fileIds,
+            isSensitive: data.isSensitive,
+          ),
+        );
+        if (context.mounted) Navigator.of(context).pop();
+      } catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("投稿を更新できませんでした: $error")),
+          );
+        }
+      }
+    }
+
+    Future<void> deletePost() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text("投稿を削除"),
+          content: const Text("このギャラリー投稿を削除しますか？この操作は取り消せません。"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text("キャンセル"),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text("削除"),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      try {
+        await misskey.gallery.posts.delete(
+          GalleryPostsDeleteRequest(postId: post.id),
+        );
+        if (context.mounted) Navigator.of(context).pop();
+      } catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("投稿を削除できませんでした: $error")),
+          );
+        }
+      }
+    }
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -179,7 +293,39 @@ class _GalleryPostDetail extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(post.title, style: Theme.of(context).textTheme.titleLarge),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    post.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                if (isOwner)
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == "edit") editPost();
+                      if (value == "delete") deletePost();
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: "edit",
+                        child: ListTile(
+                          leading: Icon(Icons.edit_outlined),
+                          title: Text("編集"),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: "delete",
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline),
+                          title: Text("削除"),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
             const SizedBox(height: 6),
             Text("@${post.user.username}"),
             const SizedBox(height: 12),
@@ -208,7 +354,7 @@ class _GalleryPostDetail extends HookConsumerWidget {
               ),
             if (post.description?.isNotEmpty ?? false) ...[
               const SizedBox(height: 8),
-              Text(post.description!),
+              SelectableText(post.description!),
             ],
             if (post.tags?.isNotEmpty ?? false) ...[
               const SizedBox(height: 8),
@@ -228,13 +374,14 @@ class _GalleryPostDetail extends HookConsumerWidget {
                     : () async {
                         busy.value = true;
                         try {
-                          final api = ref.read(misskeyGetContextProvider).gallery.posts;
+                          final api = misskey.gallery.posts;
                           if (liked.value) {
                             await api.unlike(
                               GalleryPostsUnlikeRequest(postId: post.id),
                             );
                             liked.value = false;
-                            likeCount.value = (likeCount.value - 1).clamp(0, 1 << 31).toInt();
+                            likeCount.value =
+                                (likeCount.value - 1).clamp(0, 1 << 31).toInt();
                           } else {
                             await api.like(
                               GalleryPostsLikeRequest(postId: post.id),
@@ -245,14 +392,18 @@ class _GalleryPostDetail extends HookConsumerWidget {
                         } catch (error) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("いいねを更新できませんでした: $error")),
+                              SnackBar(
+                                content: Text("いいねを更新できませんでした: $error"),
+                              ),
                             );
                           }
                         } finally {
                           busy.value = false;
                         }
                       },
-                icon: Icon(liked.value ? Icons.favorite : Icons.favorite_border),
+                icon: Icon(
+                  liked.value ? Icons.favorite : Icons.favorite_border,
+                ),
                 label: Text("${likeCount.value}"),
               ),
             ),
@@ -261,4 +412,99 @@ class _GalleryPostDetail extends HookConsumerWidget {
       ),
     );
   }
+}
+
+typedef _GalleryEditorData = ({
+  String title,
+  String description,
+  List<String> fileIds,
+  bool isSensitive,
+});
+
+Future<_GalleryEditorData?> _showGalleryEditor(
+  BuildContext context,
+  WidgetRef ref, {
+  required Account account,
+  String initialTitle = "",
+  String initialDescription = "",
+  List<DriveFile> initialFiles = const [],
+  bool initialSensitive = false,
+}) async {
+  final titleController = TextEditingController(text: initialTitle);
+  final descriptionController = TextEditingController(text: initialDescription);
+  var selectedFiles = [...initialFiles];
+  var isSensitive = initialSensitive;
+
+  final result = await showDialog<_GalleryEditorData>(
+    context: context,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: Text(initialTitle.isEmpty ? "ギャラリーに投稿" : "ギャラリー投稿を編集"),
+        content: SizedBox(
+          width: 480,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: "タイトル"),
+                  maxLength: 100,
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: "説明"),
+                  minLines: 2,
+                  maxLines: 6,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final files = await dialogContext.pushRoute<List<DriveFile>>(
+                      DriveFileSelectRoute(account: account, allowMultiple: true),
+                    );
+                    if (files != null && context.mounted) {
+                      setState(() => selectedFiles = files);
+                    }
+                  },
+                  icon: const Icon(Icons.folder_open),
+                  label: Text("画像を選択 (${selectedFiles.length}件)"),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: isSensitive,
+                  onChanged: (value) => setState(() => isSensitive = value),
+                  title: const Text("センシティブな内容"),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("キャンセル"),
+          ),
+          FilledButton(
+            onPressed: titleController.text.trim().isEmpty ||
+                    selectedFiles.isEmpty
+                ? null
+                : () => Navigator.pop(
+                    dialogContext,
+                    (
+                      title: titleController.text.trim(),
+                      description: descriptionController.text.trim(),
+                      fileIds: selectedFiles.map((file) => file.id).toList(),
+                      isSensitive: isSensitive,
+                    ),
+                  ),
+            child: const Text("保存"),
+          ),
+        ],
+      ),
+    ),
+  );
+  titleController.dispose();
+  descriptionController.dispose();
+  return result;
 }
