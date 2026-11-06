@@ -93,9 +93,7 @@ class NoteVote extends HookConsumerWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(7),
               child: Material(
-                color: isOpened.value
-                    ? colorTheme.accentedBackground
-                    : colorTheme.accentedBackground,
+                color: colorTheme.accentedBackground,
                 child: InkWell(
                   onTap: isVotable(choice.index, ref)
                       ? () async {
@@ -162,7 +160,6 @@ class NoteVote extends HookConsumerWidget {
                                     S.of(context).votesCount(choice.element.votes),
                                     style: textTheme.labelLarge?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      fontFeatures: const [],
                                     ),
                                   ),
                                   Text(
