@@ -1369,7 +1369,7 @@ class SJa extends S {
 
   @override
   String themeIsh(String theme) {
-    return '$themeっぽいの';
+    return '$theme風';
   }
 
   @override
@@ -1969,7 +1969,7 @@ class SJa extends S {
   String get enableDeckMode => 'デッキモードにする';
 
   @override
-  String get template => 'テンプレ';
+  String get template => 'テンプレート';
 
   @override
   String get noteBackgroundColor => 'ノート背景色';
@@ -2089,7 +2089,7 @@ class SJa extends S {
   String get chatReactionList => 'リアクション一覧';
 
   @override
-  String get chatUnknownUser => 'Unknown User';
+  String get chatUnknownUser => '不明なユーザー';
 
   @override
   String get chatNsfw => 'NSFW';
@@ -2124,7 +2124,7 @@ class SJa extends S {
   String get confirmDeleteDraft => 'この下書きを削除しますか？';
 
   @override
-  String get emptyNote => '空っぽのノート';
+  String get emptyNote => '空のノート';
 
   @override
   String get poll => 'アンケート';
