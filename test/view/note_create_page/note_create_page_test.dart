@@ -3243,7 +3243,7 @@ void main() {
         await tester.pumpAndSettle();
 
         for (var i = 0; i < 8; i++) {
-          await tester.tap(find.text("増やす"));
+          await tester.tap(find.text("選択肢を追加"));
         }
         for (var i = 0; i < 10; i++) {
           await tester.enterText(find.byType(TextField).at(i + 1), "投票$i");
@@ -3305,8 +3305,8 @@ void main() {
 
         await tester.enterText(find.byType(TextField).at(1), "投票0");
         await tester.enterText(find.byType(TextField).at(2), "投票1");
-        await tester.tap(find.text("増やす"));
-        await tester.tap(find.text("増やす"));
+        await tester.tap(find.text("選択肢を追加"));
+        await tester.tap(find.text("選択肢を追加"));
         await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField).at(3), "投票2");
