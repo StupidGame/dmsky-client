@@ -36,7 +36,10 @@ void main() {
         ],
       ),
     );
-    await tester.pumpAndSettle(const Duration(seconds: 1));
+
+    // Timeline contents can contain indefinitely animating progress indicators,
+    // so pump a bounded frame instead of waiting for the whole tree to settle.
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(TimelineTablet), findsNothing);
     expect(find.byType(TimeLinePage), findsOneWidget);
