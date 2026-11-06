@@ -63,13 +63,13 @@ class ExploreGallery extends ConsumerWidget {
   }
 }
 
-class _GalleryList extends ConsumerWidget {
+class _GalleryList extends StatelessWidget {
   final Future<Iterable<GalleryPost>> Function() future;
 
   const _GalleryList({required this.future});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return FutureBuilder<Iterable<GalleryPost>>(
       future: Future(future),
       builder: (context, snapshot) {
