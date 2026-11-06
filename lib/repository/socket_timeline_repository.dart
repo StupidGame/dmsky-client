@@ -110,34 +110,37 @@ abstract class SocketTimelineRepository extends TimelineRepository {
       );
     }
     await _listenStreaming();
-    await Future.wait([
-      Future(() async {
-        if (olderNotes.isEmpty) {
-          try {
-            final resultNotes = await requestNotes();
-            olderNotes.addAll(resultNotes);
-            notifyListeners();
-          } catch (e, s) {
-            if (kDebugMode) {
-              print(e);
-              print(s);
-            }
-          }
-        } else {
-          reloadLatestNotes();
+    if (olderNotes.isEmpty) {
+      try {
+        final resultNotes = await requestNotes();
+        olderNotes.addAll(resultNotes);
+        notifyListeners();
+      } catch (e, s) {
+        if (kDebugMode) {
+          print(e);
+          print(s);
         }
-      }),
-    ]);
+      }
+    } else {
+      reloadLatestNotes();
+    }
+  }
+
+  Future<void> _removeSubscribedChannels() async {
+    // Clear the shared list before awaiting so concurrent disconnect/dispose
+    // calls cannot remove the same entry twice.
+    final ids = List<String>.of(subscribedIds);
+    subscribedIds.clear();
+    final controller = streamingController;
+    if (controller == null) return;
+    for (final id in ids) {
+      await controller.removeChannel(id);
+    }
   }
 
   @override
   Future<void> disconnect() async {
-    if (streamingController != null) {
-      for (var i = subscribedIds.length - 1; i >= 0; i--) {
-        await streamingController!.removeChannel(subscribedIds[i]);
-        subscribedIds.removeAt(i);
-      }
-    }
+    await _removeSubscribedChannels();
     await timelineSubscription?.cancel();
     await mainSubscription?.cancel();
   }
@@ -192,14 +195,7 @@ abstract class SocketTimelineRepository extends TimelineRepository {
   @override
   void dispose() {
     super.dispose();
-    unawaited(() async {
-      if (streamingController != null) {
-        for (var i = subscribedIds.length - 1; i >= 0; i--) {
-          await streamingController!.removeChannel(subscribedIds[i]);
-          subscribedIds.removeAt(i);
-        }
-      }
-    }());
+    unawaited(_removeSubscribedChannels());
   }
 
   @override

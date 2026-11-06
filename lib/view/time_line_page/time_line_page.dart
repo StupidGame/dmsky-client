@@ -240,7 +240,8 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
       body: SafeArea(
         child: Column(
           children: [
-            if (tabPosition == TabPosition.top) buildAppbar(),
+            if (tabPosition == TabPosition.top)
+              SizedBox(height: kToolbarHeight, child: buildAppbar()),
             Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -392,7 +393,7 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
             ),
             if (tabPosition == TabPosition.bottom &&
                 !ref.watch(timelineFocusNode).hasFocus)
-              buildAppbar(),
+              SizedBox(height: kToolbarHeight, child: buildAppbar()),
           ],
         ),
       ),
