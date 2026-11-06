@@ -474,7 +474,7 @@ class SJa extends S {
 
   @override
   String get confirmDeletedRecreate =>
-      'このノート消してなおす？ついたリアクション、リノート、返信は消えて戻らへんで？';
+      'このノートを削除して再投稿しますか？リアクション、リノート、返信は引き継がれません。';
 
   @override
   String get deleteRenote => 'リノートを解除する';
@@ -1248,11 +1248,11 @@ class SJa extends S {
 
   @override
   String get cannotMentionToRemoteInLocalOnlyNote =>
-      '連合オフやのによそのサーバーの人がメンションに含まれてるで';
+      'ローカル限定の投稿に、他のサーバーのユーザーがメンションされています';
 
   @override
   String cannotPublicReplyToPrivateNote(String visibility) {
-    return '返信元の公開範囲が\$1のため、公開投稿にはできません';
+    return '返信元の公開範囲が$visibilityのため、公開投稿にはできません';
   }
 
   @override
@@ -1264,11 +1264,11 @@ class SJa extends S {
 
   @override
   String get cannotFederateReplyToLocalOnlyNote =>
-      'リプライの元ノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。';
+      '返信元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。';
 
   @override
   String get cannotFederateRenoteToLocalOnlyNote =>
-      'リノートしようとしてるノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。';
+      'リノート元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。';
 
   @override
   String get unexpectedSensitive => 'アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？';
