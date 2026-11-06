@@ -1,3 +1,5 @@
+import "dart:math" as math;
+
 import "package:collection/collection.dart";
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
@@ -73,7 +75,7 @@ class NoteVote extends HookConsumerWidget {
         ? null
         : poll.expiresAt?.difference(DateTime.now()).format(context);
     final colorTheme = AppTheme.of(context).colorTheme;
-
+    final textTheme = Theme.of(context).textTheme;
     final isOpened = useState(useMemoized(() => !isAnyVotable(ref)));
 
     ref.watch(noteVoteProvider(displayNote));
@@ -88,102 +90,114 @@ class NoteVote extends HookConsumerWidget {
         )) ...[
           SizedBox(
             width: double.infinity,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.transparent),
-                borderRadius: BorderRadius.circular(5),
-                color: isOpened.value ? null : colorTheme.accentedBackground,
-                gradient: isOpened.value
-                    ? LinearGradient(
-                        colors: [
-                          colorTheme.buttonGradateA,
-                          colorTheme.buttonGradateB,
-                          colorTheme.accentedBackground,
-                        ],
-                        stops: [
-                          0,
-                          choice.element.votes / totalVotes,
-                          choice.element.votes / totalVotes,
-                        ],
-                      )
-                    : null,
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.all(4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () async {
-                  // 複数投票可能ですでに対象を投票しているか、
-                  // 単一投票でいずれかを投票している場合、なにもしない
-                  if (!isVotable(choice.index, ref)) {
-                    return;
-                  }
-                  isOpened.value = await ref
-                      .read(noteVoteProvider(displayNote).notifier)
-                      .vote(choice.index);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.transparent),
-                      borderRadius: BorderRadius.circular(3),
-                      color: Theme.of(
-                        context,
-                      ).scaffoldBackgroundColor.withAlpha(215),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 3, right: 3),
-                      child: SimpleMfmText(
-                        choice.element.text,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        prefixSpan: [
-                          if (choice.element.isVoted)
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Icon(
-                                Icons.check,
-                                size: MediaQuery.textScalerOf(context).scale(
-                                  Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.fontSize ??
-                                      22,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: Material(
+                color: isOpened.value
+                    ? colorTheme.accentedBackground
+                    : colorTheme.accentedBackground,
+                child: InkWell(
+                  onTap: isVotable(choice.index, ref)
+                      ? () async {
+                          isOpened.value = await ref
+                              .read(noteVoteProvider(displayNote).notifier)
+                              .vote(choice.index);
+                        }
+                      : null,
+                  child: Stack(
+                    children: [
+                      if (isOpened.value)
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: FractionallySizedBox(
+                              widthFactor: totalVotes == 0
+                                  ? 0
+                                  : (choice.element.votes / totalVotes).clamp(
+                                      0.0,
+                                      1.0,
+                                    ),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      colorTheme.buttonGradateA,
+                                      colorTheme.buttonGradateB,
+                                    ],
+                                  ),
                                 ),
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.color,
+                                child: const SizedBox.expand(),
                               ),
                             ),
-                        ],
-                        suffixSpan: [
-                          const WidgetSpan(
-                            child: Padding(padding: EdgeInsets.only(left: 5)),
                           ),
-                          if (isOpened.value)
-                            TextSpan(
-                              text: S
-                                  .of(context)
-                                  .votesCount(choice.element.votes),
-                              style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 11,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (choice.element.isVoted) ...[
+                              const Icon(Icons.check_circle, size: 18),
+                              const SizedBox(width: 7),
+                            ],
+                            Expanded(
+                              child: SimpleMfmText(
+                                choice.element.text,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: choice.element.isVoted
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
                             ),
-                        ],
+                            if (isOpened.value) ...[
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "${choice.element.votes}票",
+                                    style: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFeatures: const [],
+                                    ),
+                                  ),
+                                  Text(
+                                    "${totalVotes == 0 ? '0.0' : (choice.element.votes / math.max(totalVotes, 1) * 100).toStringAsFixed(1)}%",
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: textTheme.bodySmall?.color
+                                          ?.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-          const Padding(padding: EdgeInsets.only(bottom: 10)),
+          const SizedBox(height: 7),
         ],
+        const SizedBox(height: 2),
         Text.rich(
           TextSpan(
             children: [
-              TextSpan(text: S.of(context).totalVotesCount(totalVotes)),
+              TextSpan(
+                text: S.of(context).totalVotesCount(totalVotes),
+                style: textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const TextSpan(text: "  ·  "),
               TextSpan(
                 text: isExpired
                     ? S.of(context).finished
@@ -194,15 +208,19 @@ class NoteVote extends HookConsumerWidget {
                     : S.of(context).alreadyVoted,
                 recognizer: TapGestureRecognizer()
                   ..onTap = () => isOpened.value = !isOpened.value,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              const WidgetSpan(
-                child: Padding(padding: EdgeInsets.only(left: 10)),
-              ),
-              TextSpan(
-                text: differ == null ? "" : S.of(context).remainDiffer(differ),
-              ),
+              if (differ != null) ...[
+                const TextSpan(text: "  ·  "),
+                TextSpan(text: S.of(context).remainDiffer(differ)),
+              ],
             ],
-            style: Theme.of(context).textTheme.bodySmall,
+            style: textTheme.bodySmall?.copyWith(
+              color: textTheme.bodySmall?.color?.withValues(alpha: 0.75),
+            ),
           ),
         ),
       ],
