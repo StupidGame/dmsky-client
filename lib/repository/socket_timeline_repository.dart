@@ -110,24 +110,20 @@ abstract class SocketTimelineRepository extends TimelineRepository {
       );
     }
     await _listenStreaming();
-    await Future.wait([
-      Future(() async {
-        if (olderNotes.isEmpty) {
-          try {
-            final resultNotes = await requestNotes();
-            olderNotes.addAll(resultNotes);
-            notifyListeners();
-          } catch (e, s) {
-            if (kDebugMode) {
-              print(e);
-              print(s);
-            }
-          }
-        } else {
-          reloadLatestNotes();
+    if (olderNotes.isEmpty) {
+      try {
+        final resultNotes = await requestNotes();
+        olderNotes.addAll(resultNotes);
+        notifyListeners();
+      } catch (e, s) {
+        if (kDebugMode) {
+          print(e);
+          print(s);
         }
-      }),
-    ]);
+      }
+    } else {
+      reloadLatestNotes();
+    }
   }
 
   Future<void> _removeSubscribedChannels() async {
