@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/general_settings.dart";
 import "package:dmsky_client/model/tab_type.dart";
 import "package:dmsky_client/providers.dart";
@@ -29,13 +28,12 @@ void main() {
 
     final timelineTester = TimelinePageTest(tabType: TabType.homeTimeline);
     await tester.pumpWidget(
-      ProviderScope(
+      timelineTester.buildWidget(
         overrides: [
           generalSettingsRepositoryProvider.overrideWith(
             (ref) => _DeckModeSettingsRepository(),
           ),
         ],
-        child: timelineTester.buildWidget(),
       ),
     );
     await tester.pumpAndSettle(const Duration(seconds: 1));
