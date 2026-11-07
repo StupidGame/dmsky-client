@@ -120,7 +120,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Build without signing
-        run: flutter build ios --no-tree-shake-icons --release --no-codesign
+        run: flutter build ios --no-tree-shake-icons --release --no-codesign --dart-define=DMSKY_IOS_APP_GROUP=true
       - name: Package app, preserving permissions
         run: tar -czf dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
       - uses: actions/upload-artifact@v4
