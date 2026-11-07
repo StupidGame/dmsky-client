@@ -726,7 +726,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				CUSTOM_GROUP_ID = "group.app.dmsky.dmskyClient.share";
+				CUSTOM_GROUP_ID = "group.app.dmsky.dmsky_client";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -752,7 +752,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				CUSTOM_GROUP_ID = "group.app.dmsky.dmskyClient.share";
+				CUSTOM_GROUP_ID = "group.app.dmsky.dmsky_client";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -778,7 +778,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				CUSTOM_GROUP_ID = "group.app.dmsky.dmskyClient.share";
+				CUSTOM_GROUP_ID = "group.app.dmsky.dmsky_client";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Share Extension/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
