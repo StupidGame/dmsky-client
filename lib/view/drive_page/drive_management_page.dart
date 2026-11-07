@@ -26,7 +26,7 @@ class DriveManagementPage extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final path = useState<List<DriveFolder>>([]);
-    final selectedFileIds = useState<Set<String>>({});
+    final selectedFiles = useState<List<DriveFile>>([]);
     final revision = useState(0);
     final misskey = ref.watch(misskeyGetContextProvider);
     final folderId = path.value.isEmpty ? null : path.value.last.id;
@@ -37,7 +37,7 @@ class DriveManagementPage extends HookConsumerWidget
     final loadingFolders = useState(false);
     final loadingFiles = useState(false);
     useEffect(() {
-      selectedFileIds.value = {};
+      selectedFiles.value = [];
       folderItems.value = [];
       fileItems.value = [];
       folderHasMore.value = true;
@@ -134,10 +134,8 @@ class DriveManagementPage extends HookConsumerWidget
       }
     }
 
-    Future<void> moveSelectedFiles(List<DriveFile> files) async {
-      final selected = files
-          .where((file) => selectedFileIds.value.contains(file.id))
-          .toList();
+    Future<void> moveSelectedFiles() async {
+      final selected = selectedFiles.value;
       if (selected.isEmpty) return;
       final destination = await chooseDestination();
       if (destination == null || !context.mounted) return;
@@ -155,10 +153,8 @@ class DriveManagementPage extends HookConsumerWidget
       }
     }
 
-    Future<void> deleteSelectedFiles(List<DriveFile> files) async {
-      final selected = files
-          .where((file) => selectedFileIds.value.contains(file.id))
-          .toList();
+    Future<void> deleteSelectedFiles() async {
+      final selected = selectedFiles.value;
       if (selected.isEmpty) return;
       final confirmed = await showDialog<bool>(
         context: context,
@@ -508,9 +504,9 @@ class DriveManagementPage extends HookConsumerWidget
               )
             : null,
         actions: [
-          if (!selectFolder && selectedFileIds.value.isNotEmpty) ...[
+          if (!selectFolder && selectedFiles.value.isNotEmpty) ...[
             Text(
-              "${selectedFileIds.value.length}件選択",
+              "${selectedFiles.value.length}件選択",
               style: Theme.of(context).textTheme.labelLarge,
             ),
             IconButton(
@@ -521,14 +517,10 @@ class DriveManagementPage extends HookConsumerWidget
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == "move") {
-                  moveSelectedFiles(fileItems.value.isEmpty
-                      ? const <DriveFile>[]
-                      : fileItems.value);
+                  moveSelectedFiles();
                 }
                 if (value == "delete") {
-                  deleteSelectedFiles(fileItems.value.isEmpty
-                      ? const <DriveFile>[]
-                      : fileItems.value);
+                  deleteSelectedFiles();
                 }
               },
               itemBuilder: (context) => const [
@@ -749,13 +741,13 @@ class DriveManagementPage extends HookConsumerWidget
                 for (final file in visibleFiles)
                   if (!selectFolder)
                     ListTile(
-                    leading: selectedFileIds.value.contains(file.id)
+                    leading: selectedFiles.value.any((selected) => selected.id == file.id)
                         ? Checkbox(
                             value: true,
                             onChanged: (_) {
-                              final next = selectedFileIds.value.toSet()
-                                ..remove(file.id);
-                              selectedFileIds.value = next;
+                              selectedFiles.value = selectedFiles.value
+                                  .where((selected) => selected.id != file.id)
+                                  .toList();
                             },
                           )
                         : Icon(
@@ -775,9 +767,16 @@ class DriveManagementPage extends HookConsumerWidget
                           ? "選択解除"
                           : "選択",
                       onPressed: () {
-                        final next = selectedFileIds.value.toSet();
-                        if (!next.add(file.id)) next.remove(file.id);
-                        selectedFileIds.value = next;
+                        final next = selectedFiles.value.toList();
+                        final index = next.indexWhere(
+                          (selected) => selected.id == file.id,
+                        );
+                        if (index >= 0) {
+                          next.removeAt(index);
+                        } else {
+                          next.add(file);
+                        }
+                        selectedFiles.value = next;
                       },
                       icon: Icon(
                         selectedFileIds.value.contains(file.id)
@@ -786,14 +785,22 @@ class DriveManagementPage extends HookConsumerWidget
                       ),
                     ),
                     onLongPress: () {
-                      final next = selectedFileIds.value.toSet()..add(file.id);
-                      selectedFileIds.value = next;
+                      if (!selectedFiles.value.any((selected) => selected.id == file.id)) {
+                        selectedFiles.value = [...selectedFiles.value, file];
+                      }
                     },
                     onTap: () {
                       if (selectedFileIds.value.isNotEmpty) {
-                        final next = selectedFileIds.value.toSet();
-                        if (!next.add(file.id)) next.remove(file.id);
-                        selectedFileIds.value = next;
+                        final next = selectedFiles.value.toList();
+                        final index = next.indexWhere(
+                          (selected) => selected.id == file.id,
+                        );
+                        if (index >= 0) {
+                          next.removeAt(index);
+                        } else {
+                          next.add(file);
+                        }
+                        selectedFiles.value = next;
                       } else {
                         showFileActions(file);
                       }
