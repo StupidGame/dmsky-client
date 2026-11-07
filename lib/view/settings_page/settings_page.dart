@@ -5,6 +5,7 @@ import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/router/app_router.dart";
 import "package:dmsky_client/view/drive_page/drive_management_page.dart";
+import "package:dmsky_client/view/avatar_decorations_page/avatar_decorations_page.dart";
 import "package:dmsky_client/view/qr_page/qr_code_page.dart";
 import "package:dmsky_client/view/qr_page/qr_scanner_page.dart";
 
@@ -27,6 +28,16 @@ class SettingsPage extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (routeContext) =>
                     DriveManagementPage(account: account).wrappedRoute(routeContext),
+              ),
+            ),
+          ),
+          ListTile(
+            title: const Text("アバター装飾"),
+            leading: const Icon(Icons.auto_awesome),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => AvatarDecorationsPage(account: account),
               ),
             ),
           ),
