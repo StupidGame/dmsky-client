@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/account.dart";
@@ -18,6 +19,21 @@ class ScratchpadPage extends HookConsumerWidget {
     final code = useTextEditingController(
       text: '// Misskey AiScript v0/v1 を試せます\nUi:render({text: "Hello, AiScript!"})',
     );
+    final editorKey =
+        "dmsky.ai.scratchpad.${account.host}.${account.userId}.source";
+    final restored = useState(false);
+
+    useEffect(() {
+      Future<void> restore() async {
+        final prefs = await SharedPreferences.getInstance();
+        final saved = prefs.getString(editorKey);
+        if (saved != null && context.mounted) code.text = saved;
+        restored.value = true;
+      }
+
+      restore();
+      return null;
+    }, [editorKey]);
     final running = useState(false);
     final logs = useState<List<String>>([]);
     final components = useValueNotifier<Map<String, AsUiComponent>>({});
@@ -80,6 +96,11 @@ class ScratchpadPage extends HookConsumerWidget {
         children: [
           TextField(
             controller: code,
+            onChanged: (value) async {
+              if (!restored.value) return;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString(editorKey, value);
+            },
             minLines: 8,
             maxLines: 24,
             autocorrect: false,
