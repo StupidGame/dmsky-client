@@ -6,7 +6,6 @@ import "package:flutter/services.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/account.dart";
-import "package:dmsky_client/view/common/account_scope.dart";
 import "package:mobile_scanner/mobile_scanner.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -90,9 +89,7 @@ class QrScannerPage extends HookConsumerWidget {
         (defaultTargetPlatform == TargetPlatform.linux ||
             defaultTargetPlatform == TargetPlatform.windows);
 
-    return AccountContextScope.as(
-      account: account,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text("QRコード読み取り")),
         body: unsupported
             ? const Center(
@@ -229,7 +226,6 @@ class QrScannerPage extends HookConsumerWidget {
                       ),
                 ],
               ),
-      ),
     );
   }
 }
