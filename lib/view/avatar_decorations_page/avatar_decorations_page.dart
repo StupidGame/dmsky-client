@@ -1,3 +1,4 @@
+import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
@@ -140,8 +141,9 @@ class AvatarDecorationsPage extends HookConsumerWidget {
                     save(next);
                   },
                   onRemove: (index) {
-                    final next = decorations.value.toList()
-                      ..removeAt(index);
+                    final next = index < 0
+                        ? <UserAvatarDecoration>[]
+                        : decorations.value.toList()..removeAt(index);
                     decorations.value = next;
                     save(next);
                   },
@@ -388,11 +390,13 @@ class AvatarDecorationsPage extends HookConsumerWidget {
 
 class _AvatarDecorationEditor extends HookWidget {
   const _AvatarDecorationEditor({
+    required this.id,
     required this.name,
     required this.url,
     this.initial,
   });
 
+  final String id;
   final String name;
   final String url;
   final UserAvatarDecoration? initial;
@@ -487,7 +491,7 @@ class _AvatarDecorationEditor extends HookWidget {
           onPressed: () => Navigator.pop(
             context,
             UserAvatarDecoration(
-              id: initial?.id ?? url,
+              id: id,
               url: url,
               angle: angle.value,
               offsetX: offsetX.value,
