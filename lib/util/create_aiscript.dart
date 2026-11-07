@@ -7,6 +7,7 @@ import "package:misskey_dart/misskey_dart.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 import "../model/account.dart";
+import "../model/misskey_emoji_data.dart";
 import "../providers.dart";
 import "../repository/emoji_repository.dart";
 import "../rust/api/aiscript.dart";
@@ -35,7 +36,15 @@ Future<AiScript> createAiScript(
     customEmojis = (emojiRepository.emoji ?? const <EmojiRepositoryData>[])
         .map((entry) => entry.emoji)
         .whereType<CustomEmojiData>()
-        .map((emoji) => emoji.toJson())
+        .map(
+          (emoji) => <String, dynamic>{
+            "name": emoji.baseName,
+            "url": emoji.url.toString(),
+            "isSensitive": emoji.isSensitive,
+            "category": null,
+            "aliases": <String>[],
+          },
+        )
         .toList();
   } catch (_) {}
 
