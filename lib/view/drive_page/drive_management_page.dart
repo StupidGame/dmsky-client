@@ -511,7 +511,7 @@ class DriveManagementPage extends HookConsumerWidget
             ),
             IconButton(
               tooltip: "選択解除",
-              onPressed: () => selectedFileIds.value = {},
+              onPressed: () => selectedFiles.value = [],
               icon: const Icon(Icons.close),
             ),
             PopupMenuButton<String>(
@@ -738,25 +738,53 @@ class DriveManagementPage extends HookConsumerWidget
                       ),
                     ),
                   ),
+                if (!selectFolder && visibleFiles.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            final next = selectedFiles.value.toList();
+                            for (final file in visibleFiles) {
+                              if (!next.any((selected) => selected.id == file.id)) {
+                                next.add(file);
+                              }
+                            }
+                            selectedFiles.value = next;
+                          },
+                          icon: const Icon(Icons.select_all),
+                          label: const Text("表示中のファイルをすべて選択"),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: selectedFiles.value.isEmpty
+                              ? null
+                              : () => selectedFiles.value = [],
+                          child: const Text("解除"),
+                        ),
+                      ],
+                    ),
+                  ),
                 for (final file in visibleFiles)
                   if (!selectFolder)
                     ListTile(
-                    leading: selectedFiles.value.any((selected) => selected.id == file.id)
-                        ? Checkbox(
-                            value: true,
-                            onChanged: (_) {
-                              selectedFiles.value = selectedFiles.value
-                                  .where((selected) => selected.id != file.id)
-                                  .toList();
-                            },
-                          )
-                        : Icon(
-                            file.type.startsWith("image/")
-                                ? Icons.image_outlined
-                                : file.type.startsWith("video/")
-                                    ? Icons.movie_outlined
-                                    : Icons.insert_drive_file_outlined,
-                          ),
+                    leading: Checkbox(
+                      value: selectedFiles.value.any(
+                        (selected) => selected.id == file.id,
+                      ),
+                      onChanged: (checked) {
+                        final next = selectedFiles.value.toList();
+                        if (checked == true) {
+                          if (!next.any((selected) => selected.id == file.id)) {
+                            next.add(file);
+                          }
+                        } else {
+                          next.removeWhere((selected) => selected.id == file.id);
+                        }
+                        selectedFiles.value = next;
+                      },
+                    ),
                     title: Text(file.name),
                     subtitle: Text(
                       "${file.type} • ${_formatBytes(file.size)}"
