@@ -146,6 +146,9 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
     Note? renote,
     Note? reply,
     NoteCreationMode? noteCreationMode,
+    String? initialCw,
+    NoteVisibility? initialVisibility,
+    bool? initialLocalOnly,
   ) async {
     var resultState = state;
 
@@ -163,9 +166,21 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
 
     resultState = resultState.copyWith(channel: channelData);
 
-    // 共有からの反映
+    // 共有・AiScriptフォームからの初期値を反映
     if (initialText != null) {
       resultState = resultState.copyWith(text: initialText);
+    }
+    if (initialCw != null) {
+      resultState = resultState.copyWith(
+        cwText: initialCw,
+        isCw: initialCw.isNotEmpty,
+      );
+    }
+    if (initialVisibility != null) {
+      resultState = resultState.copyWith(noteVisibility: initialVisibility);
+    }
+    if (initialLocalOnly != null) {
+      resultState = resultState.copyWith(localOnly: initialLocalOnly);
     }
     if (initialMediaFiles != null && initialMediaFiles.isNotEmpty) {
       resultState = resultState.copyWith(

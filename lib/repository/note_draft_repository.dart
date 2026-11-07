@@ -27,6 +27,8 @@ class NoteDraftRepository extends _$NoteDraftRepository {
     String? renoteId,
     String? channelId,
     NotesCreatePollRequest? poll,
+    DateTime? scheduledAt,
+    bool? isActuallyScheduled,
   }) async {
     final request = NotesDraftsCreateRequest(
       text: text,
@@ -40,6 +42,8 @@ class NoteDraftRepository extends _$NoteDraftRepository {
       renoteId: renoteId,
       channelId: channelId,
       poll: poll,
+      scheduledAt: scheduledAt,
+      isActuallyScheduled: isActuallyScheduled,
     );
 
     final response = await _misskey.notes.drafts.create(request);
@@ -84,6 +88,8 @@ class NoteDraftRepository extends _$NoteDraftRepository {
     String? renoteId,
     String? channelId,
     NotesCreatePollRequest? poll,
+    DateTime? scheduledAt,
+    bool? isActuallyScheduled,
   }) async {
     final request = NotesDraftsUpdateRequest(
       draftId: draftId,
@@ -98,6 +104,8 @@ class NoteDraftRepository extends _$NoteDraftRepository {
       renoteId: renoteId,
       channelId: channelId,
       poll: poll,
+      scheduledAt: scheduledAt,
+      isActuallyScheduled: isActuallyScheduled,
     );
 
     final response = await _misskey.notes.drafts.update(request);
