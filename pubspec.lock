@@ -2043,6 +2043,10 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.4"
+  flutter_rust_bridge:
+    dependency: "direct main"  flutter_rust_bridge_hooks:
+    dependency: "direct main"  native_toolchain_rust:
+    dependency: "direct main"
 sdks:
   dart: ">=3.12.0 <4.0.0"
   flutter: ">=3.44.0"
