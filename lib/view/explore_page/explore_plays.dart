@@ -7,7 +7,6 @@ import "package:dmsky_client/view/aiscript/play_editor_page.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/search_page/play_search.dart";
 import "package:misskey_dart/misskey_dart.dart";
-import "package:url_launcher/url_launcher.dart";
 
 /// Misskey Play のおすすめ・自分の作品・お気に入り・検索をまとめた画面。
 ///
@@ -94,10 +93,6 @@ class _PlayList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final host = ref.watch(
-      accountContextProvider.select((value) => value.getAccount.host),
-    );
-
     return FutureBuilder<Iterable<Flash>>(
       future: Future(future),
       builder: (context, snapshot) {
