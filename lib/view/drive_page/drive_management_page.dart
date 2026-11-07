@@ -293,6 +293,14 @@ class DriveManagementPage extends HookConsumerWidget
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.drive_file_move_outlined),
+                title: const Text("移動"),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  moveFolder(folder);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.delete_outline),
                 title: const Text("削除"),
                 iconColor: Theme.of(context).colorScheme.error,
@@ -355,6 +363,14 @@ class DriveManagementPage extends HookConsumerWidget
                   } catch (error) {
                     await showError(error);
                   }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.drive_file_move_outlined),
+                title: const Text("移動"),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  moveFile(file);
                 },
               ),
               ListTile(
