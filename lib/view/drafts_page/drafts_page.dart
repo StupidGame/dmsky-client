@@ -309,6 +309,20 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
             itemBuilder: (context, index) {
               final draft = drafts[index];
               final scheduledAt = draft.scheduledAt?.toLocal();
+              void editDraft() {
+                ref
+                    .read(noteDraftRepositoryProvider.notifier)
+                    .registerDraft(draft);
+                context.pushRoute(
+                  NoteCreateRoute(
+                    initialAccount: ref
+                        .read(accountContextProvider)
+                        .postAccount,
+                    draftId: draft.id,
+                  ),
+                );
+              }
+
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -402,6 +416,14 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
                       ),
                       if ((draft.text ?? "").trim().isNotEmpty)
                         SelectableText(draft.text!),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: editDraft,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text("内容・予約日時を編集"),
+                        ),
+                      ),
                       if (draft.cw?.isNotEmpty == true)
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
