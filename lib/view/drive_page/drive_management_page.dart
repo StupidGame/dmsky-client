@@ -55,6 +55,13 @@ class DriveManagementPage extends HookConsumerWidget
       revision.value++;
     }
 
+    Future<void> showError(Object error) async {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("操作に失敗しました: $error")),
+      );
+    }
+
     Future<void> loadMoreFolders(List<DriveFolder> visible) async {
       if (loadingFolders.value || !folderHasMore.value || visible.isEmpty) {
         return;
@@ -143,13 +150,6 @@ class DriveManagementPage extends HookConsumerWidget
       } catch (error) {
         await showError(error);
       }
-    }
-
-    Future<void> showError(Object error) async {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("操作に失敗しました: $error")),
-      );
     }
 
     Future<void> createFolder() async {
@@ -589,6 +589,27 @@ class DriveManagementPage extends HookConsumerWidget
                       ),
                     ),
                   ),
+                if (folderHasMore.value && visibleFolders.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: OutlinedButton.icon(
+                      onPressed: loadingFolders.value
+                          ? null
+                          : () => loadMoreFolders(visibleFolders),
+                      icon: loadingFolders.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.expand_more),
+                      label: Text(
+                        loadingFolders.value
+                            ? "フォルダーを読み込み中…"
+                            : "フォルダーをさらに読み込む",
+                      ),
+                    ),
+                  ),
                 if (visibleFolders.isEmpty && visibleFiles.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(40),
@@ -643,6 +664,27 @@ class DriveManagementPage extends HookConsumerWidget
                       icon: const Icon(Icons.more_vert),
                     ),
                     onTap: () => showFileActions(file),
+                  ),
+                if (!selectFolder && fileHasMore.value && visibleFiles.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: OutlinedButton.icon(
+                      onPressed: loadingFiles.value
+                          ? null
+                          : () => loadMoreFiles(visibleFiles),
+                      icon: loadingFiles.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.expand_more),
+                      label: Text(
+                        loadingFiles.value
+                            ? "ファイルを読み込み中…"
+                            : "ファイルをさらに読み込む",
+                      ),
+                    ),
                   ),
               ],
             ),
