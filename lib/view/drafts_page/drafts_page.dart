@@ -131,6 +131,125 @@ class _DraftsListView extends HookConsumerWidget {
   }
 }
 
+String _scheduledDateValue(Object? value) {
+  if (value is DateTime) return value.toIso8601String();
+  if (value is num) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt()).toIso8601String();
+  }
+  if (value is String) return value;
+  return DateTime.now().toIso8601String();
+}
+
+Map<String, dynamic> _asJsonMap(Object? value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return <String, dynamic>{};
+}
+
+Future<List<NoteDraft>> _loadScheduledDrafts(Misskey misskey) async {
+  final endpoints = await misskey.endpoints();
+
+  if (endpoints.contains("notes/schedule/list")) {
+    final response = await misskey.apiService.post<List>(
+      "notes/schedule/list",
+      const <String, dynamic>{},
+    );
+    return Future.wait(
+      response.map((item) async {
+        final schedule = _asJsonMap(item);
+        final note = _asJsonMap(schedule["note"]);
+        final fileIds = (note["fileIds"] as List? ?? const [])
+            .whereType<String>()
+            .toList();
+        final files = <DriveFile>[];
+        for (final fileId in fileIds) {
+          try {
+            files.add(
+              await misskey.drive.files.show(
+                DriveFilesShowRequest(fileId: fileId),
+              ),
+            );
+          } catch (_) {
+            // A missing or inaccessible file must not hide the scheduled note.
+          }
+        }
+        final user = note["user"] is Map
+            ? _asJsonMap(note["user"])
+            : (await misskey.i.i()).toJson();
+        final visibleUsers = note["visibleUsers"] as List? ?? const [];
+        final visibleUserIds = visibleUsers
+            .map((item) => item is Map ? _asJsonMap(item)["id"] : item)
+            .whereType<String>()
+            .toList();
+        return NoteDraft.fromJson({
+          "id": schedule["id"] as String,
+          "createdAt": _scheduledDateValue(
+            schedule["createdAt"] ?? schedule["scheduledAt"],
+          ),
+          "text": note["text"],
+          "cw": note["cw"],
+          "userId": schedule["userId"] ?? note["userId"] ?? user["id"],
+          "user": user,
+          "replyId": note["replyId"],
+          "renoteId": note["renoteId"],
+          "visibility": note["visibility"] ?? "public",
+          "visibleUserIds": visibleUserIds,
+          "fileIds": fileIds,
+          "files": files.map((file) => file.toJson()).toList(),
+          "localOnly": note["localOnly"],
+          "reactionAcceptance": note["reactionAcceptance"],
+          "scheduledAt": _scheduledDateValue(schedule["scheduledAt"]),
+          "isActuallyScheduled": true,
+        });
+      }),
+    );
+  }
+
+  if (endpoints.contains("notes/scheduled/list")) {
+    final response = await misskey.apiService.post<List>(
+      "notes/scheduled/list",
+      const {"offset": 0},
+    );
+    final me = await misskey.i.i();
+    return response.map((item) {
+      final scheduled = _asJsonMap(item);
+      final data = _asJsonMap(scheduled["data"]);
+      final reply = _asJsonMap(scheduled["reply"]);
+      final renote = _asJsonMap(scheduled["renote"]);
+      final channel = _asJsonMap(scheduled["channel"]);
+      final files = data["files"] as List? ?? const [];
+      return NoteDraft.fromJson({
+        "id": scheduled["id"] as String,
+        "createdAt": _scheduledDateValue(
+          scheduled["updatedAt"] ?? scheduled["scheduledAt"],
+        ),
+        "text": data["text"],
+        "cw": data["cw"],
+        "userId": me.id,
+        "user": me.toJson(),
+        "replyId": reply["id"],
+        "renoteId": renote["id"],
+        "visibility": data["visibility"] ?? "public",
+        "visibleUserIds": data["visibleUserIds"],
+        "fileIds": files
+            .map((file) => _asJsonMap(file)["id"])
+            .whereType<String>()
+            .toList(),
+        "files": files,
+        "channelId": channel["id"],
+        "localOnly": data["localOnly"],
+        "scheduledAt": _scheduledDateValue(scheduled["scheduledAt"]),
+        "isActuallyScheduled": true,
+      });
+    }).toList();
+  }
+
+  final drafts = await misskey.notes.drafts.list(
+    const NotesDraftsListRequest(limit: 100, scheduled: true),
+  );
+  return drafts.toList();
+}
+
 class _ScheduledDraftsListView extends HookConsumerWidget {
   const _ScheduledDraftsListView();
 
@@ -139,16 +258,12 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
     final refreshVersion = useState(0);
     final misskey = ref.watch(misskeyGetContextProvider);
     final scheduledNotes = useMemoized(
-      () => misskey.notes.drafts.list(
-        const NotesDraftsListRequest(limit: 100, scheduled: true),
-      ),
+      () => _loadScheduledDrafts(misskey),
       [misskey, refreshVersion.value],
     );
 
     Future<void> refresh() async {
-      await misskey.notes.drafts.list(
-        const NotesDraftsListRequest(limit: 100, scheduled: true),
-      );
+      await _loadScheduledDrafts(misskey);
       refreshVersion.value++;
     }
 
@@ -216,21 +331,45 @@ class _ScheduledDraftsListView extends HookConsumerWidget {
                             tooltip: "予約投稿の操作",
                             onSelected: (action) async {
                               try {
+                                final endpoints = await misskey.endpoints();
                                 if (action == "cancel") {
-                                  await misskey.apiService.post<void>(
-                                    "notes/drafts/update",
-                                    {
-                                      "draftId": draft.id,
-                                      "scheduledAt": null,
-                                      "isActuallyScheduled": false,
-                                    },
-                                  );
+                                  if (endpoints.contains("notes/schedule/delete")) {
+                                    await misskey.apiService.post<void>(
+                                      "notes/schedule/delete",
+                                      {"noteId": draft.id},
+                                    );
+                                  } else if (endpoints.contains("notes/scheduled/cancel")) {
+                                    await misskey.apiService.post<void>(
+                                      "notes/scheduled/cancel",
+                                      {"draftId": draft.id},
+                                    );
+                                  } else {
+                                    await misskey.notes.drafts.update(
+                                      NotesDraftsUpdateRequest(
+                                        draftId: draft.id,
+                                        scheduledAt: null,
+                                        isActuallyScheduled: false,
+                                      ),
+                                    );
+                                  }
                                 } else if (action == "delete") {
-                                  await misskey.notes.drafts.delete(
-                                    NotesDraftsDeleteRequest(
-                                      draftId: draft.id,
-                                    ),
-                                  );
+                                  if (endpoints.contains("notes/schedule/delete")) {
+                                    await misskey.apiService.post<void>(
+                                      "notes/schedule/delete",
+                                      {"noteId": draft.id},
+                                    );
+                                  } else if (endpoints.contains("notes/scheduled/cancel")) {
+                                    await misskey.apiService.post<void>(
+                                      "notes/scheduled/cancel",
+                                      {"draftId": draft.id},
+                                    );
+                                  } else {
+                                    await misskey.notes.drafts.delete(
+                                      NotesDraftsDeleteRequest(
+                                        draftId: draft.id,
+                                      ),
+                                    );
+                                  }
                                 }
                                 await refresh();
                               } catch (error) {
