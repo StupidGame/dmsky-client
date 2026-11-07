@@ -4,8 +4,9 @@ import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/repository/account_repository.dart";
 import "package:dmsky_client/view/common/avatar_icon.dart";
-import "package:misskey_dart/misskey_dart.dart";
+import "package:misskey_dart/misskey_dart.dart" hide Clip;
 
 class AvatarDecorationsPage extends HookConsumerWidget {
   const AvatarDecorationsPage({required this.account, super.key});
@@ -89,7 +90,7 @@ class AvatarDecorationsPage extends HookConsumerWidget {
       );
     }
 
-    final limit = (currentAccount.i.policies?.avatarDecorationLimit ?? 1)
+    final limit = (currentAccount.i.policies.avatarDecorationLimit)
         .ceil()
         .clamp(0, 100);
     final remaining = (limit - decorations.value.length).clamp(0, limit);
@@ -144,7 +145,7 @@ class AvatarDecorationsPage extends HookConsumerWidget {
                   onRemove: (index) {
                     final next = index < 0
                         ? <UserAvatarDecoration>[]
-                        : decorations.value.toList()..removeAt(index);
+                        : (decorations.value.toList()..removeAt(index));
                     decorations.value = next;
                     save(next);
                   },
