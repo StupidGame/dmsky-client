@@ -5,7 +5,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 0.1.0+1
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   collection: ^1.16.0
@@ -13,6 +13,9 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_rust_bridge: ^2.13.0
+  flutter_rust_bridge_hooks: ^2.13.0
+  native_toolchain_rust: ^1.0.7
   flutter_html: ^3.0.0-beta.2
   misskey_dart:
     git:
