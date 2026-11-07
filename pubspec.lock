@@ -2044,9 +2044,29 @@ packages:
     source: hosted
     version: "2.2.4"
   flutter_rust_bridge:
-    dependency: "direct main"  flutter_rust_bridge_hooks:
-    dependency: "direct main"  native_toolchain_rust:
     dependency: "direct main"
+    description:
+      name: flutter_rust_bridge
+      sha256: ec69331e2335ab4d456c0a9fc700892c2c85b72b9c0cb39df3ecfe8833d5d5c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.13.0"
+  flutter_rust_bridge_hooks:
+    dependency: "direct main"
+    description:
+      name: flutter_rust_bridge_hooks
+      sha256: "19900fbcaa8ddc2a4f1b13994ef34393eda129ebccc59ceb887a8fd2cf5def3e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.13.0"
+  native_toolchain_rust:
+    dependency: "direct main"
+    description:
+      name: native_toolchain_rust
+      sha256: dc8e5f20c0cb7052372bc302f075607086d86354b37199e89ec9d3d35589e519
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
 sdks:
   dart: ">=3.12.0 <4.0.0"
   flutter: ">=3.44.0"
