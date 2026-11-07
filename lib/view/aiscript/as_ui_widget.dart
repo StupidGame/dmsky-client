@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/view/note_create_page/note_create_page.dart";
 import "package:dmsky_client/rust/api/aiscript/ui.dart";
@@ -94,8 +95,8 @@ class AsUiWidget extends StatelessWidget {
         onTap: value.onClickEv == null
             ? null
             : () => value.onClickEv!.call(value: value.text ?? ""),
-        child: Text(
-          value.text ?? "",
+        child: MfmText(
+          mfmText: value.text ?? "",
           style: TextStyle(
             color: _color(value.color),
             fontSize: value.size,
