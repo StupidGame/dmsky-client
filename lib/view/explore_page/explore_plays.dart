@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/view/aiscript/play_detail_page.dart";
 import "package:dmsky_client/view/aiscript/play_editor_page.dart";
