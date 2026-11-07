@@ -10,9 +10,14 @@ import "package:misskey_dart/misskey_dart.dart";
 
 class DriveManagementPage extends HookConsumerWidget
     implements AutoRouteWrapper {
-  const DriveManagementPage({required this.account, super.key});
+  const DriveManagementPage({
+    required this.account,
+    this.selectFolder = false,
+    super.key,
+  });
 
   final Account account;
+  final bool selectFolder;
 
   @override
   Widget wrappedRoute(BuildContext context) =>
@@ -24,14 +29,120 @@ class DriveManagementPage extends HookConsumerWidget
     final revision = useState(0);
     final misskey = ref.watch(misskeyGetContextProvider);
     final folderId = path.value.isEmpty ? null : path.value.last.id;
+    final folderItems = useState<List<DriveFolder>>([]);
+    final fileItems = useState<List<DriveFile>>([]);
+    final folderHasMore = useState(true);
+    final fileHasMore = useState(true);
+    final loadingFolders = useState(false);
+    final loadingFiles = useState(false);
+    useEffect(() {
+      folderItems.value = [];
+      fileItems.value = [];
+      folderHasMore.value = true;
+      fileHasMore.value = true;
+      return null;
+    }, [folderId]);
     final contents = useMemoized(
       () => _loadContents(misskey, folderId),
       [misskey, folderId, revision.value],
     );
 
     Future<void> refresh() async {
-      await _loadContents(misskey, folderId);
+      folderItems.value = [];
+      fileItems.value = [];
+      folderHasMore.value = true;
+      fileHasMore.value = true;
       revision.value++;
+    }
+
+    Future<void> loadMoreFolders(List<DriveFolder> visible) async {
+      if (loadingFolders.value || !folderHasMore.value || visible.isEmpty) {
+        return;
+      }
+      loadingFolders.value = true;
+      try {
+        final next = (await misskey.drive.folders.folders(
+          DriveFoldersRequest(
+            folderId: folderId,
+            limit: 100,
+            untilId: visible.last.id,
+          ),
+        )).toList();
+        folderItems.value = [...visible, ...next];
+        folderHasMore.value = next.length == 100;
+      } catch (error) {
+        await showError(error);
+      } finally {
+        loadingFolders.value = false;
+      }
+    }
+
+    Future<void> loadMoreFiles(List<DriveFile> visible) async {
+      if (loadingFiles.value || !fileHasMore.value || visible.isEmpty) return;
+      loadingFiles.value = true;
+      try {
+        final next = (await misskey.drive.files.files(
+          DriveFilesRequest(
+            folderId: folderId,
+            limit: 100,
+            untilId: visible.last.id,
+          ),
+        )).toList();
+        fileItems.value = [...visible, ...next];
+        fileHasMore.value = next.length == 100;
+      } catch (error) {
+        await showError(error);
+      } finally {
+        loadingFiles.value = false;
+      }
+    }
+
+    Future<_DriveFolderDestination?> chooseDestination() {
+      return Navigator.of(context).push<_DriveFolderDestination>(
+        MaterialPageRoute(
+          builder: (routeContext) => DriveManagementPage(
+            account: account,
+            selectFolder: true,
+          ).wrappedRoute(routeContext),
+        ),
+      );
+    }
+
+    Future<void> moveFile(DriveFile file) async {
+      final destination = await chooseDestination();
+      if (destination == null || !context.mounted) return;
+      if (destination.folderId == file.folderId) return;
+      try {
+        await misskey.drive.files.update(
+          DriveFilesUpdateRequest(
+            fileId: file.id,
+            folderId: destination.folderId,
+          ),
+        );
+        await refresh();
+      } catch (error) {
+        await showError(error);
+      }
+    }
+
+    Future<void> moveFolder(DriveFolder folder) async {
+      final destination = await chooseDestination();
+      if (destination == null || !context.mounted) return;
+      if (destination.folderId == folder.id ||
+          destination.folderId == folder.parentId) {
+        return;
+      }
+      try {
+        await misskey.drive.folders.update(
+          DriveFoldersUpdateRequest(
+            folderId: folder.id,
+            parentId: destination.folderId,
+          ),
+        );
+        await refresh();
+      } catch (error) {
+        await showError(error);
+      }
     }
 
     Future<void> showError(Object error) async {
@@ -308,14 +419,33 @@ class DriveManagementPage extends HookConsumerWidget
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ドライブ"),
+        title: Text(selectFolder ? "移動先を選択" : "ドライブ"),
+        leading: selectFolder && path.value.isNotEmpty
+            ? IconButton(
+                tooltip: "上のフォルダーへ",
+                onPressed: () => path.value = path.value.sublist(
+                  0,
+                  path.value.length - 1,
+                ),
+                icon: const Icon(Icons.arrow_back),
+              )
+            : null,
         actions: [
-          IconButton(
-            tooltip: "更新",
-            onPressed: refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-          PopupMenuButton<String>(
+          if (selectFolder)
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).pop(
+                _DriveFolderDestination(folderId),
+              ),
+              icon: const Icon(Icons.check),
+              label: const Text("ここに移動"),
+            )
+          else ...[
+            IconButton(
+              tooltip: "更新",
+              onPressed: refresh,
+              icon: const Icon(Icons.refresh),
+            ),
+            PopupMenuButton<String>(
             onSelected: (value) {
               if (value == "folder") createFolder();
               if (value == "upload") uploadFiles();
@@ -325,6 +455,7 @@ class DriveManagementPage extends HookConsumerWidget
               PopupMenuItem(value: "upload", child: Text("ファイルをアップロード")),
             ],
           ),
+          ],
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -335,9 +466,13 @@ class DriveManagementPage extends HookConsumerWidget
               child: Row(
                 children: [
                   TextButton.icon(
-                    onPressed: path.value.isEmpty
-                        ? null
-                        : () => path.value = [],
+                    onPressed: selectFolder
+                        ? () => Navigator.of(context).pop(
+                              const _DriveFolderDestination(null),
+                            )
+                        : path.value.isEmpty
+                            ? null
+                            : () => path.value = [],
                     icon: const Icon(Icons.cloud_outlined),
                     label: const Text("ドライブ"),
                   ),
@@ -383,6 +518,18 @@ class DriveManagementPage extends HookConsumerWidget
           }
 
           final data = snapshot.data!;
+          final visibleFolders = folderItems.value.isEmpty
+              ? data.folders
+              : folderItems.value;
+          final visibleFiles = fileItems.value.isEmpty
+              ? data.files
+              : fileItems.value;
+          folderHasMore.value = folderItems.value.isEmpty
+              ? data.folders.length == 100
+              : folderHasMore.value;
+          fileHasMore.value = fileItems.value.isEmpty
+              ? data.files.length == 100
+              : fileHasMore.value;
           return RefreshIndicator(
             onRefresh: refresh,
             child: ListView(
@@ -413,21 +560,57 @@ class DriveManagementPage extends HookConsumerWidget
                       ],
                     ),
                   ),
-                if (data.folders.isEmpty && data.files.isEmpty)
+                if (selectFolder)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).pop(
+                        _DriveFolderDestination(folderId),
+                      ),
+                      icon: const Icon(Icons.drive_file_move),
+                      label: Text(
+                        folderId == null ? "ドライブ直下を移動先にする" : "このフォルダーを移動先にする",
+                      ),
+                    ),
+                  ),
+                if (visibleFolders.isEmpty && visibleFiles.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(40),
                     child: Center(child: Text("このフォルダーは空です")),
                   ),
-                for (final folder in data.folders)
+                for (final folder in visibleFolders)
                   ListTile(
                     leading: const Icon(Icons.folder_outlined),
                     title: Text(folder.name),
-                    trailing: const Icon(Icons.more_vert),
+                    trailing: selectFolder
+                        ? IconButton(
+                            tooltip: "このフォルダーを選択",
+                            onPressed: () => Navigator.of(context).pop(
+                              _DriveFolderDestination(folder.id),
+                            ),
+                            icon: const Icon(Icons.check_circle_outline),
+                          )
+                        : const Icon(Icons.more_vert),
                     onTap: () => path.value = [...path.value, folder],
-                    onLongPress: () => showFolderActions(folder),
+                    onLongPress: () {
+                      if (!selectFolder) showFolderActions(folder);
+                    },
                   ),
-                for (final file in data.files)
-                  ListTile(
+                if (folderHasMore.value && visibleFolders.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: OutlinedButton(
+                      onPressed: loadingFolders.value
+                          ? null
+                          : () => loadMoreFolders(visibleFolders),
+                      child: Text(
+                        loadingFolders.value ? "読み込み中…" : "フォルダーをさらに読み込む",
+                      ),
+                    ),
+                  ),
+                for (final file in visibleFiles)
+                  if (!selectFolder)
+                    ListTile(
                     leading: file.type.startsWith("image/")
                         ? const Icon(Icons.image_outlined)
                         : file.type.startsWith("video/")
@@ -511,6 +694,12 @@ class _DriveContents {
   final List<DriveFolder> folders;
   final List<DriveFile> files;
   final DriveResponse stats;
+}
+
+class _DriveFolderDestination {
+  const _DriveFolderDestination(this.folderId);
+
+  final String? folderId;
 }
 
 String _formatBytes(int bytes) {
