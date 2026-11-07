@@ -363,19 +363,11 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
         appBar: AppBar(
           title: Text(S.of(context).note),
           actions: [
-            if ((ref
-                        .read(accountContextProvider)
-                        .postAccount
-                        .i
-                        .policies
-                        .scheduledNoteLimit ??
-                    0) >
-                0)
-              IconButton(
-                onPressed: schedulePost,
-                icon: const Icon(Icons.schedule_send),
-                tooltip: "予約投稿",
-              ),
+            IconButton(
+              onPressed: schedulePost,
+              icon: const Icon(Icons.schedule_send),
+              tooltip: "予約投稿",
+            ),
             // Show drafts button only if drafts are supported
             if ((ref
                         .read(accountContextProvider)
