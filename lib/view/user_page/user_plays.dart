@@ -6,7 +6,6 @@ import "package:dmsky_client/view/aiscript/play_detail_page.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/common/pushable_listview.dart";
 import "package:misskey_dart/misskey_dart.dart";
-import "package:url_launcher/url_launcher.dart";
 
 class UserPlays extends ConsumerWidget {
   final String userId;
