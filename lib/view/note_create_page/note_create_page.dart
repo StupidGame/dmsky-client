@@ -99,7 +99,7 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
 
     Future<void> schedulePost() async {
       final account = ref.read(accountContextProvider).postAccount;
-      final limit = account.i.policies?.scheduledNoteLimit ?? 0;
+      final limit = account.i.policies.scheduledNoteLimit ?? 0;
       if (limit <= 0) return;
       final currentState = ref.read(noteCreateProvider);
       if (!_hasDraftContent(currentState)) {
@@ -282,7 +282,7 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
                         .postAccount
                         .i
                         .policies
-                        ?.scheduledNoteLimit ??
+                        .scheduledNoteLimit ??
                     0) >
                 0)
               IconButton(
