@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/view/note_create_page/note_create_page.dart";
@@ -40,6 +41,14 @@ class AsUiWidget extends StatelessWidget {
         builder: (routeContext) => NoteCreatePage(
           initialAccount: account,
           initialText: form.text,
+          initialCw: form.cw,
+          initialVisibility: form.visibility == null
+              ? null
+              : NoteVisibility.values.firstWhere(
+                  (value) => value.name == form.visibility,
+                  orElse: () => NoteVisibility.public,
+                ),
+          initialLocalOnly: form.localOnly,
         ).wrappedRoute(routeContext),
       ),
     );
