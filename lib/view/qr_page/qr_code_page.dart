@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:dmsky_client/model/account.dart";
-import "package:dmsky_client/view/common/account_scope.dart";
 import "package:qr_flutter/qr_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -22,9 +21,7 @@ class QrCodePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AccountContextScope.as(
-      account: account,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text("プロフィールQRコード")),
         body: ListView(
           padding: const EdgeInsets.all(24),
@@ -88,7 +85,6 @@ class QrCodePage extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
