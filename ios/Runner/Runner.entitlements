@@ -6,7 +6,7 @@
     <array/>
     <key>com.apple.security.application-groups</key>
     <array>
-        <string>group.app.dmsky.dmskyClient.share</string>
+        <string>group.app.dmsky.dmsky_client</string>
     </array>
 </dict>
 </plist>
