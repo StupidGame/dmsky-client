@@ -146,7 +146,7 @@ class DriveManagementPage extends HookConsumerWidget
             folderId: destination.folderId,
           ),
         );
-        selectedFileIds.value = {};
+        selectedFiles.value = [];
         await refresh();
       } catch (error) {
         await showError(error);
@@ -182,7 +182,7 @@ class DriveManagementPage extends HookConsumerWidget
             ),
           ),
         );
-        selectedFileIds.value = {};
+        selectedFiles.value = [];
         await refresh();
       } catch (error) {
         await showError(error);
@@ -763,7 +763,7 @@ class DriveManagementPage extends HookConsumerWidget
                       "${file.isSensitive ? " • センシティブ" : ""}",
                     ),
                     trailing: IconButton(
-                      tooltip: selectedFileIds.value.contains(file.id)
+                      tooltip: selectedFiles.value.any((selected) => selected.id == file.id)
                           ? "選択解除"
                           : "選択",
                       onPressed: () {
@@ -779,7 +779,7 @@ class DriveManagementPage extends HookConsumerWidget
                         selectedFiles.value = next;
                       },
                       icon: Icon(
-                        selectedFileIds.value.contains(file.id)
+                        selectedFiles.value.any((selected) => selected.id == file.id)
                             ? Icons.check_circle
                             : Icons.more_vert,
                       ),
@@ -790,7 +790,7 @@ class DriveManagementPage extends HookConsumerWidget
                       }
                     },
                     onTap: () {
-                      if (selectedFileIds.value.isNotEmpty) {
+                      if (selectedFiles.value.isNotEmpty) {
                         final next = selectedFiles.value.toList();
                         final index = next.indexWhere(
                           (selected) => selected.id == file.id,
