@@ -26,6 +26,7 @@ class DriveManagementPage extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final path = useState<List<DriveFolder>>([]);
+    final selectedFileIds = useState<Set<String>>({});
     final revision = useState(0);
     final misskey = ref.watch(misskeyGetContextProvider);
     final folderId = path.value.isEmpty ? null : path.value.last.id;
@@ -36,6 +37,7 @@ class DriveManagementPage extends HookConsumerWidget
     final loadingFolders = useState(false);
     final loadingFiles = useState(false);
     useEffect(() {
+      selectedFileIds.value = {};
       folderItems.value = [];
       fileItems.value = [];
       folderHasMore.value = true;
@@ -126,6 +128,65 @@ class DriveManagementPage extends HookConsumerWidget
             folderId: destination.folderId,
           ),
         );
+        await refresh();
+      } catch (error) {
+        await showError(error);
+      }
+    }
+
+    Future<void> moveSelectedFiles(List<DriveFile> files) async {
+      final selected = files
+          .where((file) => selectedFileIds.value.contains(file.id))
+          .toList();
+      if (selected.isEmpty) return;
+      final destination = await chooseDestination();
+      if (destination == null || !context.mounted) return;
+      try {
+        await misskey.drive.files.moveBulk(
+          DriveFilesMoveBulkRequest(
+            fileIds: selected.map((file) => file.id).toList(),
+            folderId: destination.folderId,
+          ),
+        );
+        selectedFileIds.value = {};
+        await refresh();
+      } catch (error) {
+        await showError(error);
+      }
+    }
+
+    Future<void> deleteSelectedFiles(List<DriveFile> files) async {
+      final selected = files
+          .where((file) => selectedFileIds.value.contains(file.id))
+          .toList();
+      if (selected.isEmpty) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text("ファイルを一括削除"),
+          content: Text("${selected.length}件のファイルを削除しますか？"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text("キャンセル"),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text("削除"),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+      try {
+        await Future.wait(
+          selected.map(
+            (file) => misskey.drive.files.delete(
+              DriveFilesDeleteRequest(fileId: file.id),
+            ),
+          ),
+        );
+        selectedFileIds.value = {};
         await refresh();
       } catch (error) {
         await showError(error);
@@ -447,7 +508,47 @@ class DriveManagementPage extends HookConsumerWidget
               )
             : null,
         actions: [
-          if (selectFolder)
+          if (!selectFolder && selectedFileIds.value.isNotEmpty) ...[
+            Text(
+              "${selectedFileIds.value.length}件選択",
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            IconButton(
+              tooltip: "選択解除",
+              onPressed: () => selectedFileIds.value = {},
+              icon: const Icon(Icons.close),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == "move") {
+                  moveSelectedFiles(fileItems.value.isEmpty
+                      ? const <DriveFile>[]
+                      : fileItems.value);
+                }
+                if (value == "delete") {
+                  deleteSelectedFiles(fileItems.value.isEmpty
+                      ? const <DriveFile>[]
+                      : fileItems.value);
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: "move",
+                  child: ListTile(
+                    leading: Icon(Icons.drive_file_move_outlined),
+                    title: Text("選択したファイルを移動"),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: "delete",
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline),
+                    title: Text("選択したファイルを削除"),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (selectFolder)
             TextButton.icon(
               onPressed: () => Navigator.of(context).pop(
                 _DriveFolderDestination(folderId),
@@ -648,22 +749,55 @@ class DriveManagementPage extends HookConsumerWidget
                 for (final file in visibleFiles)
                   if (!selectFolder)
                     ListTile(
-                    leading: file.type.startsWith("image/")
-                        ? const Icon(Icons.image_outlined)
-                        : file.type.startsWith("video/")
-                            ? const Icon(Icons.movie_outlined)
-                            : const Icon(Icons.insert_drive_file_outlined),
+                    leading: selectedFileIds.value.contains(file.id)
+                        ? Checkbox(
+                            value: true,
+                            onChanged: (_) {
+                              final next = selectedFileIds.value.toSet()
+                                ..remove(file.id);
+                              selectedFileIds.value = next;
+                            },
+                          )
+                        : Icon(
+                            file.type.startsWith("image/")
+                                ? Icons.image_outlined
+                                : file.type.startsWith("video/")
+                                    ? Icons.movie_outlined
+                                    : Icons.insert_drive_file_outlined,
+                          ),
                     title: Text(file.name),
                     subtitle: Text(
                       "${file.type} • ${_formatBytes(file.size)}"
                       "${file.isSensitive ? " • センシティブ" : ""}",
                     ),
                     trailing: IconButton(
-                      tooltip: "ファイル操作",
-                      onPressed: () => showFileActions(file),
-                      icon: const Icon(Icons.more_vert),
+                      tooltip: selectedFileIds.value.contains(file.id)
+                          ? "選択解除"
+                          : "選択",
+                      onPressed: () {
+                        final next = selectedFileIds.value.toSet();
+                        if (!next.add(file.id)) next.remove(file.id);
+                        selectedFileIds.value = next;
+                      },
+                      icon: Icon(
+                        selectedFileIds.value.contains(file.id)
+                            ? Icons.check_circle
+                            : Icons.more_vert,
+                      ),
                     ),
-                    onTap: () => showFileActions(file),
+                    onLongPress: () {
+                      final next = selectedFileIds.value.toSet()..add(file.id);
+                      selectedFileIds.value = next;
+                    },
+                    onTap: () {
+                      if (selectedFileIds.value.isNotEmpty) {
+                        final next = selectedFileIds.value.toSet();
+                        if (!next.add(file.id)) next.remove(file.id);
+                        selectedFileIds.value = next;
+                      } else {
+                        showFileActions(file);
+                      }
+                    },
                   ),
                 if (!selectFolder && fileHasMore.value && visibleFiles.isNotEmpty)
                   Padding(
