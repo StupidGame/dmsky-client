@@ -793,23 +793,15 @@ class DriveManagementPage extends HookConsumerWidget
                             ),
                             icon: const Icon(Icons.check_circle_outline),
                           )
-                        : const Icon(Icons.more_vert),
+                        : IconButton(
+                            tooltip: "フォルダー操作",
+                            onPressed: () => showFolderActions(folder),
+                            icon: const Icon(Icons.more_vert),
+                          ),
                     onTap: () => path.value = [...path.value, folder],
                     onLongPress: () {
                       if (!selectFolder) showFolderActions(folder);
                     },
-                  ),
-                if (folderHasMore.value && visibleFolders.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: OutlinedButton(
-                      onPressed: loadingFolders.value
-                          ? null
-                          : () => loadMoreFolders(visibleFolders),
-                      child: Text(
-                        loadingFolders.value ? "読み込み中…" : "フォルダーをさらに読み込む",
-                      ),
-                    ),
                   ),
                 if (!selectFolder && visibleFiles.isNotEmpty)
                   Padding(
