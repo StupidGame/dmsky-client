@@ -5,6 +5,8 @@ import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/router/app_router.dart";
 import "package:dmsky_client/view/drive_page/drive_management_page.dart";
+import "package:dmsky_client/view/qr_page/qr_code_page.dart";
+import "package:dmsky_client/view/qr_page/qr_scanner_page.dart";
 
 @RoutePage()
 class SettingsPage extends ConsumerWidget {
@@ -25,6 +27,26 @@ class SettingsPage extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (routeContext) =>
                     DriveManagementPage(account: account).wrappedRoute(routeContext),
+              ),
+            ),
+          ),
+          ListTile(
+            title: const Text("プロフィールQRコード"),
+            leading: const Icon(Icons.qr_code_2),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => QrCodePage(account: account),
+              ),
+            ),
+          ),
+          ListTile(
+            title: const Text("QRコード読み取り"),
+            leading: const Icon(Icons.qr_code_scanner),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => QrScannerPage(account: account),
               ),
             ),
           ),
