@@ -130,7 +130,11 @@ class AsUiWidget extends StatelessWidget {
         title: Text(value.label ?? ""),
         subtitle: value.caption == null ? null : Text(value.caption!),
         value: value.defaultValue ?? false,
-        onChanged: value.onChange?.call,
+        onChanged: value.onChange == null
+            ? null
+            : (next) {
+                value.onChange!.call(value: next);
+              },
       ),
       AsUiComponent_TextInput(field0: final value) => TextFormField(
         initialValue: value.defaultValue,
