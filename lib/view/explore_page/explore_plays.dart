@@ -1,6 +1,9 @@
 import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/view/aiscript/play_detail_page.dart";
+import "package:dmsky_client/view/aiscript/play_editor_page.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/search_page/play_search.dart";
 import "package:misskey_dart/misskey_dart.dart";
@@ -16,6 +19,7 @@ class ExplorePlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final misskey = ref.watch(misskeyGetContextProvider);
+    final account = ref.watch(accountContextProvider).postAccount;
 
     return DefaultTabController(
       length: 4,
@@ -23,13 +27,28 @@ class ExplorePlay extends ConsumerWidget {
         children: [
           Material(
             color: Theme.of(context).colorScheme.surface,
-            child: const TabBar(
-              isScrollable: true,
-              tabs: [
+            child: Row(
+              children: [
+                const Expanded(
+                  child: TabBar(
+                    isScrollable: true,
+                    tabs: [
                 Tab(text: "おすすめ"),
                 Tab(text: "自分のPlay"),
                 Tab(text: "いいね"),
-                Tab(text: "検索"),
+                      Tab(text: "検索"),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: "Playを作成",
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => PlayEditorPage(account: account),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add),
+                ),
               ],
             ),
           ),
@@ -133,14 +152,14 @@ class _PlayList extends ConsumerWidget {
                           Text("${play.likedCount}"),
                         ],
                       ),
-                onTap: () async {
-                  await launchUrl(
-                    Uri(
-                      scheme: "https",
-                      host: host,
-                      pathSegments: ["play", play.id],
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => PlayDetailPage(
+                        account: ref.read(accountContextProvider).getAccount,
+                        playId: play.id,
+                      ),
                     ),
-                    mode: LaunchMode.externalApplication,
                   );
                 },
               ),
