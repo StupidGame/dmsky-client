@@ -110,6 +110,7 @@ dependencies:
 
   flutter_riverpod: any
 dependency_overrides:
+  qr: 3.0.2
   image_editor:
     git:
       url: https://github.com/shiosyakeyakini-info/flutter_image_editor_fix_ios_color_option.git
