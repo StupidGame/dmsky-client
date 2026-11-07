@@ -97,6 +97,66 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
     final notifier = ref.read(noteCreateProvider.notifier);
     final controller = ref.watch(noteInputTextProvider);
 
+    Future<void> schedulePost() async {
+      final account = ref.read(accountContextProvider).postAccount;
+      final limit = account.i.policies?.scheduledNoteLimit ?? 0;
+      if (limit <= 0) return;
+      final currentState = ref.read(noteCreateProvider);
+      if (!_hasDraftContent(currentState)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("予約投稿する内容を入力してください")),
+        );
+        return;
+      }
+      final now = DateTime.now();
+      final initialDate = now.add(const Duration(days: 1));
+      final date = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: now,
+        lastDate: now.add(const Duration(days: 365)),
+      );
+      if (date == null || !context.mounted) return;
+      final initialTime = TimeOfDay.fromDateTime(initialDate);
+      final time = await showTimePicker(
+        context: context,
+        initialTime: initialTime,
+      );
+      if (time == null || !context.mounted) return;
+      final scheduledAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+      if (!scheduledAt.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("現在より後の日時を指定してください")),
+        );
+        return;
+      }
+      try {
+        await _saveDraft(
+          ref,
+          ref.read(noteCreateProvider),
+          scheduledAt: scheduledAt,
+        );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("予約投稿を保存しました: ${scheduledAt.toLocal()}"),
+          ),
+        );
+        Navigator.of(context).pop();
+      } catch (error) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("予約投稿に失敗しました: $error")),
+        );
+      }
+    }
+
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
         // Load draft if draftId is provided
@@ -217,6 +277,19 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
         appBar: AppBar(
           title: Text(S.of(context).note),
           actions: [
+            if ((ref
+                        .read(accountContextProvider)
+                        .postAccount
+                        .i
+                        .policies
+                        ?.scheduledNoteLimit ??
+                    0) >
+                0)
+              IconButton(
+                onPressed: schedulePost,
+                icon: const Icon(Icons.schedule_send),
+                tooltip: "予約投稿",
+              ),
             // Show drafts button only if drafts are supported
             if ((ref
                         .read(accountContextProvider)
@@ -370,7 +443,11 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
   }
 
   /// 現在の状態を下書きとして保存
-  Future<void> _saveDraft(WidgetRef ref, NoteCreate state) async {
+  Future<void> _saveDraft(
+    WidgetRef ref,
+    NoteCreate state, {
+    DateTime? scheduledAt,
+  }) async {
     final notifier = ref.read(noteCreateProvider.notifier);
     final draftRepository = ref.read(noteDraftRepositoryProvider.notifier);
 
@@ -448,6 +525,8 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
         renoteId: state.renote?.id,
         channelId: state.channel?.id,
         poll: poll,
+        scheduledAt: scheduledAt,
+        isActuallyScheduled: scheduledAt != null,
       );
     } else {
       final newDraft = await draftRepository.create(
@@ -461,6 +540,8 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
         renoteId: state.renote?.id,
         channelId: state.channel?.id,
         poll: poll,
+        scheduledAt: scheduledAt,
+        isActuallyScheduled: scheduledAt != null,
       );
       // 新規作成の場合は下書きIDを設定
       notifier.setSelectedDraftId(newDraft.id);
