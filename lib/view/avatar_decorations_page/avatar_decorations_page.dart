@@ -80,7 +80,8 @@ class AvatarDecorationsPage extends HookConsumerWidget {
     }) {
       return showDialog<UserAvatarDecoration>(
         context: context,
-        builder: (dialogContext) => _AvatarDecorationEditor(
+        builder: (_) => _AvatarDecorationEditor(
+          id: id,
           name: name,
           url: url,
           initial: initial,
