@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:file_picker/file_picker.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -58,6 +59,42 @@ class QrScannerPage extends HookConsumerWidget {
         scanner.dispose();
       };
     }, [scanner]);
+
+    Future<void> scanImage() async {
+      final picked = await FilePicker.pickFiles(type: FileType.image);
+      if (picked == null || picked.files.isEmpty || !context.mounted) return;
+      final path = picked.files.single.path;
+      if (path == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("選択した画像をこの端末で読み込めませんでした")),
+        );
+        return;
+      }
+      try {
+        final capture = await scanner.analyzeImage(path);
+        final value = capture?.barcodes
+            .map((barcode) => barcode.rawValue)
+            .firstWhere(
+              (value) => value != null && value.isNotEmpty,
+              orElse: () => null,
+            );
+        if (value == null) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("画像からQRコードを読み取れませんでした")),
+          );
+          return;
+        }
+        selectedValue.value = value;
+        await addHistory(value);
+        await scanner.stop();
+      } catch (error) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("画像の読み取りに失敗しました: $error")),
+        );
+      }
+    }
 
     Future<void> resumeScanner() async {
       selectedValue.value = null;
@@ -160,6 +197,12 @@ class QrScannerPage extends HookConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  if (selectedValue.value == null)
+                    OutlinedButton.icon(
+                      onPressed: scanImage,
+                      icon: const Icon(Icons.image_search_outlined),
+                      label: const Text("画像からQRコードを読み取る"),
+                    ),
                   if (selectedValue.value != null) ...[
                     FilledButton.icon(
                       onPressed: () => openValue(selectedValue.value!),
