@@ -185,14 +185,6 @@
 			path = "Share Extension";
 			sourceTree = "<group>";
 		};
-		F5034F562BAB800F0047F058 /* MainInterface.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F5034F572BAB800F0047F058 /* Base */,
-			);
-			name = MainInterface.storyboard;
-			sourceTree = "<group>";
-		};
 
 /* End PBXGroup section */
 
