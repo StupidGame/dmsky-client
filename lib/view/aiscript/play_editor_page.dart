@@ -5,8 +5,6 @@ import "package:misskey_dart/misskey_dart.dart";
 
 import "../../model/account.dart";
 import "../../providers.dart";
-import "../../rust/api/aiscript.dart";
-import "../../rust/frb_generated.dart";
 
 class PlayEditorPage extends HookConsumerWidget {
   const PlayEditorPage({required this.account, this.playId, super.key});
