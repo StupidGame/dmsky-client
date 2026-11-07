@@ -146,6 +146,9 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
     Note? renote,
     Note? reply,
     NoteCreationMode? noteCreationMode,
+    String? initialCw,
+    NoteVisibility? initialVisibility,
+    bool? initialLocalOnly,
   ) async {
     var resultState = state;
 
