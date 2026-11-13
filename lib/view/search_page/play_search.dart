@@ -6,7 +6,7 @@ import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/common/pushable_listview.dart";
 import "package:misskey_dart/misskey_dart.dart";
-import "package:url_launcher/url_launcher.dart";
+import "package:dmsky_client/view/play_page/play_page.dart";
 
 class PlaySearch extends HookConsumerWidget {
   final FocusNode? focusNode;
@@ -74,16 +74,25 @@ class PlaySearch extends HookConsumerWidget {
                         ? MfmText(mfmText: play.summary)
                         : null,
                     onTap: () async {
-                      await launchUrl(
+                      await openPlay(
+                        context,
                         Uri(
-                          scheme: "https",
+                          scheme:
+                              ref
+                                  .read(accountContextProvider)
+                                  .getAccount
+                                  .scheme ??
+                              "https",
+                          port: ref
+                              .read(accountContextProvider)
+                              .getAccount
+                              .port,
                           host: ref
                               .read(accountContextProvider)
                               .getAccount
                               .host,
                           pathSegments: ["play", play.id],
                         ),
-                        mode: LaunchMode.externalApplication,
                       );
                     },
                   ),

@@ -49,7 +49,7 @@ gh secret set ANDROID_SIGNING_PASSPHRASE \
 標準 APK は `dmsky-client-arm64.apk`、universal 版は `dmsky-client-universal.apk` です。
 `versionCode` にはワークフロー実行番号を使い、同じ署名で継続して更新できるようにしています。
 Secret が未登録・誤りの場合はリリースビルドを失敗させ、デバッグ鍵や代替鍵へ切り替えません。
-Pull Request のコードに署名鍵を渡さないため、署名付き Android ジョブは push・手動実行時のみ動かします。
+署名付き Android ジョブは push・手動実行と、同じリポジトリ内のブランチからの Pull Request で動かします。外部フォークからの Pull Request では署名鍵を使うジョブを実行しません。
 
 ## ローカルでのリリースビルド
 

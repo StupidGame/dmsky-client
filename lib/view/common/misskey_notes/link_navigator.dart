@@ -4,6 +4,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/play_page/play_page.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -38,7 +39,16 @@ class LinkNavigator {
     String url,
     String? host,
   ) async {
-    final uri = Uri.tryParse(url);
+    final parsed = Uri.tryParse(url);
+    final sourceAccount = ref.read(accountContextProvider).getAccount;
+    final base = Uri(
+      scheme: sourceAccount.scheme ?? "https",
+      host: sourceAccount.host,
+      port: sourceAccount.port,
+    );
+    final uri = parsed != null && !parsed.hasScheme
+        ? base.resolveUri(parsed)
+        : parsed;
     if (uri == null) {
       return; //TODO: なおす
     }
@@ -71,7 +81,9 @@ class LinkNavigator {
     }
 
     if (!context.mounted) return;
-    if (uri.pathSegments.isEmpty) {
+    if (isPlayUri(uri)) {
+      await openPlay(context, uri);
+    } else if (uri.pathSegments.isEmpty) {
       await context.pushRoute(
         FederationRoute(accountContext: accountContext, host: uri.host),
       );

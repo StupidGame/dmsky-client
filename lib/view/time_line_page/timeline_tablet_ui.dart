@@ -17,6 +17,7 @@ import "package:dmsky_client/view/note_create_page/note_create_setting_top.dart"
 import "package:dmsky_client/view/note_create_page/note_visibility_dialog.dart";
 import "package:dmsky_client/view/note_create_page/reaction_acceptance_dialog.dart";
 import "package:dmsky_client/view/time_line_page/misskey_time_line.dart";
+import "package:dmsky_client/view/time_line_page/timeline_tab_button.dart";
 import "package:dmsky_client/view/themes/dmsky_circuit.dart";
 import "package:misskey_dart/misskey_dart.dart";
 
@@ -25,7 +26,7 @@ class TimelineTablet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabSettings = ref.read(
+    final tabSettings = ref.watch(
       tabSettingsRepositoryProvider.select((repo) => repo.tabSettings),
     );
 
@@ -158,7 +159,10 @@ class SectionHeader extends ConsumerWidget {
         Expanded(
           child: GestureDetector(
             onTap: () => scrollController.forceScrollToTop(),
-            child: Text(tabSetting.name ?? tabSetting.tabType.name),
+            child: TimelineTabLabel(
+              tabSetting: tabSetting,
+              color: Colors.white,
+            ),
           ),
         ),
         if (socketTimeline != null)

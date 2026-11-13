@@ -150,6 +150,7 @@ dev_dependencies:
   riverpod_lint: ^3.0.0-dev.16
   # テストで UrlLauncherPlatform.instance を差し替えるために直接参照する
   url_launcher_platform_interface: ^2.3.2
+  webview_flutter_platform_interface: ^2.15.1
 
   plugin_platform_interface: any
   state_notifier: any
