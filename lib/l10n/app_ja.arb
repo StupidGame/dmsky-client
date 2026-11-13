@@ -23,17 +23,17 @@
   "quotedRenote": "引用",
   "notification": "通知",
   "list": "リスト",
-  "explore": "みつける",
+  "explore": "探索",
   "highlight": "ハイライト",
   "role": "ロール",
   "page": "ページ",
   "flash": "Play",
   "hashtag": "ハッシュタグ",
-  "otherServers": "よそのサーバー",
+  "otherServers": "他のサーバー",
   "follow": "フォロー",
   "following": "フォロー中",
   "managing": "管理中",
-  "done": "ほい",
+  "done": "完了",
   "public": "パブリック",
   "home": "ホーム",
   "local": "ローカル",
@@ -48,15 +48,15 @@
   "language": "言語",
   "administrator": "管理者",
   "contact": "連絡先",
-  "serverRules": "サーバーのきめごと",
+  "serverRules": "サーバールール",
   "tos": "利用規約",
   "privacyPolicy": "プライバシーポリシー",
   "impressum": "運営者情報",
-  "willDelete": "削除するで",
-  "cancel": "やっぱやめる",
-  "noneAction": "なにもしない",
-  "pleaseInput": "入れてや",
-  "pleaseSelect": "選んでや",
+  "willDelete": "削除しますか？",
+  "cancel": "キャンセル",
+  "noneAction": "何もしない",
+  "pleaseInput": "入力してください",
+  "pleaseSelect": "選択してください",
   "login": "ログイン",
   "settings": "設定",
   "ad": "広告",
@@ -79,7 +79,7 @@
   "antennaName": "アンテナの名前",
   "antennaSource": "アンテナのソース",
   "antennaSourceHome": "ホーム",
-  "antennaSourceAll": "ぜんぶ",
+  "antennaSourceAll": "すべて",
   "antennaSourceUser": "ユーザー",
   "antennaSourceList": "リスト",
   "selectAntennaSource": "ソースを選択",
@@ -95,7 +95,7 @@
   "receiveOnlyFiles": "ファイル付きのノートのみ受信する",
   "receiveLocal": "ローカルのみ受信する",
   "receiveLocalAvailability": "ローカルのみの指定はMisskey 2023.10.2以降で有効です。",
-  "confirmDeletingAntenna": "アンテナ削除するか？",
+  "confirmDeletingAntenna": "このアンテナを削除しますか？",
   "channelJoinningCounts": "{usersCount}人が参加中",
   "@channelJoinningCounts": {
     "description": "チャンネルの参加人数",
@@ -127,8 +127,8 @@
   },
   "thisChannelIsArchived": "このチャンネルはアーカイブされています",
   "favorited": "お気に入り中",
-  "willFavorite": "お気に入りに入れるで",
-  "willFollow": "フォローするで",
+  "willFavorite": "お気に入りに追加しますか？",
+  "willFollow": "フォローしますか？",
   "channelInformation": "チャンネル情報",
   "channelStatistics": "{notesCount} 投稿 / {usersCount} 人が参加中 / {lastNotedAt} に更新",
   "@channelStatistics": {
@@ -149,10 +149,10 @@
   },
   "notImplemented": "作成中",
   "createClip": "クリップを作成",
-  "confirmDeleteClip": "このクリップ削除してええか？",
+  "confirmDeleteClip": "このクリップを削除しますか？",
   "clipName": "クリップ名",
-  "clipDescription": "説明（省略してもええよ）",
-  "alreadyAddedClip": "すでにクリップに追加されてるノートみたいやねん",
+  "clipDescription": "説明（省略可）",
+  "alreadyAddedClip": "このノートはすでにクリップに追加されています",
   "deleteClip": "クリップから削除する",
   "thanksForReport": "内容が送信されました。ご報告ありがとうございました。",
   "reportAbuseOf": "{userName} を通報する",
@@ -167,8 +167,8 @@
   "reportAbuse": "通報する",
   "closeTweet": "ツイートを閉じる",
   "closePlayer": "プレイヤーを閉じる",
-  "doneCopy": "コピーしたで",
-  "mutedNotePlaceholder": "{userName}が何か言うとるわ",
+  "doneCopy": "コピーしました",
+  "mutedNotePlaceholder": "{userName}の投稿は非表示になっています",
   "@mutedNotePlaceholder": {
     "placeholders": {
       "userName": {
@@ -176,7 +176,7 @@
       }
     }
   },
-  "showCw": "隠してあるのんの続きを見して",
+  "showCw": "内容を表示",
   "showReactionedNote": "続きを表示",
   "showLongText": "続きを表示",
   "showMoreFiles": "続きを表示",
@@ -189,11 +189,11 @@
       }
     }
   },
-  "confirmDeleteReaction": "リアクション取り消してもええか？",
+  "confirmDeleteReaction": "リアクションを取り消しますか？",
   "cancelReaction": "取り消す",
   "renotedBy": "がリノート",
   "selfRenotedBy": "がセルフリノート",
-  "savedImage": "画像保存したで",
+  "savedImage": "画像を保存しました",
   "tapToShow": "タップして表示",
   "copyContents": "内容をコピー",
   "copyLinks": "リンクをコピー",
@@ -208,10 +208,10 @@
   "deleteFavorite": "お気に入り解除",
   "notesAfterRenote": "リノート直後のノート",
   "deletedRecreate": "削除してなおす",
-  "confirmDeletedRecreate": "このノート消してなおす？ついたリアクション、リノート、返信は消えて戻らへんで？",
+  "confirmDeletedRecreate": "このノートを削除して再投稿しますか？リアクション、リノート、返信は引き継がれません。",
   "deleteRenote": "リノートを解除する",
-  "confirmDelete": "ほんまに消してええな？",
-  "doDeleting": "消す！",
+  "confirmDelete": "本当に削除しますか？",
+  "doDeleting": "削除する",
   "confirmPoll": "{choiced}に投票しますか？",
   "@confirmPoll": {
     "placeholders": {
@@ -268,14 +268,14 @@
     }
   },
   "renoteInChannel": "チャンネルへリノート",
-  "renoteInOtherChannel": "よそのチャンネルへリノート",
+  "renoteInOtherChannel": "別のチャンネルにリノート",
   "quotedRenoteInChannel": "チャンネルへ引用",
-  "quotedRenoteInOtherChannel": "よそのチャンネルへ引用",
+  "quotedRenoteInOtherChannel": "別のチャンネルに引用",
   "renotedUsers": "リノートしたユーザー",
-  "otherComplementReactions": "他のん",
-  "openAsOtherAccount": "開くアカウントを選んでや",
-  "pickColor": "色を選んでや",
-  "decideColor": "これにする",
+  "otherComplementReactions": "他のリアクション",
+  "openAsOtherAccount": "開くアカウントを選択",
+  "pickColor": "色を選択",
+  "decideColor": "この色を選択",
   "accountSetting": "{accountName}の設定",
   "@accountSetting": {
     "placeholders": {
@@ -291,11 +291,11 @@
   "randomizeFileName": "ファイル名をランダムにする",
   "caption": "キャプション",
   "sensitiveSubTitle": "閲覧注意の設定を外した場合でも、自動で閲覧注意にマークされることがあります。",
-  "replyNotePlaceholder": "何て送る？",
-  "defaultNotePlaceholder": "何してはる？",
+  "replyNotePlaceholder": "返信内容を入力",
+  "defaultNotePlaceholder": "今、何を投稿しますか？",
   "hasMediaButCannotEdit": "メディアがあります（編集はできません）",
   "hasVoteButCannotEdit": "投票があります（編集はできません）",
-  "followedNotification": "{userName}からフォローされたで",
+  "followedNotification": "{userName}にフォローされました",
   "@followedNotification": {
     "placeholders": {
       "userName": {
@@ -303,7 +303,7 @@
       }
     }
   },
-  "followRequestAcceptedNotification": "{userName}がフォローしてもええでってなったで",
+  "followRequestAcceptedNotification": "{userName}がフォローを許可しました",
   "@followRequestAcceptedNotification": {
     "placeholders": {
       "userName": {
@@ -311,7 +311,7 @@
       }
     }
   },
-  "receiveFollowRequestNotification": "{userName}がフォローさせてほしそうにしてるで",
+  "receiveFollowRequestNotification": "{userName}からフォローリクエストが届きました",
   "@receiveFollowRequestNotification": {
     "placeholders": {
       "userName": {
@@ -319,14 +319,14 @@
       }
     }
   },
-  "achievementEarnedNotification": "実績を解除したみたいや",
-  "testNotification": "テストやで",
-  "renotedUsersInNotification": "リノートしてくれはった人",
-  "reactionUsersInNotification": "リアクションしてくれはった人",
-  "finishedVotedNotification": "投票が終わったみたいや",
-  "scheduledNotePostedNotification": "予約投稿がノートされたで",
-  "scheduledNotePostFailedNotification": "予約投稿がしくじったみたいや",
-  "renoteAndReactionsNotification": "{reactionUser}さんたちがリアクションしはって、{renotedUser}さんたちがリノートしはったで",
+  "achievementEarnedNotification": "実績を獲得しました",
+  "testNotification": "テスト通知",
+  "renotedUsersInNotification": "リノートしたユーザー",
+  "reactionUsersInNotification": "リアクションしたユーザー",
+  "finishedVotedNotification": "投票が終了しました",
+  "scheduledNotePostedNotification": "予約投稿が投稿されました",
+  "scheduledNotePostFailedNotification": "予約投稿に失敗しました",
+  "renoteAndReactionsNotification": "{reactionUser}さんがリアクションし、{renotedUser}さんがリノートしました",
   "@renoteAndReactionsNotification": {
     "placeholders": {
       "reactionUser": {
@@ -337,7 +337,7 @@
       }
     }
   },
-  "renoteNotification": "{renoteUser}さんたちがリノートしはったで",
+  "renoteNotification": "{renoteUser}さんがリノートしました",
   "@renoteNotification": {
     "placeholders": {
       "renoteUser": {
@@ -345,7 +345,7 @@
       }
     }
   },
-  "reactionNotification": "{reactionUser}さんたちがリアクションしはったで",
+  "reactionNotification": "{reactionUser}さんがリアクションしました",
   "@reactionNotification": {
     "placeholders": {
       "reactionUser": {
@@ -353,7 +353,7 @@
       }
     }
   },
-  "notedNotification": "{notedUser}さんがノートしはったで",
+  "notedNotification": "{notedUser}さんが投稿しました",
   "@notedNotification": {
     "placeholders": {
       "notedUser": {
@@ -361,7 +361,7 @@
       }
     }
   },
-  "roleAssignedNotification": "ロール「{role}」に入れられたみたいや",
+  "roleAssignedNotification": "ロール「{role}」が付与されました",
   "@roleAssignedNotification": {
     "placeholders": {
       "role": {
@@ -369,11 +369,11 @@
       }
     }
   },
-  "appNotification": "なんかのアプリからの通知らしいわ",
-  "someoneLogined": "自分のアカウントにログインがあったらしいで",
-  "unknownNotification": "知らんタイプの通知やわ",
-  "createTokenNotification": "アクセストークンが作成されたで",
-  "chatRoomInvitationReceivedNotification": "チャットルームに招待されたで",
+  "appNotification": "アプリからの通知",
+  "someoneLogined": "自分のアカウントへのログインがありました",
+  "unknownNotification": "不明な種類の通知です",
+  "createTokenNotification": "アクセストークンが作成されました",
+  "chatRoomInvitationReceivedNotification": "チャットルームに招待されました",
   "messageForFollower": "フォロワーへ 「{message}」",
   "@messageForFollower": {
     "placeholders": {
@@ -382,20 +382,20 @@
       }
     }
   },
-  "notificationAll": "みんな",
-  "notificationForMe": "自分宛て",
+  "notificationAll": "すべて",
+  "notificationForMe": "メンション",
   "notificationDirect": "ダイレクト",
   "editPhoto": "写真編集",
   "customEmojiLicensedBy": "このカスタム絵文字はこのようにライセンスされています。",
   "customEmojiLicensedByNone": "※このカスタム絵文字に対してライセンスは設定されていません。",
-  "cancelEmojiChoosing": "わからへんからやめとく",
-  "doneEmojiChoosing": "使ってもだいじょうぶ",
-  "confirmSavingPhoto": "保存しよる？",
+  "cancelEmojiChoosing": "選択をキャンセル",
+  "doneEmojiChoosing": "この絵文字を使用する",
+  "confirmSavingPhoto": "写真を保存しますか？",
   "doneEditingPhoto": "保存する",
-  "continueEditingPhoto": "もうちょっと続ける",
-  "disabledUsingSensitiveCustomEmoji": "ここでセンシティブなカスタム絵文字使われへんねやわ",
+  "continueEditingPhoto": "編集を続ける",
+  "disabledUsingSensitiveCustomEmoji": "ここではセンシティブなカスタム絵文字を使用できません",
   "markAsSensitive": "センシティブとしてマークする",
-  "publicSubTitle": "みんなに公開",
+  "publicSubTitle": "全体に公開",
   "homeSubTitle": "ホームタイムラインのみに公開",
   "followersSubTitle": "自分のフォロワーのみに公開",
   "specifiedSubTitle": "選択したユーザーのみに公開",
@@ -405,7 +405,7 @@
   "favoriteNonSensitiveOnly": "非センシティブのみ",
   "favoriteNonSensitiveOnlyAndLikeOnlyForRemote": "非センシティブのみ（リモートからはいいねのみ）",
   "replyTo": "返信先",
-  "addChoice": "増やす",
+  "addChoice": "選択肢を追加",
   "choiceNumber": "回答{choice}",
   "@choiceNumber": {
     "placeholders": {
@@ -436,7 +436,7 @@
       }
     }
   },
-  "pageWrittenBy": "このページ書きはった人",
+  "pageWrittenBy": "このページを書いた人",
   "pageCreatedAt": "作成日: {createdAt}",
   "@pageCreatedAt": {
     "placeholders": {
@@ -455,14 +455,14 @@
       }
     }
   },
-  "unsupportedPage": "DMSKY Clientが対応してないページやわ　ブラウザで見てな",
-  "canNotFavoriteMyPage": "自分のページにはふぁぼつけられへんねん",
-  "activeAnnouncements": "いまの",
-  "inactiveAnnouncements": "まえの",
-  "announcementsForYou": "あんた宛",
-  "confirmAnnouncementsRead": "「{title}」の内容ちゃんと読んだか？",
-  "readAnnouncement": "読んだ",
-  "didNotReadAnnouncement": "もうちょい待って",
+  "unsupportedPage": "DMSKY Clientが対応していないページです。ブラウザーで開いてください。",
+  "canNotFavoriteMyPage": "自分のページはお気に入りに登録できません",
+  "activeAnnouncements": "公開中",
+  "inactiveAnnouncements": "過去のお知らせ",
+  "announcementsForYou": "あなた宛て",
+  "confirmAnnouncementsRead": "「{title}」を確認しましたか？",
+  "readAnnouncement": "確認しました",
+  "didNotReadAnnouncement": "あとで確認する",
   "onlineUsers": "サーバーオンライン人数",
   "onlineUsersCount": "{usersCount}<small>人</small>",
   "@onlineUsersCount": {
@@ -488,7 +488,7 @@
   "deliverWaitingQueue": "Waiting",
   "persons": "人",
   "milliSeconds": "ミリ秒",
-  "pinnedUser": "ピンどめ",
+  "pinnedUser": "ピン留め",
   "sort": "並び順",
   "joiningServerUsers": "{usersCount}人が参加中",
   "@joiningServerUsers": {
@@ -502,16 +502,16 @@
   "serverInformation": "サーバー情報",
   "loginAsMiAuth": "MiAuthでログイン",
   "loginAsAPIKey": "APIキーでログイン",
-  "authorizate": "認証をする",
-  "reauthorizate": "再度認証をする",
+  "authorizate": "認証する",
+  "reauthorizate": "再認証する",
   "chooseLoginServer": "ログインするサーバーを選んでください",
-  "didAuthorize": "認証してきた",
+  "didAuthorize": "認証しました",
   "thrownConnectionError": "通信に失敗しました。",
   "thrownConnectionTimeout": "タイムアウトしました。",
   "thrownWebSocketException": "通信に失敗しました。",
   "thrownTimeoutException": "サーバーが応答してくれませんでした。",
   "thrownUnknownError": "不明なエラー",
-  "thrownError": "エラーが起きたみたいや",
+  "thrownError": "エラーが発生しました",
   "unsupportedServer": "非対応のサーバーです",
   "future": "未来",
   "justNow": "たったいま",
@@ -697,14 +697,14 @@
     }
   },
   "importFromThisFolder": "このフォルダーからインポートする",
-  "exportedFileNotFound": "ここにDMSKY Clientの設定ファイルあれへんかったわ",
-  "importCompleted": "インポート終わったで。",
+  "exportedFileNotFound": "このフォルダーにDMSKY Clientの設定ファイルが見つかりません",
+  "importCompleted": "インポートが完了しました",
   "exportToThisFolder": "このフォルダーに保存する",
-  "confirmOverwrite": "ここにもうあるけど上書きするか？",
+  "confirmOverwrite": "同名のファイルが存在します。上書きしますか？",
   "overwrite": "上書きする",
   "exportedFileComment": "DMSKY Client設定ファイル",
-  "exportCompleted": "エクスポート終わったで",
-  "cannotOpenLocalOnlyNoteFromRemote": "連合なしのノートを他のサーバーで開くことはできません",
+  "exportCompleted": "エクスポートが完了しました",
+  "cannotOpenLocalOnlyNoteFromRemote": "ローカル限定のノートは他のサーバーから開けません",
   "unlimited": "無期限",
   "specifyByDate": "日時指定",
   "specifyByDuration": "期間指定",
@@ -712,12 +712,12 @@
   "minutes": "分",
   "hours": "時間",
   "days": "日",
-  "pleaseInputSomething": "なんか入れてや",
-  "pleaseAddVoteChoice": "投票の選択肢を2つ以上入れてや",
-  "pleaseSpecifyExpirationDate": "投票がいつまでか入れてや",
-  "pleaseSpecifyExpirationDuration": "投票期間を入れてや",
-  "cannotMentionToRemoteInLocalOnlyNote": "連合オフやのによそのサーバーの人がメンションに含まれてるで",
-  "cannotPublicReplyToPrivateNote": "リプライが{visibility}やから、パブリックにでけへん",
+  "pleaseInputSomething": "内容を入力してください",
+  "pleaseAddVoteChoice": "投票の選択肢を2つ以上入力してください",
+  "pleaseSpecifyExpirationDate": "投票の終了日時を指定してください",
+  "pleaseSpecifyExpirationDuration": "投票期間を指定してください",
+  "cannotMentionToRemoteInLocalOnlyNote": "ローカル限定の投稿に、他のサーバーのユーザーがメンションされています",
+  "cannotPublicReplyToPrivateNote": "返信元の公開範囲が{visibility}のため、公開投稿にはできません",
   "@cannotPublicReplyToPrivateNote": {
     "placeholders": {
       "visibility": {
@@ -726,12 +726,12 @@
     }
   },
   "cannotPublicNoteBySilencedUser": "サイレンスロールになっているため、パブリックで投稿することはできません。",
-  "cannotFederateNoteToChannel": "チャンネルのノートを連合にすることはでけへんねん。",
-  "cannotFederateReplyToLocalOnlyNote": "リプライの元ノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。",
-  "cannotFederateRenoteToLocalOnlyNote": "リノートしようとしてるノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。",
-  "unexpectedSensitive": "上げようとしたファイルがサーバーから、センシティブと思われたんやけどどないする？",
-  "staySensitive": "センシティブのままにしとく",
-  "unsetSensitive": "センシティブやめる",
+  "cannotFederateNoteToChannel": "チャンネルの投稿は連合に配信できません。",
+  "cannotFederateReplyToLocalOnlyNote": "返信元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。",
+  "cannotFederateRenoteToLocalOnlyNote": "リノート元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。",
+  "unexpectedSensitive": "アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？",
+  "staySensitive": "センシティブ設定を維持",
+  "unsetSensitive": "センシティブ設定を解除",
   "noteCreatedAt": "投稿時間: {createdAt}",
   "@noteCreatedAt": {
     "placeholders": {
@@ -747,7 +747,7 @@
   "tabSettings": "タブ設定",
   "settingsImportAndExport": "設定のインポート・エクスポート",
   "aboutMiria": "このアプリについて",
-  "quitAccountSettings": "アカウント設定をおわる",
+  "quitAccountSettings": "アカウント設定を終了",
   "packageName": "パッケージ名",
   "version": "バージョン",
   "developer": "開発者",
@@ -774,7 +774,7 @@
   "theme": "テーマ",
   "themeForLightMode": "ライトモードで使うテーマ",
   "themeForDarkMode": "ダークモードで使うテーマ",
-  "themeIsh": "{theme}っぽいの",
+  "themeIsh": "{theme}風",
   "@themeIsh": {
     "placeholders": {
       "theme": {
@@ -782,33 +782,33 @@
       }
     }
   },
-  "selectLightOrDarkMode": "ライトモード・ダークモードのつかいわけ",
+  "selectLightOrDarkMode": "ライトモードとダークモードの使い分け",
   "reaction": "リアクション",
   "emojiTapReaction": "ノート内の絵文字タップでリアクションする",
   "emojiTapReactionDescription": "ノート内の絵文字をタップしてリアクションします。MFMや外部サーバーの絵文字の場合うまく機能しないことがあります。",
   "emojiStyle": "絵文字のスタイル",
   "fontStandard": "フォント（標準）",
-  "fontSerif": "フォント（$[font.serif 用）",
-  "fontMonospace": "フォント （$[font.monospace やコードブロック 用）",
-  "fontCursive": "フォント （$[font.cursive 用）",
-  "fontFantasy": "フォント （$[font.fantasy 用）",
+  "fontSerif": "フォント（$[font.serif]用）",
+  "fontMonospace": "フォント（$[font.monospace]・コードブロック用）",
+  "fontCursive": "フォント（$[font.cursive]用）",
+  "fontFantasy": "フォント（$[font.fantasy]用）",
   "fontSize": "フォントサイズ",
   "systemFont": "システム標準",
   "cache": "キャッシュ",
   "cacheSize": "キャッシュサイズ",
   "cacheSizeError": "取得に失敗しました",
-  "clearCache": "キャッシュをクリア",
+  "clearCache": "キャッシュを削除",
   "getCacheSize": "サイズを取得",
   "selectFolder": "フォルダー選択",
   "settingsFileManagement": "設定ファイルの管理",
   "importAndExportSettingsDescription": "現在の設定から、アカウントのログイン情報を除くすべての設定を設定ファイルに出力して管理することができます。設定ファイルは、指定したアカウントの「ドライブ」内に保存されます。",
   "importSettings": "インポート",
   "importSettingsDescription": "全般設定と、この端末でログインしているアカウントに対応する設定が読み込まれます。",
-  "pleaseSelectAccount": "アカウントを選んでや",
+  "pleaseSelectAccount": "アカウントを選択してください",
   "select": "選択",
   "exportSettings": "エクスポート",
   "exportSettingsDescription": "全般設定と、この端末でログインしているすべてのアカウントの設定を設定ファイルに保存します。",
-  "pleaseSelectAccountToExportSettings": "設定ファイルを保存するアカウントを選んでや",
+  "pleaseSelectAccountToExportSettings": "設定ファイルの保存先アカウントを選択してください",
   "selectAntenna": "アンテナ選択",
   "selectChannel": "チャンネル選択",
   "selectIcon": "アイコンを選択",
@@ -841,7 +841,7 @@
   "instanceMute": "インスタンスミュート",
   "mutedUsers": "ミュート済みユーザー",
   "blockedUsers": "ブロック済みユーザー",
-  "confirmUnblockUser": "{userName}のブロックを解除してもええか？",
+  "confirmUnblockUser": "{userName}のブロックを解除しますか？",
   "@confirmUnblockUser": {
     "placeholders": {
       "userName": {
@@ -849,7 +849,7 @@
       }
     }
   },
-  "confirmUnmuteUser": "{userName}のミュートを解除してもええか？",
+  "confirmUnmuteUser": "{userName}のミュートを解除しますか？",
   "@confirmUnmuteUser": {
     "placeholders": {
       "userName": {
@@ -869,7 +869,7 @@
   "emojiCache": "絵文字の情報",
   "serverCache": "サーバーの情報",
   "instanceMuteDescription1": "設定したサーバーのノートを隠します。",
-  "instanceMuteDescription2": "ミュートしたサーバーのユーザーへの返信を含めて、設定したサーバーの全てのノートとリノートをミュートします。\n改行で区切って設定します。",
+  "instanceMuteDescription2": "ミュートしたサーバーのユーザーへの返信を含め、指定したサーバーのすべてのノートとリノートを非表示にします。\nサーバーは改行で区切って指定します。",
   "reactionMute": "リアクションミュート",
   "reactionMuteDescription": "改行区切りで :emoji: または :emoji@host: の形式で入力します。@host のみも受け付け、この場合該当ホストすべてを対象とします。",
   "bulkAddReactions": "一括追加",
@@ -886,7 +886,7 @@
   "invalidInput": "入力が有効な値ではありません",
   "clear": "クリア",
   "copy": "コピー",
-  "editReactionDeckDescription": "長押しして並び変え、押して削除、＋を押して追加します。",
+  "editReactionDeckDescription": "長押しして並べ替え、タップして削除、＋をタップして追加します。",
   "confirmClearReactionDeck": "すでに設定済みのリアクションデッキをいったんすべてクリアしますか？",
   "clearReactionDeck": "クリアする",
   "accountGeneralSettings": "{accountName} 全般設定",
@@ -900,17 +900,17 @@
   "privacy": "プライバシー",
   "setDefaultNoteVisibility": "デフォルトの公開範囲を設定します。",
   "noteVisibility": "ノート公開範囲",
-  "disableFederation": "連合をなしにします",
-  "disableFederationDescription": "連合をなしにしても、非公開になりません。ほとんどの場合、連合なしにする必要はありません。",
+  "disableFederation": "連合への配信を無効にする",
+  "disableFederationDescription": "連合への配信を無効にしても、投稿は非公開になりません。通常、この設定を有効にする必要はありません。",
   "reactionAcceptance": "リアクションの受け入れ",
-  "reactionAcceptanceAll": "全部",
+  "reactionAcceptanceAll": "すべて",
   "forceShowAds": "広告を常に表示する",
   "wordMuteDescription": "スペースで区切るとAND指定になり、改行で区切るとOR指定になります。\nキーワードをスラッシュで囲むと正規表現になります。\nただし、Misskey Webと正規表現の仕様が異なるため、DMSKY Clientで動作する正規表現がMisskey Webで動作しなかったり、その逆が発生することがあります。",
   "selectAccountToShare": "共有するアカウントを選択",
   "createAntenna": "アンテナを作成",
   "memo": "メモ",
-  "memoDescription": "なんかメモることあったら書いとき",
-  "confirmCreateBlock": "ブロックしてもええか？",
+  "memoDescription": "メモする内容を入力してください",
+  "confirmCreateBlock": "このユーザーをブロックしますか？",
   "createBlock": "ブロックする",
   "addToList": "リストに追加",
   "addToAntenna": "アンテナに追加",
@@ -925,7 +925,7 @@
   "day1": "1日",
   "week1": "1週間",
   "selectDuration": "期限を選択してください。",
-  "confirmUnfollow": "フォロー解除してもええか？",
+  "confirmUnfollow": "フォローを解除しますか？",
   "deleteFollow": "解除する",
   "renoteMuting": "リノートのミュート中",
   "muting": "ミュート中",
@@ -978,15 +978,15 @@
   "confirmDeleteList": "このリストを削除しますか？",
   "homeOnly": "ホームのみ",
   "followersOnly": "フォロワーのみ",
-  "originCombined": "全て",
+  "originCombined": "すべて",
   "followerAscendingOrder": "フォロワーが少ない順",
   "followerDescendingOrder": "フォロワーが多い順",
   "createdAtAscendingOrder": "古い順",
   "createdAtDescendingOrder": "新しい順",
   "updatedAtAscendingOrder": "更新されていない順",
   "updatedAtDescendingOrder": "更新された順",
-  "unsupportedFile": "対応してないファイルやわ",
-  "unsupportedFileWithFilename": "{filename}は対応してないファイルやわ",
+  "unsupportedFile": "対応していないファイルです",
+  "unsupportedFileWithFilename": "{filename}は対応していないファイルです",
   "@unsupportedFileWithFilename": {
     "placeholders": {
       "filename": {
@@ -994,14 +994,14 @@
       }
     }
   },
-  "failedFileSave": "ファイルの保存に失敗したみたいや",
+  "failedFileSave": "ファイルを保存できませんでした",
   "loopPlayback": "ループ再生",
   "misskeyGames": "Misskey Games",
-  "cookieCliker": "Cookie Cliker",
+  "cookieCliker": "Cookie Clicker",
   "bubbleGame": "Bubble Game",
   "reversi": "リバーシ",
   "loading": "読み込み中...",
-  "invitedReversi": "{users}から招待されとるで",
+  "invitedReversi": "{users}から招待されています",
   "@invitedReversi": {
     "placeholders": {
       "users": {
@@ -1009,14 +1009,14 @@
       }
     }
   },
-  "nonInvitedReversi": "招待はされとらへんみたいや",
+  "nonInvitedReversi": "招待されていません",
   "remoteServerWithoutLogin": "相手先のサーバー（ログインなし）",
-  "nothingHere": "なんもないで",
-  "cacheRefreshNow": "いますぐキャッシュを更新",
-  "cacheManualUpdateCompleted": "情報の取得が完了したで",
+  "nothingHere": "表示できる内容はありません",
+  "cacheRefreshNow": "今すぐキャッシュを更新",
+  "cacheManualUpdateCompleted": "情報を更新しました",
   "deckMode": "デッキモード",
   "enableDeckMode": "デッキモードにする",
-  "template": "テンプレ",
+  "template": "テンプレート",
   "noteBackgroundColor": "ノート背景色",
   "profileName": "名前",
   "profileBio": "自己紹介",
@@ -1029,23 +1029,23 @@
   "profileFollowedMessage": "フォローされたときのメッセージ",
   "chat": "チャット",
   "chatInvitation": "招待",
-  "chatOwnRooms": "自分で作ったやつ",
-  "chatJoining": "入ってるルーム",
+  "chatOwnRooms": "作成したルーム",
+  "chatJoining": "参加中のルーム",
   "chatNewChat": "新しいチャットを開始",
-  "chatIgnored": "無視したで",
+  "chatIgnored": "無視しました",
   "chatNoDescription": "説明はありません",
   "chatJoin": "参加",
   "chatIgnore": "無視",
   "chatSearch": "チャット検索",
-  "chatInvited": "招待したで",
+  "chatInvited": "招待しました",
   "chatRoomName": "名前",
   "chatRoomDescription": "説明",
   "chatUpdate": "更新",
   "chatDelete": "削除する",
-  "chatCreator": "チャットを立てた人",
-  "confirmChatLeave": "ほんまにチャットから退出してええな？",
+  "chatCreator": "チャットルームの作成者",
+  "confirmChatLeave": "このチャットルームから退出しますか？",
   "chatLeave": "チャットから退出",
-  "chatLeftRoom": "チャットから退出したで",
+  "chatLeftRoom": "チャットルームから退出しました",
   "chatRetry": "再試行",
   "chatCreate": "作成",
   "chatReaction": "リアクション",
@@ -1056,10 +1056,10 @@
   "chatSenderId": "送信者ID",
   "chatReactionCount": "リアクション数",
   "chatReactionList": "リアクション一覧",
-  "chatUnknownUser": "Unknown User",
+  "chatUnknownUser": "不明なユーザー",
   "chatNsfw": "NSFW",
-  "chatUpdateCompleted": "更新できたみたいや",
-  "chatRoomInvitation": "チャットルームに招待されたで【{roomName}】",
+  "chatUpdateCompleted": "チャットを更新しました",
+  "chatRoomInvitation": "チャットルーム「{roomName}」に招待されました",
   "@chatRoomInvitation": {
     "placeholders": {
       "roomName": {
@@ -1067,16 +1067,16 @@
       }
     }
   },
-  "goToChat": "みにいく",
+  "goToChat": "チャットを開く",
   "noSearchResults": "検索結果が見つかりませんでした",
-  "saveToDrafts": "下書きに保存しとく？",
-  "discard": "やめとく",
+  "saveToDrafts": "下書きに保存しますか？",
+  "discard": "破棄する",
   "drafts": "下書き",
-  "noDrafts": "下書きあらへんで",
-  "confirmDeleteDraft": "この下書き削除してもええか？",
-  "emptyNote": "空っぽのノート",
+  "noDrafts": "下書きはありません",
+  "confirmDeleteDraft": "この下書きを削除しますか？",
+  "emptyNote": "空のノート",
   "poll": "アンケート",
-  "continueEditing": "もうちょっと編集を続ける",
+  "continueEditing": "編集を続ける",
   "saveAndClose": "保存して閉じる",
   "discardAndReturn": "保存せずに戻る"
 }

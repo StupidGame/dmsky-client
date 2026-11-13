@@ -1,5 +1,3 @@
-import "dart:typed_data";
-
 import "package:auto_route/auto_route.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/foundation.dart";
@@ -127,49 +125,45 @@ class _ProfileEditForm extends HookConsumerWidget {
                               context: context,
                               builder: (context) => const DriveModalSheet(),
                             );
-                        if (result == null) return;
+                        if (!context.mounted || result == null) return;
 
                         if (result == DriveModalSheetReturnValue.upload) {
-                          final pickedFile = await FilePicker.pickFiles(
-                            withData: true,
+                          final f = await FilePicker.pickFile(
                             type: FileType.image,
                           );
-                          if (pickedFile != null &&
-                              pickedFile.files.isNotEmpty) {
-                            final f = pickedFile.files.first;
-                            if (f.bytes case final bytes?) {
-                              if (!context.mounted) return;
-                              if (defaultTargetPlatform
-                                  case TargetPlatform.android ||
-                                      TargetPlatform.iOS ||
-                                      TargetPlatform.macOS) {
-                                final editedBytes = await context
-                                    .pushRoute<Uint8List>(
-                                      PhotoEditRoute(
-                                        accountContext: ref.read(
-                                          accountContextProvider,
-                                        ),
-                                        file: ImageFile(
-                                          data: bytes,
-                                          fileName: f.name,
-                                        ),
-                                        onSubmit: (editedData) {
-                                          Navigator.of(context).pop(editedData);
-                                        },
+                          if (f != null) {
+                            final bytes = await f.readAsBytes();
+                            if (!context.mounted) return;
+                            if (defaultTargetPlatform
+                                case TargetPlatform.android ||
+                                    TargetPlatform.iOS ||
+                                    TargetPlatform.macOS) {
+                              final editedBytes = await context
+                                  .pushRoute<Uint8List>(
+                                    PhotoEditRoute(
+                                      accountContext: ref.read(
+                                        accountContextProvider,
                                       ),
-                                    );
-                                if (editedBytes != null) {
-                                  notifier.updateAvatarFile((
-                                    data: editedBytes,
-                                    name: f.name,
-                                  ));
-                                }
-                              } else {
+                                      file: ImageFile(
+                                        data: bytes,
+                                        fileName: f.name,
+                                      ),
+                                      onSubmit: (editedData) {
+                                        Navigator.of(context).pop(editedData);
+                                      },
+                                    ),
+                                  );
+                              if (editedBytes != null) {
                                 notifier.updateAvatarFile((
-                                  data: bytes,
+                                  data: editedBytes,
                                   name: f.name,
                                 ));
                               }
+                            } else {
+                              notifier.updateAvatarFile((
+                                data: bytes,
+                                name: f.name,
+                              ));
                             }
                           }
                         } else if (result == DriveModalSheetReturnValue.drive) {
@@ -284,7 +278,7 @@ class _ProfileEditForm extends HookConsumerWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
                   itemCount: data.fields.length,
-                  onReorder: notifier.reorderFields,
+                  onReorderItem: notifier.reorderFields,
                   itemBuilder: (context, index) {
                     final field = data.fields[index];
                     return _FieldListItem(

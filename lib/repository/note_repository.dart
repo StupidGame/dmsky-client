@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/foundation.dart";
 import "package:freezed_annotation/freezed_annotation.dart";
 import "package:dmsky_client/extensions/note_extension.dart";
@@ -74,7 +76,9 @@ class NoteRepository extends ChangeNotifier {
           hardMuteWordRegExps.add(
             RegExp(regExp.substring(1, regExp.length - 1)),
           );
-        } catch (e) {}
+        } catch (e) {
+          logger.warning('Invalid hard mute regular expression: $e');
+        }
       }
     }
   }
@@ -144,18 +148,14 @@ class NoteRepository extends ChangeNotifier {
 
   void registerNote(Note note) {
     _registerNote(note);
-    Future(() {
-      notifyListeners();
-    });
+    scheduleMicrotask(notifyListeners);
   }
 
   void registerAll(Iterable<Note> notes) {
     for (final element in notes) {
       _registerNote(element);
     }
-    Future(() {
-      notifyListeners();
-    });
+    scheduleMicrotask(notifyListeners);
   }
 
   Future<void> refresh(String noteId) async {
@@ -165,8 +165,6 @@ class NoteRepository extends ChangeNotifier {
 
   void delete(String noteId) {
     _notes.remove(noteId);
-    Future(() {
-      notifyListeners();
-    });
+    scheduleMicrotask(notifyListeners);
   }
 }

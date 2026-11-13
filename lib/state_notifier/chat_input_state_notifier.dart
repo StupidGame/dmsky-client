@@ -1,5 +1,3 @@
-import "dart:typed_data";
-
 import "package:dio/dio.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/foundation.dart";
@@ -175,19 +173,15 @@ class ChatInputStateNotifier extends _$ChatInputStateNotifier {
       // ファイルアップロード（既存の処理）
       final fileSystem = ref.read(fileSystemProvider);
 
-      final result = await FilePicker.pickFiles(
-        withData: kIsWeb,
-        allowMultiple: false,
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ["jpg", "jpeg", "png", "gif", "mp4", "webm"],
       );
 
-      if (result == null || result.files.isEmpty) return;
+      if (file == null) return;
 
-      final file = result.files.first;
       if (kIsWeb) {
-        final bytes = file.bytes;
-        if (bytes == null) return;
+        final bytes = await file.readAsBytes();
         final isImage = [
           "jpg",
           "jpeg",

@@ -4,6 +4,19 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// UnifiedPush Android and Firebase may bring separate Tink artifacts with
+// duplicate classes. Substitute the JVM artifact with one Android version.
+configurations.configureEach {
+    val tinkAndroid = "com.google.crypto.tink:tink-android:1.23.0"
+    resolutionStrategy {
+        force(tinkAndroid)
+        dependencySubstitution {
+            substitute(module("com.google.crypto.tink:tink"))
+                .using(module(tinkAndroid))
+        }
+    }
+}
+
 val releaseStorePath = System.getenv("ANDROID_KEYSTORE_PATH")
 val releaseStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
 val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
@@ -27,6 +40,7 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -75,4 +89,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

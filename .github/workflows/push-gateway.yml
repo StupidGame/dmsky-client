@@ -1,0 +1,36 @@
+name: Push gateway
+
+on:
+  pull_request:
+    paths:
+      - "server/push-gateway/**"
+      - ".github/workflows/push-gateway.yml"
+  push:
+    branches:
+      - main
+      - feature/aria-feature-parity
+    paths:
+      - "server/push-gateway/**"
+      - ".github/workflows/push-gateway.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: server/push-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/push-gateway/package.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: TypeScript typecheck
+        run: npm run typecheck

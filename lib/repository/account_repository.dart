@@ -10,6 +10,7 @@ import "package:dmsky_client/model/account_settings.dart";
 import "package:dmsky_client/model/acct.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/shared_preference_controller.dart";
+import "package:dmsky_client/services/push_notification_service.dart";
 import "package:dmsky_client/util/server_utils.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
@@ -274,6 +275,7 @@ class AccountRepository extends _$AccountRepository {
   }
 
   Future<void> remove(Account account) async {
+    await PushNotificationService.instance.unregisterAccount(account);
     state = state.where((e) => e != account).toList();
     _validatedAccts.remove(account.acct);
     await ref.read(tabSettingsRepositoryProvider).removeAccount(account);
@@ -481,10 +483,9 @@ class AccountRepository extends _$AccountRepository {
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
-    final actualIndex = newIndex - (oldIndex < newIndex ? 1 : 0);
     final newState = state.toList();
     final item = newState.removeAt(oldIndex);
-    newState.insert(actualIndex, item);
+    newState.insert(newIndex, item);
     state = newState;
 
     await _save();

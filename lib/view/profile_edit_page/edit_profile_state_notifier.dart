@@ -159,9 +159,6 @@ class EditProfileStateNotifier extends _$EditProfileStateNotifier {
     switch (state) {
       case AsyncData(value: final data):
         final newFields = data.fields.toList();
-        if (oldIndex < newIndex) {
-          newIndex -= 1;
-        }
         final item = newFields.removeAt(oldIndex);
         newFields.insert(newIndex, item);
         state = AsyncData(data.copyWith(fields: newFields));

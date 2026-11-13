@@ -1808,7 +1808,7 @@ void main() {
           );
         });
 
-        testWidgets("「他のん」を押下するとリアクションピッカーが表示されること"
+        testWidgets("「他のリアクション」を押下するとリアクションピッカーが表示されること"
             "選択したカスタム絵文字が補完されること", (tester) async {
           VisibilityDetectorController.instance.updateInterval = Duration.zero;
 
@@ -1840,7 +1840,7 @@ void main() {
           await tester.enterText(find.byType(TextField).hitTestable(), ":");
           await tester.pumpAndSettle();
 
-          await tester.tap(find.text("他のん"));
+          await tester.tap(find.text("他のリアクション"));
           await tester.pumpAndSettle();
           await tester.tap(find.byType(CustomEmoji).at(1));
           await tester.pumpAndSettle();
@@ -3243,7 +3243,7 @@ void main() {
         await tester.pumpAndSettle();
 
         for (var i = 0; i < 8; i++) {
-          await tester.tap(find.text("増やす"));
+          await tester.tap(find.text("選択肢を追加"));
         }
         for (var i = 0; i < 10; i++) {
           await tester.enterText(find.byType(TextField).at(i + 1), "投票$i");
@@ -3305,8 +3305,8 @@ void main() {
 
         await tester.enterText(find.byType(TextField).at(1), "投票0");
         await tester.enterText(find.byType(TextField).at(2), "投票1");
-        await tester.tap(find.text("増やす"));
-        await tester.tap(find.text("増やす"));
+        await tester.tap(find.text("選択肢を追加"));
+        await tester.tap(find.text("選択肢を追加"));
         await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField).at(3), "投票2");

@@ -163,7 +163,7 @@ class ChatMessageItem extends ConsumerWidget {
       ),
     );
 
-    if (action == null) return;
+    if (!context.mounted || action == null) return;
 
     switch (action) {
       case ChatMessageMenuAction.reaction:
@@ -173,6 +173,7 @@ class ChatMessageItem extends ConsumerWidget {
             isAcceptSensitive: true,
           ),
         );
+        if (!context.mounted) return;
         if (emoji != null) {
           final reactionString = _getReactionString(emoji);
 
@@ -208,7 +209,7 @@ class ChatMessageItem extends ConsumerWidget {
                 S.of(context).cancel,
               ],
             );
-        if (isConfirm == 1) return;
+        if (!context.mounted || isConfirm == 1) return;
 
         await ref.read(dialogStateProvider.notifier).guard(() async {
           await ref
@@ -228,6 +229,7 @@ class ChatMessageItem extends ConsumerWidget {
                 .deleteMessage(message.id);
           }
 
+          if (!context.mounted) return;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text("メッセージを削除したで")));
