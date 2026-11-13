@@ -30,6 +30,10 @@ class CommonDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accounts = ref.watch(accountsProvider);
+    final settingsAccount = accounts.firstWhere(
+      (account) => account.acct == initialOpenAcct,
+      orElse: () => accounts.first,
+    );
 
     return Drawer(
       child: Padding(
@@ -209,7 +213,7 @@ class CommonDrawer extends ConsumerWidget {
               title: Text(S.of(context).settings),
               onTap: () async {
                 closeDrawer(context);
-                await context.pushRoute(const SettingsRoute());
+                await context.pushRoute(SettingsRoute(account: settingsAccount));
               },
             ),
           ],

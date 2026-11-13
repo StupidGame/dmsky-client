@@ -141,7 +141,7 @@ class SplashPageState extends ConsumerState<SplashPage> {
                       .read(accountRepositoryProvider.notifier)
                       .remove(account);
                 }
-                if (!mounted) return;
+                if (!context.mounted) return;
 
                 await context.replaceRoute(const LoginRoute());
               });

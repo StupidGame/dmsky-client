@@ -1,7 +1,4 @@
 import "dart:async";
-import "dart:math";
-
-import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
@@ -58,91 +55,99 @@ class MisskeyTimeline extends HookConsumerWidget {
       });
     }, [isDownDirectionLoading]);
 
-    if (controller.positions.isNotEmpty) {
-      controller.scrollToTop();
-    }
+    useEffect(() {
+      if (controller.positions.isNotEmpty) {
+        controller.scrollToTop();
+      }
+      return null;
+    }, [controller, tabSetting]);
+
     final repository = ref.watch(timelineProvider(tabSetting));
+    final olderNotes = repository.olderNotes;
+    final newerNotes = repository.newerNotes;
+    final olderCount = olderNotes.length;
+    final newerCount = newerNotes.length;
+    final leadingOlderCount = olderCount < 5 ? olderCount : 5;
+    final remainingOlderCount = olderCount - leadingOlderCount;
+
+    Widget loadMoreMarker() {
+      if (isLastLoaded.value) return const SizedBox.shrink();
+
+      if (isDownDirectionLoading.value && newerCount + olderCount != 0) {
+        return const Padding(
+          padding: EdgeInsets.only(top: 10, bottom: 10),
+          child: Center(child: CircularProgressIndicator.adaptive()),
+        );
+      }
+
+      if (ref.read(
+                generalSettingsRepositoryProvider.select(
+                  (value) => value.settings.automaticPush,
+                ),
+              ) ==
+              AutomaticPush.automatic &&
+          !isLoadError.value) {
+        unawaited(downDirectionLoad());
+      }
+
+      return Center(
+        child: InkWell(
+          onTap: downDirectionLoad,
+          child: Container(
+            alignment: Alignment.center,
+            constraints: const BoxConstraints(maxWidth: 800),
+            height: 60,
+            child: const Icon(Icons.keyboard_arrow_down),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: TimelineListView.builder(
         reverse: true,
         controller: controller,
-        itemCount:
-            repository.newerNotes.length + repository.olderNotes.length + 1,
+        itemCount: newerCount + olderCount + 1,
         itemBuilder: (context, index) {
-          // final corecctedIndex = index - 5;
-          final correctedNewer = [
-            if (timelineRepository.olderNotes.isNotEmpty)
-              ...timelineRepository.olderNotes
-                  .slice(0, min(5, timelineRepository.olderNotes.length))
-                  .reversed,
-            ...timelineRepository.newerNotes,
-          ];
-          final correctedOlder = [
-            if (timelineRepository.olderNotes.length > 5)
-              ...timelineRepository.olderNotes.slice(
-                5,
-                timelineRepository.olderNotes.length,
-              ),
-          ];
-
+          // Keep item lookup O(1): do not rebuild sliced note lists for every row.
           if (index > 0) {
-            if ((index - 1) >= correctedNewer.length) {
-              return null;
+            final position = index - 1;
+            if (position >= leadingOlderCount + newerCount) return null;
+
+            final Note targetNote;
+            if (position < leadingOlderCount) {
+              targetNote = olderNotes[leadingOlderCount - position - 1];
+            } else {
+              targetNote = newerNotes[position - leadingOlderCount];
             }
 
             return NoteWrapper(
-              targetNote: correctedNewer[index - 1],
+              targetNote: targetNote,
               timeline: timelineRepository,
             );
           }
 
-          if (-index == correctedOlder.length) {
-            if (isLastLoaded.value) {
-              return const SizedBox.shrink();
-            }
-
-            if (isDownDirectionLoading.value &&
-                repository.newerNotes.length + repository.olderNotes.length !=
-                    0) {
-              return const Padding(
-                padding: EdgeInsets.only(top: 10, bottom: 10),
-                child: Center(child: CircularProgressIndicator.adaptive()),
-              );
-            }
-
-            if (ref.read(
-                      generalSettingsRepositoryProvider.select(
-                        (value) => value.settings.automaticPush,
-                      ),
-                    ) ==
-                    AutomaticPush.automatic &&
-                !isLoadError.value) {
-              unawaited(downDirectionLoad());
-            }
-
-            return Center(
-              child: InkWell(
-                onTap: downDirectionLoad,
-                child: Container(
-                  alignment: Alignment.center,
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  height: 60,
-                  child: const Icon(Icons.keyboard_arrow_down),
-                ),
-              ),
+          if (index == 0 && remainingOlderCount > 0) {
+            return NoteWrapper(
+              targetNote: olderNotes[leadingOlderCount],
+              timeline: timelineRepository,
             );
           }
 
-          if (-index >= correctedOlder.length) {
-            return null;
+          if (index < 0) {
+            final olderPosition = -index;
+            if (olderPosition == remainingOlderCount) {
+              return loadMoreMarker();
+            }
+            if (olderPosition > remainingOlderCount) return null;
+            return NoteWrapper(
+              targetNote: olderNotes[leadingOlderCount + olderPosition],
+              timeline: timelineRepository,
+            );
           }
 
-          return NoteWrapper(
-            targetNote: correctedOlder[-index],
-            timeline: timelineRepository,
-          );
+          return loadMoreMarker();
         },
       ),
     );

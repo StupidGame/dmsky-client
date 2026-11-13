@@ -11,6 +11,11 @@ import "package:dmsky_client/const.dart";
 import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/marionette_debug.dart";
 import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/model/account.dart";
+import "package:dmsky_client/model/push_notification_payload.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/services/push_notification_service.dart";
+import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/common/dialog/dialog_scope.dart";
 import "package:dmsky_client/view/common/error_dialog_listener.dart";
 import "package:dmsky_client/view/common/sharing_intent_listener.dart";
@@ -18,10 +23,17 @@ import "package:dmsky_client/view/themes/app_theme_scope.dart";
 import "package:stack_trace/stack_trace.dart" as stack_trace;
 import "package:window_manager/window_manager.dart";
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   // debug ビルドでは marionette の binding が立ち上がる。
   // release では通常の WidgetsFlutterBinding と同じ。
   initializeMarionetteBinding();
+  await PushNotificationService.instance.initialize(args);
+  if (args.contains("--unifiedpush-bg")) return;
+  if (kIsWeb) {
+    PushNotificationService.instance.acceptWebLaunchPayload(
+      Uri.base.queryParameters["dmsky_push"],
+    );
+  }
   if (!kIsWeb &&
       (AppPlatform.isWindows || AppPlatform.isMacOS || AppPlatform.isLinux)) {
     await windowManager.ensureInitialized();
@@ -102,6 +114,25 @@ class Miria extends HookConsumerWidget with WidgetsBindingObserver {
       }());
     });
 
+    final accounts = ref.watch(accountsProvider);
+    useEffect(() {
+      unawaited(PushNotificationService.instance.syncAccounts(accounts));
+      return null;
+    }, [accounts]);
+
+    useEffect(() {
+      final service = PushNotificationService.instance;
+      void handleTap(PushNotificationPayload payload) {
+        unawaited(_openPushNotification(ref, payload));
+      }
+
+      final subscription = service.onNotificationTap.listen(handleTap);
+      for (final payload in service.takePendingTaps()) {
+        handleTap(payload);
+      }
+      return subscription.cancel;
+    }, const []);
+
     final language = ref.watch(
       generalSettingsRepositoryProvider.select(
         (value) => value.settings.languages,
@@ -136,6 +167,78 @@ class Miria extends HookConsumerWidget with WidgetsBindingObserver {
         );
       },
       routerConfig: appRouter.config(),
+    );
+  }
+}
+
+Future<void> _openPushNotification(
+  WidgetRef ref,
+  PushNotificationPayload payload,
+) async {
+  final accounts = ref.read(accountsProvider);
+  Account? account;
+  for (final candidate in accounts) {
+    final host = "${candidate.host.toLowerCase()}${candidate.port == null ? "" : ":${candidate.port}"}";
+    if (host == payload.host) {
+      account = candidate;
+      break;
+    }
+  }
+  if (account == null) return;
+
+  final accountContext = AccountContext.as(account);
+  final router = ref.read(appRouterProvider);
+  try {
+    switch (payload.target) {
+      case PushNotificationTarget.note:
+        final note = await ref
+            .read(misskeyProvider(account))
+            .notes
+            .show(NotesShowRequest(noteId: payload.noteId!));
+        await router.push(
+          NoteDetailRoute(note: note, accountContext: accountContext),
+        );
+        break;
+      case PushNotificationTarget.user:
+        await router.push(
+          UserRoute(
+            userId: payload.userId!,
+            accountContext: accountContext,
+          ),
+        );
+        break;
+      case PushNotificationTarget.chat:
+        final chatId = payload.chatId!;
+        final misskey = ref.read(misskeyProvider(account));
+        if (chatId.startsWith("room:")) {
+          final roomId = chatId.substring("room:".length);
+          final room = await misskey.chat.rooms.show(
+            ChatRoomsShowRequest(roomId: roomId),
+          );
+          await router.push(
+            RoomChatRoute(room: room, accountContext: accountContext),
+          );
+        } else if (chatId.startsWith("user:")) {
+          final userId = chatId.substring("user:".length);
+          final user = await misskey.users.show(
+            UsersShowRequest(userId: userId),
+          );
+          await router.push(
+            UserChatRoute(user: user, accountContext: accountContext),
+          );
+        } else {
+          throw FormatException("未対応のチャット通知IDです");
+        }
+        break;
+      case PushNotificationTarget.notifications:
+        await router.push(
+          NotificationRoute(accountContext: accountContext),
+        );
+        break;
+    }
+  } catch (_) {
+    await router.push(
+      NotificationRoute(accountContext: accountContext),
     );
   }
 }

@@ -1,5 +1,4 @@
 import "package:dmsky_client/util/app_platform.dart";
-import "dart:typed_data";
 
 import "package:dio/dio.dart";
 import "package:file/file.dart";
@@ -145,8 +144,11 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
     Note? note,
     Note? renote,
     Note? reply,
-    NoteCreationMode? noteCreationMode,
-  ) async {
+    NoteCreationMode? noteCreationMode, [
+    String? initialCw,
+    NoteVisibility? initialVisibility,
+    bool? initialLocalOnly,
+  ]) async {
     var resultState = state;
 
     final NoteCreateChannel? channelData;
@@ -163,9 +165,21 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
 
     resultState = resultState.copyWith(channel: channelData);
 
-    // 共有からの反映
+    // 共有・AiScriptフォームからの初期値を反映
     if (initialText != null) {
       resultState = resultState.copyWith(text: initialText);
+    }
+    if (initialCw != null) {
+      resultState = resultState.copyWith(
+        cwText: initialCw,
+        isCw: initialCw.isNotEmpty,
+      );
+    }
+    if (initialVisibility != null) {
+      resultState = resultState.copyWith(noteVisibility: initialVisibility);
+    }
+    if (initialLocalOnly != null) {
+      resultState = resultState.copyWith(localOnly: initialLocalOnly);
     }
     if (initialMediaFiles != null && initialMediaFiles.isNotEmpty) {
       resultState = resultState.copyWith(
@@ -763,8 +777,7 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
           .push<List<DriveFile>>(
             DriveFileSelectRoute(
               account: ref.read(accountContextProvider).postAccount,
-              allowMultiple: true,
-            ),
+                  ),
           );
       if (result == null) return;
       final files = await Future.wait(
@@ -794,8 +807,10 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
       state = state.copyWith(files: [...state.files, ...files]);
     } else if (result == DriveModalSheetReturnValue.upload) {
       final result = await FilePicker.pickFiles(
-        withData: kIsWeb,
         type: FileType.image,
+        // Multi-file upload requires this deprecated option until the picker
+        // exposes a non-deprecated multi-selection API.
+        // ignore: deprecated_member_use
         allowMultiple: true,
         // iOSでは0の場合HEICファイルがJPEGに変換されないため
         // Androidでは圧縮時に画像の向きがおかしくなることがあるため圧縮パススルー
@@ -804,9 +819,12 @@ class NoteCreateNotifier extends _$NoteCreateNotifier {
       if (result == null || result.files.isEmpty) return;
 
       if (kIsWeb) {
-        final files = result.files
-            .where((file) => file.bytes != null)
-            .map((file) => ImageFile(data: file.bytes!, fileName: file.name));
+        final files = await Future.wait(
+          result.files.map((file) async {
+            final bytes = await file.readAsBytes();
+            return ImageFile(data: bytes, fileName: file.name);
+          }),
+        );
         state = state.copyWith(files: [...state.files, ...files]);
         return;
       }

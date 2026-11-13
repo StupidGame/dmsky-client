@@ -79,11 +79,12 @@ class CacheManagementPageState extends ConsumerState<CacheManagementPage> {
     await ref
         .read(accountRepositoryProvider.notifier)
         .updateMeta(widget.account);
-    if (!context.mounted) return;
+    if (!mounted) return;
     setState(() {
       isRefreshing = false;
     });
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(S.of(context).cacheManualUpdateCompleted)),
     );

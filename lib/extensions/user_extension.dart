@@ -14,6 +14,8 @@ extension UserDetailedExtension on UserDetailed {
 
     final user = this;
 
+    // Older Misskey responses expose ffVisibility instead of the newer field.
+    // ignore: deprecated_member_use
     return switch (followersVisibility ?? ffVisibility) {
       FFVisibility.public => true,
       FFVisibility.followers =>
@@ -32,10 +34,13 @@ extension UserDetailedExtension on UserDetailed {
     // Check if user has followingVisibility property
     final visibility = switch (user) {
       UserDetailedNotMeWithRelations(:final followingVisibility) =>
+        // ignore: deprecated_member_use
         followingVisibility ?? user.ffVisibility,
       UserDetailedNotMe(:final followingVisibility) =>
+        // ignore: deprecated_member_use
         followingVisibility ?? user.ffVisibility,
-      _ => ffVisibility,
+      // ignore: deprecated_member_use
+      _ => user.ffVisibility,
     };
 
     return switch (visibility) {

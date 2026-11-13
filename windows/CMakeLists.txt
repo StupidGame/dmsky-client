@@ -32,6 +32,12 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# MSVC 14.5x promotes STL1011 to an error for dependencies that still include
+# <experimental/coroutine> (including flutter_local_notifications_windows).
+# Set this at the directory level before adding plugin subdirectories so the
+# definition is inherited by their nested native targets as well.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
@@ -52,20 +58,9 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
-
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
-
-# The pinned permission_handler_windows still uses /await and C++/WinRT's
-# experimental coroutine header. MSVC 14.5x requires this opt-in (STL1011).
-# Keep the compatibility definition local to that dependency.
-if(TARGET permission_handler_windows_plugin)
-  target_compile_definitions(permission_handler_windows_plugin PRIVATE
-    _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS
-  )
-endif()
-
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
@@ -102,8 +97,7 @@ install(DIRECTORY "${NATIVE_ASSETS_DIR}"
    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
    COMPONENT Runtime)
 
-# Fully re-copy the assets directory on each build to avoid having stale files
-# from a previous install.
+# Fully re-copy the assets directory on each build to avoid having stale files.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")
 install(CODE "
   file(REMOVE_RECURSE \"${INSTALL_BUNDLE_DATA_DIR}/${FLUTTER_ASSET_DIR_NAME}\")

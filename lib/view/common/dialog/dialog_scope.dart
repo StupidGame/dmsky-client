@@ -27,7 +27,7 @@ class DialogScope extends ConsumerWidget {
           ),
         for (final dialog in dialogs)
           PopScope(
-            onPopInvoked: (didPop) async => ref
+            onPopInvokedWithResult: (didPop, result) async => ref
                 .read(dialogStateProvider.notifier)
                 .completeDialog(dialog, null),
             child: AlertDialog.adaptive(
