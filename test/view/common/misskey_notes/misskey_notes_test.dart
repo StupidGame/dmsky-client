@@ -149,7 +149,7 @@ System.out.println("@ai uneune");
         expect(find.textContaining("えっちなやつ"), findsOneWidget);
 
         // CW開閉ボタンが表示されることを確認
-        expect(find.text("隠してあるのんの続きを見して"), findsOneWidget);
+        expect(find.text("内容を表示"), findsOneWidget);
 
         // 初期状態では本文が隠されていることを確認
         expect(find.textContaining("気づいたら"), findsNothing);
@@ -164,18 +164,18 @@ System.out.println("@ai uneune");
 
         // 初期状態：CWタイトルは表示され、本文は隠されている
         expect(find.textContaining("えっちなやつ"), findsOneWidget);
-        expect(find.text("隠してあるのんの続きを見して"), findsOneWidget);
+        expect(find.text("内容を表示"), findsOneWidget);
         expect(find.textContaining("気づいたら"), findsNothing);
 
         // CWボタンをタップ
-        await tester.tap(find.text("隠してあるのんの続きを見して"));
+        await tester.tap(find.text("内容を表示"));
         await tester.pumpAndSettle();
 
         // タップ後：本文が表示され、ボタンが「隠す」に変わる
         expect(find.textContaining("えっちなやつ"), findsOneWidget);
         expect(find.textContaining("気づいたら"), findsOneWidget);
         expect(find.text("隠す"), findsOneWidget);
-        expect(find.text("隠してあるのんの続きを見して"), findsNothing);
+        expect(find.text("内容を表示"), findsNothing);
 
         // 「隠す」をタップして再び隠す
         await tester.tap(find.text("隠す"));
@@ -184,7 +184,7 @@ System.out.println("@ai uneune");
         // 隠した後：元の状態に戻る
         expect(find.textContaining("えっちなやつ"), findsOneWidget);
         expect(find.textContaining("気づいたら"), findsNothing);
-        expect(find.text("隠してあるのんの続きを見して"), findsOneWidget);
+        expect(find.text("内容を表示"), findsOneWidget);
         expect(find.text("隠す"), findsNothing);
       });
     });

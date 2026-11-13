@@ -3,11 +3,13 @@ import "package:dmsky_client/util/app_platform.dart";
 import "package:auto_route/auto_route.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/licenses.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/account_repository.dart";
 import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/service/background_notification_service.dart";
 import "package:dmsky_client/view/themes/dmsky_circuit.dart";
 import "package:receive_sharing_intent/receive_sharing_intent.dart";
 
@@ -24,6 +26,7 @@ class SplashPageState extends ConsumerState<SplashPage> {
 
   List<String> initialSharingMedias = [];
   String initialSharingText = "";
+  Map<Object?, Object?>? initialNotificationAccount;
   late final Future<void> initialization;
 
   @override
@@ -65,6 +68,13 @@ class SplashPageState extends ConsumerState<SplashPage> {
       );
     }
 
+    try {
+      final notifications = ref.read(backgroundNotificationServiceProvider);
+      await notifications.synchronize(ref.read(accountsProvider));
+      initialNotificationAccount = await notifications.takeLaunch();
+    } on PlatformException {
+      debugPrint("バックグラウンド通知設定を同期できませんでした");
+    }
     _isFirst = false;
   }
 
@@ -113,6 +123,17 @@ class SplashPageState extends ConsumerState<SplashPage> {
                       .first,
                 ),
               );
+              final notificationAccount = ref
+                  .read(backgroundNotificationServiceProvider)
+                  .accountForLaunch(initialNotificationAccount, accounts);
+              initialNotificationAccount = null;
+              if (notificationAccount != null) {
+                context.pushRoute(
+                  NotificationRoute(
+                    accountContext: AccountContext.as(notificationAccount),
+                  ),
+                );
+              }
               if (initialSharingMedias.isNotEmpty ||
                   initialSharingText.isNotEmpty) {
                 if (accounts.length == 1) {

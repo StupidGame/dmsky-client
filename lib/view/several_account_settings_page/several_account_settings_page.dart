@@ -4,6 +4,7 @@ import "package:flutter_svg/flutter_svg.dart";
 import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/view/several_account_settings_page/background_notifications/background_notification_settings.dart";
 import "package:dmsky_client/view/several_account_settings_page/word_mute_page/word_mute_page.dart";
 
 @RoutePage()
@@ -22,6 +23,7 @@ class SeveralAccountSettingsPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          BackgroundNotificationSettings(account: account),
           ListTile(
             onTap: () async => await context.pushRoute(
               SeveralAccountGeneralSettingsRoute(account: account),

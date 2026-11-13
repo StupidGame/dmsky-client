@@ -11,6 +11,8 @@ import "package:dmsky_client/const.dart";
 import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/marionette_debug.dart";
 import "package:dmsky_client/providers.dart";
+import "package:dmsky_client/router/app_router.dart";
+import "package:dmsky_client/service/background_notification_service.dart";
 import "package:dmsky_client/view/common/dialog/dialog_scope.dart";
 import "package:dmsky_client/view/common/error_dialog_listener.dart";
 import "package:dmsky_client/view/common/sharing_intent_listener.dart";
@@ -108,6 +110,24 @@ class Miria extends HookConsumerWidget with WidgetsBindingObserver {
       ),
     );
     final appRouter = ref.watch(appRouterProvider);
+    useEffect(() {
+      final notifications = ref.read(backgroundNotificationServiceProvider);
+      notifications.setOpenedHandler(() async {
+        if (appRouter.current.name == SplashRoute.name) return;
+        final target = await notifications.takeLaunch();
+        if (!context.mounted) return;
+        final account = notifications.accountForLaunch(
+          target,
+          ref.read(accountsProvider),
+        );
+        if (account != null) {
+          await appRouter.push(
+            NotificationRoute(accountContext: AccountContext.as(account)),
+          );
+        }
+      });
+      return () => notifications.setOpenedHandler(null);
+    }, const []);
 
     return MaterialApp.router(
       title: "DMSKY Client",

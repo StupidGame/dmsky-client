@@ -131,7 +131,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // バリデーションエラーが表示される
-        expect(find.text("入れてや"), findsAtLeastNWidgets(1));
+        expect(find.text("入力してください"), findsAtLeastNWidgets(1));
       });
 
       // NOTE: 文字数制限等の詳細なバリデーションはサーバー側で行われるため、
@@ -168,7 +168,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // バリデーションエラーが表示されない
-        expect(find.text("入れてや"), findsNothing);
+        expect(find.text("入力してください"), findsNothing);
       });
     });
 

@@ -4,7 +4,7 @@ import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/view/common/futable_list_builder.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:misskey_dart/misskey_dart.dart";
-import "package:url_launcher/url_launcher.dart";
+import "package:dmsky_client/view/play_page/play_page.dart";
 
 class ExplorePlay extends ConsumerWidget {
   const ExplorePlay({super.key});
@@ -24,13 +24,16 @@ class ExplorePlay extends ConsumerWidget {
         builder: (context, item) {
           return ListTile(
             onTap: () async {
-              await launchUrl(
+              await openPlay(
+                context,
                 Uri(
-                  scheme: "https",
+                  scheme:
+                      ref.read(accountContextProvider).getAccount.scheme ??
+                      "https",
                   host: ref.read(accountContextProvider).getAccount.host,
+                  port: ref.read(accountContextProvider).getAccount.port,
                   pathSegments: ["play", item.id],
                 ),
-                mode: LaunchMode.externalApplication,
               );
             },
             title: MfmText(

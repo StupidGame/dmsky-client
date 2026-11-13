@@ -10,21 +10,22 @@ import "package:dmsky_client/model/tab_setting.dart";
 import "package:dmsky_client/model/tab_type.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/socket_timeline_repository.dart";
-import "package:dmsky_client/repository/time_line_repository.dart";
 import "package:dmsky_client/router/app_router.dart";
 import "package:dmsky_client/view/common/account_scope.dart";
 import "package:dmsky_client/view/common/common_drawer.dart";
 import "package:dmsky_client/view/common/dialog/dialog_state.dart";
 import "package:dmsky_client/view/common/error_detail.dart";
 import "package:dmsky_client/view/common/notification_icon.dart";
-import "package:dmsky_client/view/common/tab_icon_view.dart";
 import "package:dmsky_client/view/common/timeline_listview.dart";
 import "package:dmsky_client/view/themes/dmsky_circuit.dart";
 import "package:dmsky_client/view/time_line_page/misskey_time_line.dart";
 import "package:dmsky_client/view/time_line_page/nyanpuppu.dart";
 import "package:dmsky_client/view/time_line_page/timeline_emoji.dart";
 import "package:dmsky_client/view/time_line_page/timeline_note.dart";
+import "package:dmsky_client/view/time_line_page/timeline_announcements.dart";
+import "package:dmsky_client/view/time_line_page/timeline_layout.dart";
 import "package:dmsky_client/view/time_line_page/timeline_tablet_ui.dart";
+import "package:dmsky_client/view/time_line_page/timeline_tab_button.dart";
 import "package:misskey_dart/misskey_dart.dart";
 
 @RoutePage()
@@ -34,7 +35,7 @@ class TimeLinePage extends ConsumerStatefulWidget {
   const TimeLinePage({required this.initialTabSetting, super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => TimeLinePageState();
+  ConsumerState<TimeLinePage> createState() => TimeLinePageState();
 }
 
 class TimeLinePageState extends ConsumerState<TimeLinePage> {
@@ -44,8 +45,6 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
   late final List<TimelineScrollController> scrollControllers;
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-
-  TimelineRepository? timelineRepository;
 
   @override
   void initState() {
@@ -63,8 +62,11 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
 
   @override
   void dispose() {
-    super.dispose();
     pageController.dispose();
+    for (final controller in scrollControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   TabSetting get currentTabSetting {
@@ -100,11 +102,6 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
       ref.read(timelineNoteProvider).text = text;
       rethrow;
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   void reload() {
@@ -160,45 +157,45 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
     );
   }
 
-  Widget buildAppbar() {
+  Widget buildAppbar(WidgetRef ref) {
     final account = ref.watch(accountProvider(currentTabSetting.acct));
-    return AppBar(
-      flexibleSpace: const DmskyPanel(child: SizedBox.expand()),
-      title: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: tabSettings.mapIndexed((index, tabSetting) {
-            final account = ref.watch(accountProvider(tabSetting.acct));
-            return DmskyPanel(
-              active: tabSetting == currentTabSetting,
-              margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
-              child: AccountContextScope.as(
+    final toolbarHeight = MediaQuery.textScalerOf(context).scale(32) + 32;
+    // This toolbar lives inside a Column, which does not constrain its height.
+    // Bound the flexible background before it can expand to an infinite size.
+    return SizedBox(
+      height: toolbarHeight,
+      child: AppBar(
+        primary: false,
+        toolbarHeight: toolbarHeight,
+        flexibleSpace: const DmskyPanel(child: SizedBox.expand()),
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: tabSettings.mapIndexed((index, tabSetting) {
+              final account = ref.watch(accountProvider(tabSetting.acct));
+              return AccountContextScope.as(
                 account: account,
-                child: IconButton(
-                  icon: TabIconView(
-                    icon: tabSetting.icon,
-                    color: tabSetting == currentTabSetting
-                        ? dmskyGoldInk
-                        : Colors.white,
-                  ),
+                child: TimelineTabButton(
+                  tabSetting: tabSetting,
+                  active: tabSetting == currentTabSetting,
                   onPressed: () => tabSetting == currentTabSetting
                       ? reload()
                       : pageController.jumpToPage(index),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
-      ),
-      actions: [
-        AccountContextScope.as(
-          account: account,
-          child: const NotificationIcon(),
+        actions: [
+          AccountContextScope.as(
+            account: account,
+            child: const NotificationIcon(),
+          ),
+        ],
+        leading: IconButton(
+          onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          icon: const Icon(Icons.menu),
         ),
-      ],
-      leading: IconButton(
-        onPressed: () => scaffoldKey.currentState?.openDrawer(),
-        icon: const Icon(Icons.menu),
       ),
     );
   }
@@ -210,21 +207,25 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
         (value) => value.settings.isDeckMode,
       ),
     );
+    return TimelineLayout(
+      deckMode: deckMode,
+      compactBuilder: (_) => Consumer(
+        builder: (context, ref, _) => buildCompactTimeline(context, ref),
+      ),
+      deckBuilder: (_) => const TimelineTablet(),
+    );
+  }
+
+  Widget buildCompactTimeline(BuildContext context, WidgetRef ref) {
     final tabPosition = ref.watch(
       generalSettingsRepositoryProvider.select(
         (value) => value.settings.tabPosition,
       ),
     );
 
-    // Deck mode is designed for tablets and desktop. On phones its fixed-width
-    // columns can leave only a clipped fragment visible; use the regular
-    // timeline layout on compact screens even when the preference is enabled.
-    final isCompactScreen = MediaQuery.sizeOf(context).shortestSide < 600;
-    if (deckMode && !isCompactScreen) return const TimelineTablet();
-
-    timelineRepository = ref.watch(timelineProvider(currentTabSetting));
+    final timelineRepository = ref.watch(timelineProvider(currentTabSetting));
     final socketTimeline = timelineRepository is SocketTimelineRepository
-        ? timelineRepository as SocketTimelineRepository?
+        ? timelineRepository
         : null;
     tabSettings = ref.watch(
       tabSettingsRepositoryProvider.select((repo) => repo.tabSettings.toList()),
@@ -240,7 +241,7 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
       body: SafeArea(
         child: Column(
           children: [
-            if (tabPosition == TabPosition.top) buildAppbar(),
+            if (tabPosition == TabPosition.top) buildAppbar(ref),
             Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -256,10 +257,7 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
                         top: 5,
                         bottom: 5,
                       ),
-                      child: Text(
-                        currentTabSetting.name ??
-                            currentTabSetting.tabType.displayName(context),
-                      ),
+                      child: TimelineTabLabel(tabSetting: currentTabSetting),
                     ),
                   ),
                   const Nyanpuppu(),
@@ -293,7 +291,7 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
                     TabType.globalTimeline,
                     TabType.homeTimeline,
                   ].contains(currentTabSetting.tabType)) ...[
-                    AnnoucementInfo(tabSetting: currentTabSetting),
+                    AnnouncementInfo(tabSetting: currentTabSetting),
                     IconButton(
                       onPressed: () async {
                         await context.pushRoute(
@@ -392,7 +390,7 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
             ),
             if (tabPosition == TabPosition.bottom &&
                 !ref.watch(timelineFocusNode).hasFocus)
-              buildAppbar(),
+              buildAppbar(ref),
           ],
         ),
       ),
@@ -400,131 +398,5 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
       drawerEnableOpenDragGesture: true,
       drawer: CommonDrawer(initialOpenAcct: currentTabSetting.acct),
     );
-  }
-}
-
-class BannerArea extends ConsumerWidget {
-  final TabSetting tabSetting;
-
-  const BannerArea({required this.tabSetting, super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final bannerAnnouncement = ref.watch(
-      iProvider(
-        tabSetting.acct,
-      ).select((account) => account.unreadAnnouncements),
-    );
-
-    // ダイアログの実装が大変なので（状態管理とか）いったんバナーと一緒に扱う
-    final bannerDatas = bannerAnnouncement.where(
-      (element) =>
-          element.display == AnnouncementDisplayType.banner ||
-          element.display == AnnouncementDisplayType.dialog,
-    );
-
-    if (bannerDatas.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(left: 10, top: 3, bottom: 3),
-      decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          for (final bannerData in bannerDatas)
-            Row(
-              children: [
-                if (bannerData.icon != null)
-                  AnnouncementIcon(iconType: bannerData.icon!),
-                const Padding(padding: EdgeInsets.only(left: 10)),
-                Expanded(
-                  child: Text(
-                    "${bannerData.title}　${bannerData.text.replaceAll("\n", "　")}",
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class AnnoucementInfo extends ConsumerWidget {
-  final TabSetting tabSetting;
-
-  const AnnoucementInfo({required this.tabSetting, super.key});
-
-  Future<void> announcementsRoute(BuildContext context, WidgetRef ref) async {
-    final account = ref.read(accountProvider(tabSetting.acct));
-    await context.pushRoute(
-      AnnouncementRoute(accountContext: AccountContext.as(account)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final hasUnread = ref.watch(
-      iProvider(
-        tabSetting.acct,
-      ).select((i) => i.unreadAnnouncements.isNotEmpty),
-    );
-
-    if (hasUnread) {
-      return IconButton(
-        onPressed: () async => announcementsRoute(context, ref),
-        icon: Stack(
-          children: [
-            const Icon(Icons.campaign),
-            Transform.translate(
-              offset: const Offset(12, 12),
-              child: SizedBox(
-                width: 14,
-                height: 14,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 1.5),
-                    borderRadius: BorderRadius.circular(20),
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return IconButton(
-        onPressed: () async => announcementsRoute(context, ref),
-        icon: const Icon(Icons.campaign),
-      );
-    }
-  }
-}
-
-class AnnouncementIcon extends StatelessWidget {
-  final AnnouncementIconType iconType;
-
-  const AnnouncementIcon({required this.iconType, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    switch (iconType) {
-      case AnnouncementIconType.info:
-        return const Icon(Icons.info, color: Colors.white);
-      case AnnouncementIconType.warning:
-        return const Icon(Icons.warning, color: Colors.white);
-      case AnnouncementIconType.error:
-        return const Icon(Icons.error, color: Colors.white);
-      case AnnouncementIconType.success:
-        return const Icon(Icons.check, color: Colors.white);
-    }
   }
 }
