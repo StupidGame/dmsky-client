@@ -1,0 +1,24 @@
+name: Set up DMSKY Rust
+description: Install the pinned Rust SDK and the targets needed by this job
+inputs:
+  targets:
+    description: Additional Rust target triples
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Read the pinned Rust version
+      id: version
+      shell: bash
+      run: |
+        python3 -c 'import tomllib; print("channel=" + tomllib.load(open("rust/rust-toolchain.toml", "rb"))["toolchain"]["channel"])' >> "$GITHUB_OUTPUT"
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ steps.version.outputs.channel }}
+        targets: ${{ inputs.targets }}
+    - name: Select the installed toolchain
+      shell: bash
+      env:
+        DMSKY_RUST_TOOLCHAIN: ${{ steps.version.outputs.channel }}
+      run: echo "RUSTUP_TOOLCHAIN=$DMSKY_RUST_TOOLCHAIN" >> "$GITHUB_ENV"

@@ -14,6 +14,7 @@ val hasReleaseSigning = listOf(
 val buildingRelease = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
 }
+val nativePlayTest = providers.gradleProperty("dmsky-native-play-test").orNull == "true"
 if (buildingRelease && !hasReleaseSigning) {
     throw GradleException(
         "Release signing is required. Run tool/decrypt_android_signing.py " +
@@ -28,6 +29,7 @@ android {
 
     // AGP 9 creates unit tests only for this build type. Test the APK built in CI.
     testBuildType = "release"
+    buildFeatures { buildConfig = true }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -41,6 +43,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "DMSKY_NATIVE_PLAY_TEST", nativePlayTest.toString())
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
@@ -64,6 +68,7 @@ android {
     buildTypes {
         release {
             proguardFiles("proguard-rules.pro")
+            if (nativePlayTest) proguardFiles("integration-proguard-rules.pro")
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -83,6 +88,9 @@ flutter {
 
 // Native periodic notifications follow the same WorkManager approach as HyperionRSSReader.
 dependencies {
+    // Flutter excludes dev plugins from release APKs. Include the integration
+    // bridge only for the connected release test, keeping distribution APKs lean.
+    if (nativePlayTest) implementation(project(":integration_test"))
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20250517")

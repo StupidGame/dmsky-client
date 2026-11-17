@@ -1,232 +1,343 @@
-import "package:flutter/material.dart";
-import "package:url_launcher/url_launcher.dart";
-import "package:webview_flutter/webview_flutter.dart";
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:misskey_dart/misskey_dart.dart';
+
+import '../../model/account.dart';
+import '../../providers.dart';
+import '../../rust/api/aiscript.dart';
+import '../../rust/api/aiscript/ui.dart';
+import '../../rust/frb_generated.dart';
+import '../../util/create_aiscript.dart';
+import '../aiscript/as_ui_widget.dart';
+import '../common/account_scope.dart';
+import '../explore_page/explore_plays.dart';
 
 bool isPlayUri(Uri uri) =>
-    (uri.scheme == "https" || uri.scheme == "http") &&
+    (uri.scheme == 'https' || uri.scheme == 'http') &&
     uri.host.isNotEmpty &&
     uri.userInfo.isEmpty &&
     (uri.pathSegments.length == 1 || uri.pathSegments.length == 2) &&
-    uri.pathSegments.first == "play";
+    uri.pathSegments.first == 'play' &&
+    (uri.pathSegments.length == 1 || uri.pathSegments[1].isNotEmpty);
 
-bool isSamePlayOrigin(Uri uri, Uri origin) =>
-    (uri.scheme == "https" || uri.scheme == "http") &&
-    uri.host.isNotEmpty &&
-    origin.host.isNotEmpty &&
-    uri.userInfo.isEmpty &&
-    origin.userInfo.isEmpty &&
-    uri.origin == origin.origin;
+Uri playServer(Account account) => Uri(
+  scheme: account.scheme ?? 'https',
+  host: account.host,
+  port: account.port,
+);
 
-Future<void> openPlay(BuildContext context, Uri uri, {String? title}) async {
-  if (!isPlayUri(uri)) {
-    throw ArgumentError.value(uri, "uri", "Invalid Play URL");
+Account accountForPlay(Uri uri, Account source, Iterable<Account> accounts) {
+  if (!isPlayUri(uri)) throw ArgumentError.value(uri, 'uri');
+  if (playServer(source).origin == uri.origin) return source;
+  for (final account in accounts) {
+    if (playServer(account).origin == uri.origin) return account;
+  }
+  return Account.demoAccount(
+    uri.host,
+    null,
+    scheme: uri.scheme,
+    port: uri.hasPort ? uri.port : null,
+  );
+}
+
+Future<void> openPlay(
+  BuildContext context,
+  Uri uri, {
+  required Account account,
+  String? title,
+}) async {
+  if (!isPlayUri(uri) || uri.origin != playServer(account).origin) {
+    throw ArgumentError.value(
+      uri,
+      'uri',
+      'Play URL must match its account origin',
+    );
   }
   await Navigator.of(context).push<void>(
     MaterialPageRoute(
-      builder: (_) => PlayPage(uri: uri, title: title),
+      builder: (_) => AccountContextScope.as(
+        account: account,
+        child: uri.pathSegments.length == 2
+            ? PlayPage(account: account, playId: uri.pathSegments[1])
+            : Scaffold(
+                appBar: AppBar(title: const Text('Play')),
+                body: const ExplorePlay(),
+              ),
+      ),
     ),
   );
 }
 
-/// Runs the server's Play frontend, including its AiScript runtime, in a WebView.
-/// The web session is separate from the client's API account credentials.
-class PlayPage extends StatefulWidget {
-  const PlayPage({required this.uri, this.title, super.key});
-  final Uri uri;
-  final String? title;
+/// Fetches the script with the app account and renders its UI with Flutter.
+class PlayPage extends ConsumerStatefulWidget {
+  const PlayPage({required this.account, required this.playId, super.key});
+  final Account account;
+  final String playId;
 
   @override
-  State<PlayPage> createState() => _PlayPageState();
+  ConsumerState<PlayPage> createState() => _PlayPageState();
 }
 
-class _PlayPageState extends State<PlayPage> {
-  WebViewController? controller;
-  int progress = 0;
-  bool canGoBack = false;
-  String? error;
+class _PlayPageState extends ConsumerState<PlayPage> {
+  late Future<Flash> _play;
+  final _components = ValueNotifier<Map<String, AsUiComponent>>({});
+  AiScript? _script;
+  int _generation = 0;
+  bool _started = false;
+  bool _executing = false;
+  String? _error;
+  String? _output;
+  static Future<void>? _initializing;
 
   @override
   void initState() {
     super.initState();
-    if (isPlayUri(widget.uri) && WebViewPlatform.instance != null) {
-      _initialize();
-    }
+    _load();
   }
 
-  Future<void> _initialize() async {
+  void _load() {
+    _play = ref
+        .read(misskeyProvider(widget.account))
+        .flash
+        .show(FlashShowRequest(flashId: widget.playId));
+  }
+
+  Future<void> _release(AiScript? script) async {
+    if (script == null) return;
     try {
-      final view = WebViewController();
-      await view.setJavaScriptMode(JavaScriptMode.unrestricted);
-      await view.setBackgroundColor(const Color(0xff081321));
-      await view.setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) async {
-            final target = Uri.tryParse(request.url);
-            if (target == null) return NavigationDecision.prevent;
-            if (isSamePlayOrigin(target, widget.uri)) {
-              return NavigationDecision.navigate;
-            }
-            if ((target.scheme == "https" || target.scheme == "http") &&
-                target.host.isNotEmpty &&
-                target.userInfo.isEmpty) {
-              await launchUrl(target, mode: LaunchMode.externalApplication);
-            }
-            return NavigationDecision.prevent;
-          },
-          onProgress: (value) {
-            if (mounted) setState(() => progress = value);
-          },
-          onPageStarted: (_) {
-            if (mounted) {
-              setState(() {
-                progress = 0;
-                error = null;
-              });
-            }
-          },
-          onPageFinished: (_) => _updateHistory(),
-          onUrlChange: (_) => _updateHistory(),
-          onWebResourceError: (failure) {
-            if (failure.isForMainFrame == true && mounted) {
-              setState(() => error = "Playを読み込めませんでした");
-            }
-          },
-        ),
-      );
-      if (!mounted) return;
-      setState(() => controller = view);
-      await view.loadRequest(widget.uri);
-    } catch (_) {
-      if (mounted) setState(() => error = "Playを読み込めませんでした");
+      await script.abort();
+    } finally {
+      script.dispose();
     }
   }
 
-  Future<void> _updateHistory() async {
-    if (!mounted || controller == null) return;
+  Future<void> _stop() async {
+    ++_generation;
+    final script = _script;
+    _script = null;
+    if (mounted) {
+      setState(() {
+        _started = false;
+        _executing = false;
+      });
+    }
     try {
-      final back = await controller!.canGoBack();
-      if (mounted) {
-        setState(() {
-          canGoBack = back;
-          progress = 100;
-        });
-      }
-    } catch (_) {
-      // The native view may have been detached while a page was finishing.
-    }
-  }
-
-  Future<void> _back() async {
-    if (await controller?.canGoBack() ?? false) {
-      await controller!.goBack();
-      await _updateHistory();
-    } else if (mounted) {
-      Navigator.of(context).maybePop();
-    }
-  }
-
-  Future<void> _reload() async {
-    setState(() {
-      error = null;
-      progress = 0;
-    });
-    try {
-      if (controller == null) {
-        await _initialize();
-      } else {
-        await controller!.reload();
-      }
-    } catch (_) {
-      if (mounted) setState(() => error = "Playを読み込めませんでした");
+      await _release(script);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final view = controller;
-    final supported = WebViewPlatform.instance != null && isPlayUri(widget.uri);
-    return PopScope<void>(
-      canPop: !canGoBack,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _back();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: _back,
-            icon: const Icon(Icons.arrow_back),
-            tooltip: "戻る",
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.title ?? "Play",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(widget.uri.host, style: const TextStyle(fontSize: 11)),
-            ],
-          ),
+  void dispose() {
+    ++_generation;
+    unawaited(_release(_script).catchError((Object _) {}));
+    _components.dispose();
+    super.dispose();
+  }
+
+  Future<void> _execute(Flash play) async {
+    if (_executing || _started) return;
+    final generation = ++_generation;
+    bool active() => mounted && generation == _generation;
+    setState(() {
+      _started = true;
+      _executing = true;
+      _error = null;
+      _output = null;
+    });
+    _components.value = {};
+    try {
+      if (!RustLib.instance.initialized) {
+        try {
+          await (_initializing ??= RustLib.init());
+        } finally {
+          _initializing = null;
+        }
+      }
+      if (!active()) return;
+      final script = await createAiScript(
+        ref,
+        account: widget.account,
+        storageKey: play.id,
+        url: playServer(
+          widget.account,
+        ).replace(pathSegments: ['play', play.id]),
+        playId: play.id,
+        components: _components,
+        isActive: active,
+        write: (message) {
+          if (active()) setState(() => _output = message);
+        },
+      );
+      if (!active()) {
+        await _release(script);
+        return;
+      }
+      _script = script;
+      await script.exec(
+        input: play.script,
+        isLegacy: play.updatedAt.isBefore(DateTime.utc(2025, 8, 8))
+            ? true
+            : play.updatedAt.isBefore(DateTime.utc(2025, 11, 23))
+            ? null
+            : false,
+      );
+    } catch (error) {
+      if (active()) {
+        final script = _script;
+        _script = null;
+        try {
+          await _release(script);
+        } catch (_) {}
+        if (active()) {
+          setState(() {
+            _error = 'Playを実行できませんでした: $error';
+            _started = false;
+          });
+        }
+      }
+    } finally {
+      if (active()) setState(() => _executing = false);
+    }
+  }
+
+  Future<void> _back() async {
+    if (_started) {
+      final end = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Playを終了'),
+          content: const Text('実行中のPlayを終了しますか？'),
           actions: [
-            if (supported)
-              IconButton(
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh),
-                tooltip: "再読み込み",
-              ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('続ける'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('終了'),
+            ),
           ],
         ),
-        body: SafeArea(
-          child: !supported
+      );
+      if (end != true || !mounted) return;
+      await _stop();
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope<void>(
+    canPop: !_started,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) unawaited(_back());
+    },
+    child: FutureBuilder<Flash>(
+      future: _play,
+      builder: (context, snapshot) {
+        final play = snapshot.data;
+        return Scaffold(
+          appBar: AppBar(
+            leading: BackButton(onPressed: _back),
+            title: Text(play?.title ?? 'Play'),
+            actions: [
+              IconButton(
+                tooltip: 'リンクをコピー',
+                icon: const Icon(Icons.link),
+                onPressed: () => Clipboard.setData(
+                  ClipboardData(
+                    text: playServer(
+                      widget.account,
+                    ).replace(pathSegments: ['play', widget.playId]).toString(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: snapshot.hasError
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text("この環境ではブラウザーでPlayを開けます"),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: isPlayUri(widget.uri)
-                              ? () => launchUrl(
-                                  widget.uri,
-                                  mode: LaunchMode.externalApplication,
-                                )
-                              : null,
-                          child: const Text("ブラウザーで開く"),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Playを読み込めませんでした'),
+                      FilledButton(
+                        onPressed: () => setState(_load),
+                        child: const Text('再試行'),
+                      ),
+                    ],
                   ),
                 )
-              : Column(
+              : play == null
+              ? const Center(child: CircularProgressIndicator.adaptive())
+              : ListView(
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    if (progress < 100 && error == null)
-                      LinearProgressIndicator(value: progress / 100),
-                    Expanded(
-                      child: error != null
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(error!),
-                                  const SizedBox(height: 12),
-                                  ElevatedButton(
-                                    onPressed: _reload,
-                                    child: const Text("再試行"),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : view == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : WebViewWidget(controller: view),
+                    Text(
+                      play.title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(play.summary),
+                    const SizedBox(height: 8),
+                    Text(
+                      '@${widget.account.i.username}@${widget.account.host}',
+                    ),
+                    const SizedBox(height: 16),
+                    if (_started) ...[
+                      ValueListenableBuilder<Map<String, AsUiComponent>>(
+                        valueListenable: _components,
+                        builder: (_, components, _) => Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: AsUiWidget(
+                              account: widget.account,
+                              components: components,
+                              onError: (error) {
+                                if (mounted) {
+                                  setState(() => _error = error.toString());
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: _stop,
+                        icon: const Icon(Icons.stop),
+                        label: const Text('終了'),
+                      ),
+                    ] else
+                      FilledButton.icon(
+                        onPressed: kIsWeb ? null : () => _execute(play),
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('プレイ'),
+                      ),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: SelectableText(_error!),
+                      ),
+                    if (_output != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: SelectableText(_output!),
+                      ),
+                    if (kIsWeb)
+                      const Text('Playの実行はAndroid・iOS・デスクトップ版に対応しています'),
+                    const SizedBox(height: 16),
+                    ExpansionTile(
+                      title: const Text('スクリプトソース'),
+                      children: [SelectableText(play.script)],
                     ),
                   ],
                 ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
 }

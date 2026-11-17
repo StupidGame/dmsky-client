@@ -76,6 +76,7 @@ class PlaySearch extends HookConsumerWidget {
                     onTap: () async {
                       await openPlay(
                         context,
+                        account: ref.read(accountContextProvider).getAccount,
                         Uri(
                           scheme:
                               ref

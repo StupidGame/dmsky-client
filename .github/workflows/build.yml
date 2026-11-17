@@ -53,6 +53,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-rust
       - uses: ./.github/actions/setup-flutter
       - name: Analyze
         shell: bash
@@ -105,6 +106,9 @@ jobs:
             android/gradle.properties
             android/gradle/wrapper/gradle-wrapper.properties
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: ${{ inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android' }}
       - name: Select Android architecture
         run: |
           if [ "$DMSKY_ANDROID_VARIANT" = universal ]; then
@@ -186,6 +190,9 @@ jobs:
             android/gradle.properties
             android/gradle/wrapper/gradle-wrapper.properties
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: x86_64-linux-android
       - name: Restore the fixed signing key
         env:
           ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
@@ -212,7 +219,19 @@ jobs:
           ram-size: 2048M
           emulator-options: -no-window -gpu software -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
-          script: python3 tool/smoke_android_startup.py build/app/outputs/flutter-apk/app-release.apk
+          script: |
+            python3 tool/smoke_android_startup.py build/app/outputs/flutter-apk/app-release.apk
+            python3 tool/run_android_play_tests.py
+      - name: Upload Android Play integration reports
+        if: always() && hashFiles('build/app/outputs/androidTest-results/**') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-play-test-results
+          path: |
+            build/app/outputs/androidTest-results/
+            build/app/reports/androidTests/
+          retention-days: 14
+          if-no-files-found: error
       - name: Upload Android startup diagnostics
         if: always() && hashFiles('test-results/android-startup/**') != ''
         uses: actions/upload-artifact@v7
@@ -264,6 +283,10 @@ jobs:
             compression: 6
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-rust
+        if: matrix.target != 'web'
+        with:
+          targets: ${{ matrix.target == 'ios' && 'aarch64-apple-ios' || '' }}
       - name: Install Linux native dependencies
         if: matrix.target == 'linux'
         run: |

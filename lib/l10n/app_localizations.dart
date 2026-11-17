@@ -246,7 +246,7 @@ abstract class S {
   /// No description provided for @explore.
   ///
   /// In ja, this message translates to:
-  /// **'みつける'**
+  /// **'探索'**
   String get explore;
 
   /// No description provided for @highlight.
@@ -282,7 +282,7 @@ abstract class S {
   /// No description provided for @otherServers.
   ///
   /// In ja, this message translates to:
-  /// **'よそのサーバー'**
+  /// **'他のサーバー'**
   String get otherServers;
 
   /// No description provided for @follow.
@@ -306,7 +306,7 @@ abstract class S {
   /// わかった
   ///
   /// In ja, this message translates to:
-  /// **'ほい'**
+  /// **'完了'**
   String get done;
 
   /// No description provided for @public.
@@ -378,7 +378,7 @@ abstract class S {
   /// No description provided for @serverRules.
   ///
   /// In ja, this message translates to:
-  /// **'サーバーのきめごと'**
+  /// **'サーバールール'**
   String get serverRules;
 
   /// No description provided for @tos.
@@ -402,31 +402,31 @@ abstract class S {
   /// No description provided for @willDelete.
   ///
   /// In ja, this message translates to:
-  /// **'削除するで'**
+  /// **'削除しますか？'**
   String get willDelete;
 
   /// No description provided for @cancel.
   ///
   /// In ja, this message translates to:
-  /// **'やっぱやめる'**
+  /// **'キャンセル'**
   String get cancel;
 
   /// No description provided for @noneAction.
   ///
   /// In ja, this message translates to:
-  /// **'なにもしない'**
+  /// **'何もしない'**
   String get noneAction;
 
   /// No description provided for @pleaseInput.
   ///
   /// In ja, this message translates to:
-  /// **'入れてや'**
+  /// **'入力してください'**
   String get pleaseInput;
 
   /// No description provided for @pleaseSelect.
   ///
   /// In ja, this message translates to:
-  /// **'選んでや'**
+  /// **'選択してください'**
   String get pleaseSelect;
 
   /// No description provided for @login.
@@ -564,7 +564,7 @@ abstract class S {
   /// No description provided for @antennaSourceAll.
   ///
   /// In ja, this message translates to:
-  /// **'ぜんぶ'**
+  /// **'すべて'**
   String get antennaSourceAll;
 
   /// No description provided for @antennaSourceUser.
@@ -660,7 +660,7 @@ abstract class S {
   /// No description provided for @confirmDeletingAntenna.
   ///
   /// In ja, this message translates to:
-  /// **'アンテナ削除するか？'**
+  /// **'このアンテナを削除しますか？'**
   String get confirmDeletingAntenna;
 
   /// チャンネルの参加人数
@@ -696,13 +696,13 @@ abstract class S {
   /// No description provided for @willFavorite.
   ///
   /// In ja, this message translates to:
-  /// **'お気に入りに入れるで'**
+  /// **'お気に入りに追加しますか？'**
   String get willFavorite;
 
   /// No description provided for @willFollow.
   ///
   /// In ja, this message translates to:
-  /// **'フォローするで'**
+  /// **'フォローしますか？'**
   String get willFollow;
 
   /// No description provided for @channelInformation.
@@ -732,7 +732,7 @@ abstract class S {
   /// No description provided for @confirmDeleteClip.
   ///
   /// In ja, this message translates to:
-  /// **'このクリップ削除してええか？'**
+  /// **'このクリップを削除しますか？'**
   String get confirmDeleteClip;
 
   /// No description provided for @clipName.
@@ -744,13 +744,13 @@ abstract class S {
   /// No description provided for @clipDescription.
   ///
   /// In ja, this message translates to:
-  /// **'説明（省略してもええよ）'**
+  /// **'説明（省略可）'**
   String get clipDescription;
 
   /// No description provided for @alreadyAddedClip.
   ///
   /// In ja, this message translates to:
-  /// **'すでにクリップに追加されてるノートみたいやねん'**
+  /// **'このノートはすでにクリップに追加されています'**
   String get alreadyAddedClip;
 
   /// No description provided for @deleteClip.
@@ -798,19 +798,19 @@ abstract class S {
   /// No description provided for @doneCopy.
   ///
   /// In ja, this message translates to:
-  /// **'コピーしたで'**
+  /// **'コピーしました'**
   String get doneCopy;
 
   /// No description provided for @mutedNotePlaceholder.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}が何か言うとるわ'**
+  /// **'{userName}の投稿は非表示になっています'**
   String mutedNotePlaceholder(String userName);
 
   /// No description provided for @showCw.
   ///
   /// In ja, this message translates to:
-  /// **'隠してあるのんの続きを見して'**
+  /// **'内容を表示'**
   String get showCw;
 
   /// No description provided for @showReactionedNote.
@@ -840,7 +840,7 @@ abstract class S {
   /// No description provided for @confirmDeleteReaction.
   ///
   /// In ja, this message translates to:
-  /// **'リアクション取り消してもええか？'**
+  /// **'リアクションを取り消しますか？'**
   String get confirmDeleteReaction;
 
   /// No description provided for @cancelReaction.
@@ -864,7 +864,7 @@ abstract class S {
   /// No description provided for @savedImage.
   ///
   /// In ja, this message translates to:
-  /// **'画像保存したで'**
+  /// **'画像を保存しました'**
   String get savedImage;
 
   /// No description provided for @tapToShow.
@@ -954,7 +954,7 @@ abstract class S {
   /// No description provided for @confirmDeletedRecreate.
   ///
   /// In ja, this message translates to:
-  /// **'このノート消してなおす？ついたリアクション、リノート、返信は消えて戻らへんで？'**
+  /// **'このノートを削除して再投稿しますか？リアクション、リノート、返信は引き継がれません。'**
   String get confirmDeletedRecreate;
 
   /// No description provided for @deleteRenote.
@@ -966,13 +966,13 @@ abstract class S {
   /// No description provided for @confirmDelete.
   ///
   /// In ja, this message translates to:
-  /// **'ほんまに消してええな？'**
+  /// **'本当に削除しますか？'**
   String get confirmDelete;
 
   /// No description provided for @doDeleting.
   ///
   /// In ja, this message translates to:
-  /// **'消す！'**
+  /// **'削除する'**
   String get doDeleting;
 
   /// No description provided for @confirmPoll.
@@ -1050,7 +1050,7 @@ abstract class S {
   /// No description provided for @renoteInOtherChannel.
   ///
   /// In ja, this message translates to:
-  /// **'よそのチャンネルへリノート'**
+  /// **'別のチャンネルにリノート'**
   String get renoteInOtherChannel;
 
   /// No description provided for @quotedRenoteInChannel.
@@ -1062,7 +1062,7 @@ abstract class S {
   /// No description provided for @quotedRenoteInOtherChannel.
   ///
   /// In ja, this message translates to:
-  /// **'よそのチャンネルへ引用'**
+  /// **'別のチャンネルに引用'**
   String get quotedRenoteInOtherChannel;
 
   /// No description provided for @renotedUsers.
@@ -1074,25 +1074,25 @@ abstract class S {
   /// No description provided for @otherComplementReactions.
   ///
   /// In ja, this message translates to:
-  /// **'他のん'**
+  /// **'他のリアクション'**
   String get otherComplementReactions;
 
   /// No description provided for @openAsOtherAccount.
   ///
   /// In ja, this message translates to:
-  /// **'開くアカウントを選んでや'**
+  /// **'開くアカウントを選択'**
   String get openAsOtherAccount;
 
   /// No description provided for @pickColor.
   ///
   /// In ja, this message translates to:
-  /// **'色を選んでや'**
+  /// **'色を選択'**
   String get pickColor;
 
   /// No description provided for @decideColor.
   ///
   /// In ja, this message translates to:
-  /// **'これにする'**
+  /// **'この色を選択'**
   String get decideColor;
 
   /// No description provided for @accountSetting.
@@ -1146,13 +1146,13 @@ abstract class S {
   /// No description provided for @replyNotePlaceholder.
   ///
   /// In ja, this message translates to:
-  /// **'何て送る？'**
+  /// **'返信内容を入力'**
   String get replyNotePlaceholder;
 
   /// No description provided for @defaultNotePlaceholder.
   ///
   /// In ja, this message translates to:
-  /// **'何してはる？'**
+  /// **'今、何を投稿しますか？'**
   String get defaultNotePlaceholder;
 
   /// No description provided for @hasMediaButCannotEdit.
@@ -1170,67 +1170,67 @@ abstract class S {
   /// No description provided for @followedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}からフォローされたで'**
+  /// **'{userName}にフォローされました'**
   String followedNotification(String userName);
 
   /// No description provided for @followRequestAcceptedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}がフォローしてもええでってなったで'**
+  /// **'{userName}がフォローを許可しました'**
   String followRequestAcceptedNotification(String userName);
 
   /// No description provided for @receiveFollowRequestNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}がフォローさせてほしそうにしてるで'**
+  /// **'{userName}からフォローリクエストが届きました'**
   String receiveFollowRequestNotification(String userName);
 
   /// No description provided for @achievementEarnedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'実績を解除したみたいや'**
+  /// **'実績を獲得しました'**
   String get achievementEarnedNotification;
 
   /// No description provided for @testNotification.
   ///
   /// In ja, this message translates to:
-  /// **'テストやで'**
+  /// **'テスト通知'**
   String get testNotification;
 
   /// No description provided for @renotedUsersInNotification.
   ///
   /// In ja, this message translates to:
-  /// **'リノートしてくれはった人'**
+  /// **'リノートしたユーザー'**
   String get renotedUsersInNotification;
 
   /// No description provided for @reactionUsersInNotification.
   ///
   /// In ja, this message translates to:
-  /// **'リアクションしてくれはった人'**
+  /// **'リアクションしたユーザー'**
   String get reactionUsersInNotification;
 
   /// No description provided for @finishedVotedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'投票が終わったみたいや'**
+  /// **'投票が終了しました'**
   String get finishedVotedNotification;
 
   /// No description provided for @scheduledNotePostedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'予約投稿がノートされたで'**
+  /// **'予約投稿が投稿されました'**
   String get scheduledNotePostedNotification;
 
   /// No description provided for @scheduledNotePostFailedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'予約投稿がしくじったみたいや'**
+  /// **'予約投稿に失敗しました'**
   String get scheduledNotePostFailedNotification;
 
   /// No description provided for @renoteAndReactionsNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{reactionUser}さんたちがリアクションしはって、{renotedUser}さんたちがリノートしはったで'**
+  /// **'{reactionUser}さんがリアクションし、{renotedUser}さんがリノートしました'**
   String renoteAndReactionsNotification(
     String? reactionUser,
     String? renotedUser,
@@ -1239,55 +1239,55 @@ abstract class S {
   /// No description provided for @renoteNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{renoteUser}さんたちがリノートしはったで'**
+  /// **'{renoteUser}さんがリノートしました'**
   String renoteNotification(String? renoteUser);
 
   /// No description provided for @reactionNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{reactionUser}さんたちがリアクションしはったで'**
+  /// **'{reactionUser}さんがリアクションしました'**
   String reactionNotification(String? reactionUser);
 
   /// No description provided for @notedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'{notedUser}さんがノートしはったで'**
+  /// **'{notedUser}さんが投稿しました'**
   String notedNotification(String notedUser);
 
   /// No description provided for @roleAssignedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'ロール「{role}」に入れられたみたいや'**
+  /// **'ロール「{role}」が付与されました'**
   String roleAssignedNotification(String role);
 
   /// No description provided for @appNotification.
   ///
   /// In ja, this message translates to:
-  /// **'なんかのアプリからの通知らしいわ'**
+  /// **'アプリからの通知'**
   String get appNotification;
 
   /// No description provided for @someoneLogined.
   ///
   /// In ja, this message translates to:
-  /// **'自分のアカウントにログインがあったらしいで'**
+  /// **'自分のアカウントへのログインがありました'**
   String get someoneLogined;
 
   /// No description provided for @unknownNotification.
   ///
   /// In ja, this message translates to:
-  /// **'知らんタイプの通知やわ'**
+  /// **'不明な種類の通知です'**
   String get unknownNotification;
 
   /// No description provided for @createTokenNotification.
   ///
   /// In ja, this message translates to:
-  /// **'アクセストークンが作成されたで'**
+  /// **'アクセストークンが作成されました'**
   String get createTokenNotification;
 
   /// No description provided for @chatRoomInvitationReceivedNotification.
   ///
   /// In ja, this message translates to:
-  /// **'チャットルームに招待されたで'**
+  /// **'チャットルームに招待されました'**
   String get chatRoomInvitationReceivedNotification;
 
   /// No description provided for @messageForFollower.
@@ -1299,13 +1299,13 @@ abstract class S {
   /// No description provided for @notificationAll.
   ///
   /// In ja, this message translates to:
-  /// **'みんな'**
+  /// **'すべて'**
   String get notificationAll;
 
   /// No description provided for @notificationForMe.
   ///
   /// In ja, this message translates to:
-  /// **'自分宛て'**
+  /// **'メンション'**
   String get notificationForMe;
 
   /// No description provided for @notificationDirect.
@@ -1335,19 +1335,19 @@ abstract class S {
   /// No description provided for @cancelEmojiChoosing.
   ///
   /// In ja, this message translates to:
-  /// **'わからへんからやめとく'**
+  /// **'選択をキャンセル'**
   String get cancelEmojiChoosing;
 
   /// No description provided for @doneEmojiChoosing.
   ///
   /// In ja, this message translates to:
-  /// **'使ってもだいじょうぶ'**
+  /// **'この絵文字を使用する'**
   String get doneEmojiChoosing;
 
   /// No description provided for @confirmSavingPhoto.
   ///
   /// In ja, this message translates to:
-  /// **'保存しよる？'**
+  /// **'写真を保存しますか？'**
   String get confirmSavingPhoto;
 
   /// No description provided for @doneEditingPhoto.
@@ -1359,13 +1359,13 @@ abstract class S {
   /// No description provided for @continueEditingPhoto.
   ///
   /// In ja, this message translates to:
-  /// **'もうちょっと続ける'**
+  /// **'編集を続ける'**
   String get continueEditingPhoto;
 
   /// No description provided for @disabledUsingSensitiveCustomEmoji.
   ///
   /// In ja, this message translates to:
-  /// **'ここでセンシティブなカスタム絵文字使われへんねやわ'**
+  /// **'ここではセンシティブなカスタム絵文字を使用できません'**
   String get disabledUsingSensitiveCustomEmoji;
 
   /// No description provided for @markAsSensitive.
@@ -1377,7 +1377,7 @@ abstract class S {
   /// No description provided for @publicSubTitle.
   ///
   /// In ja, this message translates to:
-  /// **'みんなに公開'**
+  /// **'全体に公開'**
   String get publicSubTitle;
 
   /// No description provided for @homeSubTitle.
@@ -1437,7 +1437,7 @@ abstract class S {
   /// No description provided for @addChoice.
   ///
   /// In ja, this message translates to:
-  /// **'増やす'**
+  /// **'選択肢を追加'**
   String get addChoice;
 
   /// No description provided for @choiceNumber.
@@ -1479,7 +1479,7 @@ abstract class S {
   /// No description provided for @pageWrittenBy.
   ///
   /// In ja, this message translates to:
-  /// **'このページ書きはった人'**
+  /// **'このページを書いた人'**
   String get pageWrittenBy;
 
   /// No description provided for @pageCreatedAt.
@@ -1497,49 +1497,49 @@ abstract class S {
   /// No description provided for @unsupportedPage.
   ///
   /// In ja, this message translates to:
-  /// **'DMSKY Clientが対応してないページやわ　ブラウザで見てな'**
+  /// **'DMSKY Clientが対応していないページです。ブラウザーで開いてください。'**
   String get unsupportedPage;
 
   /// No description provided for @canNotFavoriteMyPage.
   ///
   /// In ja, this message translates to:
-  /// **'自分のページにはふぁぼつけられへんねん'**
+  /// **'自分のページはお気に入りに登録できません'**
   String get canNotFavoriteMyPage;
 
   /// No description provided for @activeAnnouncements.
   ///
   /// In ja, this message translates to:
-  /// **'いまの'**
+  /// **'公開中'**
   String get activeAnnouncements;
 
   /// No description provided for @inactiveAnnouncements.
   ///
   /// In ja, this message translates to:
-  /// **'まえの'**
+  /// **'過去のお知らせ'**
   String get inactiveAnnouncements;
 
   /// No description provided for @announcementsForYou.
   ///
   /// In ja, this message translates to:
-  /// **'あんた宛'**
+  /// **'あなた宛て'**
   String get announcementsForYou;
 
   /// No description provided for @confirmAnnouncementsRead.
   ///
   /// In ja, this message translates to:
-  /// **'「{title}」の内容ちゃんと読んだか？'**
+  /// **'「{title}」を確認しましたか？'**
   String confirmAnnouncementsRead(Object title);
 
   /// No description provided for @readAnnouncement.
   ///
   /// In ja, this message translates to:
-  /// **'読んだ'**
+  /// **'確認しました'**
   String get readAnnouncement;
 
   /// No description provided for @didNotReadAnnouncement.
   ///
   /// In ja, this message translates to:
-  /// **'もうちょい待って'**
+  /// **'あとで確認する'**
   String get didNotReadAnnouncement;
 
   /// No description provided for @onlineUsers.
@@ -1647,7 +1647,7 @@ abstract class S {
   /// No description provided for @pinnedUser.
   ///
   /// In ja, this message translates to:
-  /// **'ピンどめ'**
+  /// **'ピン留め'**
   String get pinnedUser;
 
   /// No description provided for @sort.
@@ -1683,13 +1683,13 @@ abstract class S {
   /// No description provided for @authorizate.
   ///
   /// In ja, this message translates to:
-  /// **'認証をする'**
+  /// **'認証する'**
   String get authorizate;
 
   /// No description provided for @reauthorizate.
   ///
   /// In ja, this message translates to:
-  /// **'再度認証をする'**
+  /// **'再認証する'**
   String get reauthorizate;
 
   /// No description provided for @chooseLoginServer.
@@ -1701,7 +1701,7 @@ abstract class S {
   /// No description provided for @didAuthorize.
   ///
   /// In ja, this message translates to:
-  /// **'認証してきた'**
+  /// **'認証しました'**
   String get didAuthorize;
 
   /// No description provided for @thrownConnectionError.
@@ -1737,7 +1737,7 @@ abstract class S {
   /// No description provided for @thrownError.
   ///
   /// In ja, this message translates to:
-  /// **'エラーが起きたみたいや'**
+  /// **'エラーが発生しました'**
   String get thrownError;
 
   /// No description provided for @unsupportedServer.
@@ -1953,13 +1953,13 @@ abstract class S {
   /// No description provided for @exportedFileNotFound.
   ///
   /// In ja, this message translates to:
-  /// **'ここにDMSKY Clientの設定ファイルあれへんかったわ'**
+  /// **'このフォルダーにDMSKY Clientの設定ファイルが見つかりません'**
   String get exportedFileNotFound;
 
   /// No description provided for @importCompleted.
   ///
   /// In ja, this message translates to:
-  /// **'インポート終わったで。'**
+  /// **'インポートが完了しました'**
   String get importCompleted;
 
   /// No description provided for @exportToThisFolder.
@@ -1971,7 +1971,7 @@ abstract class S {
   /// No description provided for @confirmOverwrite.
   ///
   /// In ja, this message translates to:
-  /// **'ここにもうあるけど上書きするか？'**
+  /// **'同名のファイルが存在します。上書きしますか？'**
   String get confirmOverwrite;
 
   /// No description provided for @overwrite.
@@ -1989,13 +1989,13 @@ abstract class S {
   /// No description provided for @exportCompleted.
   ///
   /// In ja, this message translates to:
-  /// **'エクスポート終わったで'**
+  /// **'エクスポートが完了しました'**
   String get exportCompleted;
 
   /// No description provided for @cannotOpenLocalOnlyNoteFromRemote.
   ///
   /// In ja, this message translates to:
-  /// **'連合なしのノートを他のサーバーで開くことはできません'**
+  /// **'ローカル限定のノートは他のサーバーから開けません'**
   String get cannotOpenLocalOnlyNoteFromRemote;
 
   /// No description provided for @unlimited.
@@ -2043,37 +2043,37 @@ abstract class S {
   /// No description provided for @pleaseInputSomething.
   ///
   /// In ja, this message translates to:
-  /// **'なんか入れてや'**
+  /// **'内容を入力してください'**
   String get pleaseInputSomething;
 
   /// No description provided for @pleaseAddVoteChoice.
   ///
   /// In ja, this message translates to:
-  /// **'投票の選択肢を2つ以上入れてや'**
+  /// **'投票の選択肢を2つ以上入力してください'**
   String get pleaseAddVoteChoice;
 
   /// No description provided for @pleaseSpecifyExpirationDate.
   ///
   /// In ja, this message translates to:
-  /// **'投票がいつまでか入れてや'**
+  /// **'投票の終了日時を指定してください'**
   String get pleaseSpecifyExpirationDate;
 
   /// No description provided for @pleaseSpecifyExpirationDuration.
   ///
   /// In ja, this message translates to:
-  /// **'投票期間を入れてや'**
+  /// **'投票期間を指定してください'**
   String get pleaseSpecifyExpirationDuration;
 
   /// No description provided for @cannotMentionToRemoteInLocalOnlyNote.
   ///
   /// In ja, this message translates to:
-  /// **'連合オフやのによそのサーバーの人がメンションに含まれてるで'**
+  /// **'ローカル限定の投稿に、他のサーバーのユーザーがメンションされています'**
   String get cannotMentionToRemoteInLocalOnlyNote;
 
   /// No description provided for @cannotPublicReplyToPrivateNote.
   ///
   /// In ja, this message translates to:
-  /// **'リプライが{visibility}やから、パブリックにでけへん'**
+  /// **'返信元の公開範囲が{visibility}のため、公開投稿にはできません'**
   String cannotPublicReplyToPrivateNote(String visibility);
 
   /// No description provided for @cannotPublicNoteBySilencedUser.
@@ -2085,37 +2085,37 @@ abstract class S {
   /// No description provided for @cannotFederateNoteToChannel.
   ///
   /// In ja, this message translates to:
-  /// **'チャンネルのノートを連合にすることはでけへんねん。'**
+  /// **'チャンネルの投稿は連合に配信できません。'**
   String get cannotFederateNoteToChannel;
 
   /// No description provided for @cannotFederateReplyToLocalOnlyNote.
   ///
   /// In ja, this message translates to:
-  /// **'リプライの元ノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。'**
+  /// **'返信元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。'**
   String get cannotFederateReplyToLocalOnlyNote;
 
   /// No description provided for @cannotFederateRenoteToLocalOnlyNote.
   ///
   /// In ja, this message translates to:
-  /// **'リノートしようとしてるノートが連合なしに設定されとるから、このノートも連合なしにしかでけへんねん。'**
+  /// **'リノート元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。'**
   String get cannotFederateRenoteToLocalOnlyNote;
 
   /// No description provided for @unexpectedSensitive.
   ///
   /// In ja, this message translates to:
-  /// **'上げようとしたファイルがサーバーから、センシティブと思われたんやけどどないする？'**
+  /// **'アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？'**
   String get unexpectedSensitive;
 
   /// No description provided for @staySensitive.
   ///
   /// In ja, this message translates to:
-  /// **'センシティブのままにしとく'**
+  /// **'センシティブ設定を維持'**
   String get staySensitive;
 
   /// No description provided for @unsetSensitive.
   ///
   /// In ja, this message translates to:
-  /// **'センシティブやめる'**
+  /// **'センシティブ設定を解除'**
   String get unsetSensitive;
 
   /// No description provided for @noteCreatedAt.
@@ -2169,7 +2169,7 @@ abstract class S {
   /// No description provided for @quitAccountSettings.
   ///
   /// In ja, this message translates to:
-  /// **'アカウント設定をおわる'**
+  /// **'アカウント設定を終了'**
   String get quitAccountSettings;
 
   /// No description provided for @packageName.
@@ -2289,13 +2289,13 @@ abstract class S {
   /// No description provided for @themeIsh.
   ///
   /// In ja, this message translates to:
-  /// **'{theme}っぽいの'**
+  /// **'{theme}風'**
   String themeIsh(String theme);
 
   /// No description provided for @selectLightOrDarkMode.
   ///
   /// In ja, this message translates to:
-  /// **'ライトモード・ダークモードのつかいわけ'**
+  /// **'ライトモードとダークモードの使い分け'**
   String get selectLightOrDarkMode;
 
   /// No description provided for @reaction.
@@ -2331,25 +2331,25 @@ abstract class S {
   /// No description provided for @fontSerif.
   ///
   /// In ja, this message translates to:
-  /// **'フォント（\$[font.serif 用）'**
+  /// **'フォント（\$[font.serif]用）'**
   String get fontSerif;
 
   /// No description provided for @fontMonospace.
   ///
   /// In ja, this message translates to:
-  /// **'フォント （\$[font.monospace やコードブロック 用）'**
+  /// **'フォント（\$[font.monospace]・コードブロック用）'**
   String get fontMonospace;
 
   /// No description provided for @fontCursive.
   ///
   /// In ja, this message translates to:
-  /// **'フォント （\$[font.cursive 用）'**
+  /// **'フォント（\$[font.cursive]用）'**
   String get fontCursive;
 
   /// No description provided for @fontFantasy.
   ///
   /// In ja, this message translates to:
-  /// **'フォント （\$[font.fantasy 用）'**
+  /// **'フォント（\$[font.fantasy]用）'**
   String get fontFantasy;
 
   /// No description provided for @fontSize.
@@ -2385,7 +2385,7 @@ abstract class S {
   /// No description provided for @clearCache.
   ///
   /// In ja, this message translates to:
-  /// **'キャッシュをクリア'**
+  /// **'キャッシュを削除'**
   String get clearCache;
 
   /// No description provided for @getCacheSize.
@@ -2427,7 +2427,7 @@ abstract class S {
   /// No description provided for @pleaseSelectAccount.
   ///
   /// In ja, this message translates to:
-  /// **'アカウントを選んでや'**
+  /// **'アカウントを選択してください'**
   String get pleaseSelectAccount;
 
   /// No description provided for @select.
@@ -2451,7 +2451,7 @@ abstract class S {
   /// No description provided for @pleaseSelectAccountToExportSettings.
   ///
   /// In ja, this message translates to:
-  /// **'設定ファイルを保存するアカウントを選んでや'**
+  /// **'設定ファイルの保存先アカウントを選択してください'**
   String get pleaseSelectAccountToExportSettings;
 
   /// No description provided for @selectAntenna.
@@ -2649,13 +2649,13 @@ abstract class S {
   /// No description provided for @confirmUnblockUser.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}のブロックを解除してもええか？'**
+  /// **'{userName}のブロックを解除しますか？'**
   String confirmUnblockUser(String userName);
 
   /// No description provided for @confirmUnmuteUser.
   ///
   /// In ja, this message translates to:
-  /// **'{userName}のミュートを解除してもええか？'**
+  /// **'{userName}のミュートを解除しますか？'**
   String confirmUnmuteUser(String userName);
 
   /// No description provided for @unblock.
@@ -2733,7 +2733,7 @@ abstract class S {
   /// No description provided for @instanceMuteDescription2.
   ///
   /// In ja, this message translates to:
-  /// **'ミュートしたサーバーのユーザーへの返信を含めて、設定したサーバーの全てのノートとリノートをミュートします。\n改行で区切って設定します。'**
+  /// **'ミュートしたサーバーのユーザーへの返信を含め、指定したサーバーのすべてのノートとリノートを非表示にします。\nサーバーは改行で区切って指定します。'**
   String get instanceMuteDescription2;
 
   /// No description provided for @reactionMute.
@@ -2835,7 +2835,7 @@ abstract class S {
   /// No description provided for @editReactionDeckDescription.
   ///
   /// In ja, this message translates to:
-  /// **'長押しして並び変え、押して削除、＋を押して追加します。'**
+  /// **'長押しして並べ替え、タップして削除、＋をタップして追加します。'**
   String get editReactionDeckDescription;
 
   /// No description provided for @confirmClearReactionDeck.
@@ -2877,13 +2877,13 @@ abstract class S {
   /// No description provided for @disableFederation.
   ///
   /// In ja, this message translates to:
-  /// **'連合をなしにします'**
+  /// **'連合への配信を無効にする'**
   String get disableFederation;
 
   /// No description provided for @disableFederationDescription.
   ///
   /// In ja, this message translates to:
-  /// **'連合をなしにしても、非公開になりません。ほとんどの場合、連合なしにする必要はありません。'**
+  /// **'連合への配信を無効にしても、投稿は非公開になりません。通常、この設定を有効にする必要はありません。'**
   String get disableFederationDescription;
 
   /// No description provided for @reactionAcceptance.
@@ -2895,7 +2895,7 @@ abstract class S {
   /// No description provided for @reactionAcceptanceAll.
   ///
   /// In ja, this message translates to:
-  /// **'全部'**
+  /// **'すべて'**
   String get reactionAcceptanceAll;
 
   /// No description provided for @forceShowAds.
@@ -2931,13 +2931,13 @@ abstract class S {
   /// No description provided for @memoDescription.
   ///
   /// In ja, this message translates to:
-  /// **'なんかメモることあったら書いとき'**
+  /// **'メモする内容を入力してください'**
   String get memoDescription;
 
   /// No description provided for @confirmCreateBlock.
   ///
   /// In ja, this message translates to:
-  /// **'ブロックしてもええか？'**
+  /// **'このユーザーをブロックしますか？'**
   String get confirmCreateBlock;
 
   /// No description provided for @createBlock.
@@ -3027,7 +3027,7 @@ abstract class S {
   /// No description provided for @confirmUnfollow.
   ///
   /// In ja, this message translates to:
-  /// **'フォロー解除してもええか？'**
+  /// **'フォローを解除しますか？'**
   String get confirmUnfollow;
 
   /// No description provided for @deleteFollow.
@@ -3273,7 +3273,7 @@ abstract class S {
   /// No description provided for @originCombined.
   ///
   /// In ja, this message translates to:
-  /// **'全て'**
+  /// **'すべて'**
   String get originCombined;
 
   /// No description provided for @followerAscendingOrder.
@@ -3315,19 +3315,19 @@ abstract class S {
   /// No description provided for @unsupportedFile.
   ///
   /// In ja, this message translates to:
-  /// **'対応してないファイルやわ'**
+  /// **'対応していないファイルです'**
   String get unsupportedFile;
 
   /// No description provided for @unsupportedFileWithFilename.
   ///
   /// In ja, this message translates to:
-  /// **'{filename}は対応してないファイルやわ'**
+  /// **'{filename}は対応していないファイルです'**
   String unsupportedFileWithFilename(String filename);
 
   /// No description provided for @failedFileSave.
   ///
   /// In ja, this message translates to:
-  /// **'ファイルの保存に失敗したみたいや'**
+  /// **'ファイルを保存できませんでした'**
   String get failedFileSave;
 
   /// No description provided for @loopPlayback.
@@ -3345,7 +3345,7 @@ abstract class S {
   /// No description provided for @cookieCliker.
   ///
   /// In ja, this message translates to:
-  /// **'Cookie Cliker'**
+  /// **'Cookie Clicker'**
   String get cookieCliker;
 
   /// No description provided for @bubbleGame.
@@ -3369,13 +3369,13 @@ abstract class S {
   /// No description provided for @invitedReversi.
   ///
   /// In ja, this message translates to:
-  /// **'{users}から招待されとるで'**
+  /// **'{users}から招待されています'**
   String invitedReversi(String users);
 
   /// No description provided for @nonInvitedReversi.
   ///
   /// In ja, this message translates to:
-  /// **'招待はされとらへんみたいや'**
+  /// **'招待されていません'**
   String get nonInvitedReversi;
 
   /// No description provided for @remoteServerWithoutLogin.
@@ -3387,19 +3387,19 @@ abstract class S {
   /// No description provided for @nothingHere.
   ///
   /// In ja, this message translates to:
-  /// **'なんもないで'**
+  /// **'表示できる内容はありません'**
   String get nothingHere;
 
   /// No description provided for @cacheRefreshNow.
   ///
   /// In ja, this message translates to:
-  /// **'いますぐキャッシュを更新'**
+  /// **'今すぐキャッシュを更新'**
   String get cacheRefreshNow;
 
   /// No description provided for @cacheManualUpdateCompleted.
   ///
   /// In ja, this message translates to:
-  /// **'情報の取得が完了したで'**
+  /// **'情報を更新しました'**
   String get cacheManualUpdateCompleted;
 
   /// No description provided for @deckMode.
@@ -3417,7 +3417,7 @@ abstract class S {
   /// No description provided for @template.
   ///
   /// In ja, this message translates to:
-  /// **'テンプレ'**
+  /// **'テンプレート'**
   String get template;
 
   /// No description provided for @noteBackgroundColor.
@@ -3495,13 +3495,13 @@ abstract class S {
   /// No description provided for @chatOwnRooms.
   ///
   /// In ja, this message translates to:
-  /// **'自分で作ったやつ'**
+  /// **'作成したルーム'**
   String get chatOwnRooms;
 
   /// No description provided for @chatJoining.
   ///
   /// In ja, this message translates to:
-  /// **'入ってるルーム'**
+  /// **'参加中のルーム'**
   String get chatJoining;
 
   /// No description provided for @chatNewChat.
@@ -3513,7 +3513,7 @@ abstract class S {
   /// No description provided for @chatIgnored.
   ///
   /// In ja, this message translates to:
-  /// **'無視したで'**
+  /// **'無視しました'**
   String get chatIgnored;
 
   /// No description provided for @chatNoDescription.
@@ -3543,7 +3543,7 @@ abstract class S {
   /// No description provided for @chatInvited.
   ///
   /// In ja, this message translates to:
-  /// **'招待したで'**
+  /// **'招待しました'**
   String get chatInvited;
 
   /// No description provided for @chatRoomName.
@@ -3573,13 +3573,13 @@ abstract class S {
   /// No description provided for @chatCreator.
   ///
   /// In ja, this message translates to:
-  /// **'チャットを立てた人'**
+  /// **'チャットルームの作成者'**
   String get chatCreator;
 
   /// No description provided for @confirmChatLeave.
   ///
   /// In ja, this message translates to:
-  /// **'ほんまにチャットから退出してええな？'**
+  /// **'このチャットルームから退出しますか？'**
   String get confirmChatLeave;
 
   /// No description provided for @chatLeave.
@@ -3591,7 +3591,7 @@ abstract class S {
   /// No description provided for @chatLeftRoom.
   ///
   /// In ja, this message translates to:
-  /// **'チャットから退出したで'**
+  /// **'チャットルームから退出しました'**
   String get chatLeftRoom;
 
   /// No description provided for @chatRetry.
@@ -3657,7 +3657,7 @@ abstract class S {
   /// No description provided for @chatUnknownUser.
   ///
   /// In ja, this message translates to:
-  /// **'Unknown User'**
+  /// **'不明なユーザー'**
   String get chatUnknownUser;
 
   /// No description provided for @chatNsfw.
@@ -3669,19 +3669,19 @@ abstract class S {
   /// No description provided for @chatUpdateCompleted.
   ///
   /// In ja, this message translates to:
-  /// **'更新できたみたいや'**
+  /// **'チャットを更新しました'**
   String get chatUpdateCompleted;
 
   /// No description provided for @chatRoomInvitation.
   ///
   /// In ja, this message translates to:
-  /// **'チャットルームに招待されたで【{roomName}】'**
+  /// **'チャットルーム「{roomName}」に招待されました'**
   String chatRoomInvitation(String roomName);
 
   /// No description provided for @goToChat.
   ///
   /// In ja, this message translates to:
-  /// **'みにいく'**
+  /// **'チャットを開く'**
   String get goToChat;
 
   /// No description provided for @noSearchResults.
@@ -3693,13 +3693,13 @@ abstract class S {
   /// No description provided for @saveToDrafts.
   ///
   /// In ja, this message translates to:
-  /// **'下書きに保存しとく？'**
+  /// **'下書きに保存しますか？'**
   String get saveToDrafts;
 
   /// No description provided for @discard.
   ///
   /// In ja, this message translates to:
-  /// **'やめとく'**
+  /// **'破棄する'**
   String get discard;
 
   /// No description provided for @drafts.
@@ -3711,19 +3711,19 @@ abstract class S {
   /// No description provided for @noDrafts.
   ///
   /// In ja, this message translates to:
-  /// **'下書きあらへんで'**
+  /// **'下書きはありません'**
   String get noDrafts;
 
   /// No description provided for @confirmDeleteDraft.
   ///
   /// In ja, this message translates to:
-  /// **'この下書き削除してもええか？'**
+  /// **'この下書きを削除しますか？'**
   String get confirmDeleteDraft;
 
   /// No description provided for @emptyNote.
   ///
   /// In ja, this message translates to:
-  /// **'空っぽのノート'**
+  /// **'空のノート'**
   String get emptyNote;
 
   /// No description provided for @poll.
@@ -3735,7 +3735,7 @@ abstract class S {
   /// No description provided for @continueEditing.
   ///
   /// In ja, this message translates to:
-  /// **'もうちょっと編集を続ける'**
+  /// **'編集を続ける'**
   String get continueEditing;
 
   /// No description provided for @saveAndClose.

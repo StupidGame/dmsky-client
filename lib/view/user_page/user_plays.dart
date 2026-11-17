@@ -41,6 +41,7 @@ class UserPlays extends ConsumerWidget {
           onTap: () async {
             await openPlay(
               context,
+              account: ref.read(accountContextProvider).getAccount,
               Uri(
                 scheme:
                     ref.read(accountContextProvider).getAccount.scheme ??

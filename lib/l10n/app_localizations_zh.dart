@@ -1550,12 +1550,12 @@ class SZh extends S {
 
   @override
   String confirmUnblockUser(String userName) {
-    return '$userNameのブロックを解除してもええか？';
+    return '$userNameのブロックを解除しますか？';
   }
 
   @override
   String confirmUnmuteUser(String userName) {
-    return '$userNameのミュートを解除してもええか？';
+    return '$userNameのミュートを解除しますか？';
   }
 
   @override
@@ -1946,13 +1946,13 @@ class SZh extends S {
   String get remoteServerWithoutLogin => '相手先のサーバー（ログインなし）';
 
   @override
-  String get nothingHere => 'なんもないで';
+  String get nothingHere => '表示できる内容はありません';
 
   @override
-  String get cacheRefreshNow => 'いますぐキャッシュを更新';
+  String get cacheRefreshNow => '今すぐキャッシュを更新';
 
   @override
-  String get cacheManualUpdateCompleted => '情報の取得が完了したで';
+  String get cacheManualUpdateCompleted => '情報を更新しました';
 
   @override
   String get deckMode => 'デッキモード';

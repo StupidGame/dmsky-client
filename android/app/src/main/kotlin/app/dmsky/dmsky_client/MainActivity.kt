@@ -11,6 +11,13 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        if (BuildConfig.DMSKY_NATIVE_PLAY_TEST) {
+            // The bridge is a dev plugin and absent from distribution releases.
+            val plugin = Class.forName("dev.flutter.plugins.integration_test.IntegrationTestPlugin")
+                .getDeclaredConstructor().newInstance() as io.flutter.embedding.engine.plugins.FlutterPlugin
+            flutterEngine.plugins.add(plugin)
+        }
+
         notifications = BackgroundNotificationBridge(this, flutterEngine.dartExecutor.binaryMessenger)
     }
 

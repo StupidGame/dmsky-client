@@ -1,0 +1,1 @@
+-keep class dev.flutter.plugins.integration_test.** { *; }

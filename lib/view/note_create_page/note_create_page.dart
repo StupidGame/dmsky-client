@@ -60,6 +60,9 @@ enum NoteCreationMode { update, recreate }
 class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
   final Account initialAccount;
   final String? initialText;
+  final String? initialCw;
+  final NoteVisibility? initialVisibility;
+  final bool? initialLocalOnly;
   final List<String>? initialMediaFiles;
   final bool exitOnNoted;
   final CommunityChannel? channel;
@@ -73,6 +76,9 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
     required this.initialAccount,
     super.key,
     this.initialText,
+    this.initialCw,
+    this.initialVisibility,
+    this.initialLocalOnly,
     this.initialMediaFiles,
     this.exitOnNoted = false,
     this.channel,
@@ -119,6 +125,9 @@ class NoteCreatePage extends HookConsumerWidget implements AutoRouteWrapper {
           renote,
           reply,
           noteCreationMode,
+          initialCw,
+          initialVisibility,
+          initialLocalOnly,
         );
       });
 

@@ -54,8 +54,17 @@ class LinkNavigator {
     }
     var accountContext = ref.read(accountContextProvider);
 
+    if (isPlayUri(uri)) {
+      await openPlay(
+        context,
+        uri,
+        account: accountForPlay(uri, sourceAccount, ref.read(accountsProvider)),
+      );
+      return;
+    }
+
     // 他サーバーや外部サイトは別アプリで起動する
-    if (uri.host != accountContext.getAccount.host) {
+    if (uri.origin != base.origin) {
       try {
         // nodeinfo は見ない。連合をオフにしたサーバーは 403 を返すため、
         // ここで弾くと Misskey なのに外部ブラウザに飛んでしまう (#770)。
@@ -69,7 +78,12 @@ class LinkNavigator {
         if (!endpoints.contains("emojis")) {
           throw Exception("Is not misskey");
         }
-        final account = Account.demoAccount(uri.host, meta);
+        final account = Account.demoAccount(
+          uri.host,
+          meta,
+          scheme: uri.scheme,
+          port: uri.hasPort ? uri.port : null,
+        );
         accountContext = accountContext.copyWith(getAccount: account);
         await ref.read(emojiRepositoryProvider(account)).loadFromSourceIfNeed();
       } catch (e) {
@@ -81,9 +95,7 @@ class LinkNavigator {
     }
 
     if (!context.mounted) return;
-    if (isPlayUri(uri)) {
-      await openPlay(context, uri);
-    } else if (uri.pathSegments.isEmpty) {
+    if (uri.pathSegments.isEmpty) {
       await context.pushRoute(
         FederationRoute(accountContext: accountContext, host: uri.host),
       );

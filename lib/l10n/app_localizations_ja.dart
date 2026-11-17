@@ -1271,7 +1271,8 @@ class SJa extends S {
       'リノート元の投稿がローカル限定のため、この投稿もローカル限定にする必要があります。';
 
   @override
-  String get unexpectedSensitive => 'アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？';
+  String get unexpectedSensitive =>
+      'アップロードしたファイルがサーバーによってセンシティブと判定されました。どのように扱いますか？';
 
   @override
   String get staySensitive => 'センシティブ設定を維持';

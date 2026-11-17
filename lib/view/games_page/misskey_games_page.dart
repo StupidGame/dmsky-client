@@ -33,6 +33,7 @@ class MisskeyGamesPage extends ConsumerWidget implements AutoRouteWrapper {
             subtitle: const Text("アプリ内で開く"),
             onTap: () => openPlay(
               context,
+              account: accountContext.getAccount,
               Uri(
                 scheme: accountContext.getAccount.scheme ?? "https",
                 host: accountContext.getAccount.host,
