@@ -20,7 +20,7 @@ def main():
         return code
     reports = list((root / "build/app/outputs/androidTest-results").rglob("TEST-*.xml"))
     cases = [case for report in reports for case in ET.parse(report).iter("testcase")]
-    if len(cases) < 6 or any(case.find("failure") is not None or case.find("error") is not None for case in cases):
+    if len(cases) < 9 or any(case.find("failure") is not None or case.find("error") is not None for case in cases):
         sys.exit("Native Play integration scenarios did not all pass; inspect the Android test reports")
     print(f"Native Play release integration: {len(cases)} scenarios passed.")
     return 0

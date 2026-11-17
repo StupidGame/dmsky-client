@@ -6,6 +6,7 @@ import "package:dmsky_client/view/common/futable_list_builder.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/play_page/play_page.dart";
+import "package:dmsky_client/view/play_page/game_menu_card.dart";
 
 class ExplorePlay extends HookConsumerWidget {
   const ExplorePlay({super.key});
@@ -23,26 +24,28 @@ class ExplorePlay extends HookConsumerWidget {
       child: FutureListView(
         future: plays,
         builder: (context, item) {
-          return ListTile(
-            onTap: () async {
-              await openPlay(
-                context,
-                account: account,
-                Uri(
-                  scheme: account.scheme ?? "https",
-                  host: account.host,
-                  port: account.port,
-                  pathSegments: ["play", item.id],
-                ),
-              );
-            },
-            title: MfmText(
-              mfmText: item.title,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          return GameMenuCard(
+            child: ListTile(
+              onTap: () async {
+                await openPlay(
+                  context,
+                  account: account,
+                  Uri(
+                    scheme: account.scheme ?? "https",
+                    host: account.host,
+                    port: account.port,
+                    pathSegments: ["play", item.id],
+                  ),
+                );
+              },
+              title: MfmText(
+                mfmText: item.title,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              subtitle: MfmText(mfmText: item.summary),
             ),
-            subtitle: MfmText(mfmText: item.summary),
           );
         },
       ),

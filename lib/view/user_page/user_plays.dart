@@ -6,6 +6,7 @@ import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/common/pushable_listview.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/play_page/play_page.dart";
+import "package:dmsky_client/view/play_page/game_menu_card.dart";
 
 class UserPlays extends ConsumerWidget {
   final String userId;
@@ -30,28 +31,30 @@ class UserPlays extends ConsumerWidget {
         return response.toList();
       },
       itemBuilder: (context, play) {
-        return ListTile(
-          title: MfmText(
-            mfmText: play.title,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        return GameMenuCard(
+          child: ListTile(
+            title: MfmText(
+              mfmText: play.title,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: MfmText(mfmText: play.summary),
+            onTap: () async {
+              await openPlay(
+                context,
+                account: ref.read(accountContextProvider).getAccount,
+                Uri(
+                  scheme:
+                      ref.read(accountContextProvider).getAccount.scheme ??
+                      "https",
+                  host: ref.read(accountContextProvider).getAccount.host,
+                  port: ref.read(accountContextProvider).getAccount.port,
+                  pathSegments: ["play", play.id],
+                ),
+              );
+            },
           ),
-          subtitle: MfmText(mfmText: play.summary),
-          onTap: () async {
-            await openPlay(
-              context,
-              account: ref.read(accountContextProvider).getAccount,
-              Uri(
-                scheme:
-                    ref.read(accountContextProvider).getAccount.scheme ??
-                    "https",
-                host: ref.read(accountContextProvider).getAccount.host,
-                port: ref.read(accountContextProvider).getAccount.port,
-                pathSegments: ["play", play.id],
-              ),
-            );
-          },
         );
       },
       additionalErrorInfo: (context, e) {

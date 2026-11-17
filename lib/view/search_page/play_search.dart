@@ -7,6 +7,7 @@ import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/common/pushable_listview.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/play_page/play_page.dart";
+import "package:dmsky_client/view/play_page/game_menu_card.dart";
 
 class PlaySearch extends HookConsumerWidget {
   final FocusNode? focusNode;
@@ -61,8 +62,7 @@ class PlaySearch extends HookConsumerWidget {
                 },
                 nextFuture: (_, _) async => [],
                 hideIsEmpty: false,
-                itemBuilder: (context, play) => Card(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
+                itemBuilder: (context, play) => GameMenuCard(
                   child: ListTile(
                     title: MfmText(
                       mfmText: play.title,

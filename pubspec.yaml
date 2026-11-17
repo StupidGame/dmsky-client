@@ -8,6 +8,7 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
+  defer_pointer: ^0.0.2
   collection: ^1.16.0
   flutter:
     sdk: flutter
@@ -21,7 +22,8 @@ dependencies:
     git:
       url: https://github.com/shiosyakeyakini-info/misskey_dart.git
       ref: 9325a89f27a0fd4cbb4c0e1e0f9d144963574e37
-  mfm: ^1.0.11+2
+  mfm:
+    path: third_party/mfm
   tuple: ^2.0.1
   path_provider: ^2.1.6
   dio: ^5.10.0

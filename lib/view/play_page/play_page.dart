@@ -13,6 +13,7 @@ import '../../rust/api/aiscript/ui.dart';
 import '../../rust/frb_generated.dart';
 import '../../util/create_aiscript.dart';
 import '../aiscript/as_ui_widget.dart';
+import '../common/misskey_notes/mfm_text.dart';
 import '../common/account_scope.dart';
 import '../explore_page/explore_plays.dart';
 
@@ -85,6 +86,7 @@ class PlayPage extends ConsumerStatefulWidget {
 class _PlayPageState extends ConsumerState<PlayPage> {
   late Future<Flash> _play;
   final _components = ValueNotifier<Map<String, AsUiComponent>>({});
+  final _scroll = ScrollController();
   AiScript? _script;
   int _generation = 0;
   bool _started = false;
@@ -137,6 +139,7 @@ class _PlayPageState extends ConsumerState<PlayPage> {
     ++_generation;
     unawaited(_release(_script).catchError((Object _) {}));
     _components.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -150,6 +153,7 @@ class _PlayPageState extends ConsumerState<PlayPage> {
       _error = null;
       _output = null;
     });
+    if (_scroll.hasClients) _scroll.jumpTo(0);
     _components.value = {};
     try {
       if (!RustLib.instance.initialized) {
@@ -244,7 +248,11 @@ class _PlayPageState extends ConsumerState<PlayPage> {
         return Scaffold(
           appBar: AppBar(
             leading: BackButton(onPressed: _back),
-            title: Text(play?.title ?? 'Play'),
+            title: MfmText(
+              mfmText: play?.title ?? 'Play',
+              maxLines: 1,
+              isEnableAnimatedMFM: false,
+            ),
             actions: [
               IconButton(
                 tooltip: 'リンクをコピー',
@@ -275,34 +283,59 @@ class _PlayPageState extends ConsumerState<PlayPage> {
               : play == null
               ? const Center(child: CircularProgressIndicator.adaptive())
               : ListView(
+                  controller: _scroll,
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text(
-                      play.title,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(play.summary),
-                    const SizedBox(height: 8),
-                    Text(
-                      '@${widget.account.i.username}@${widget.account.host}',
-                    ),
-                    const SizedBox(height: 16),
+                    if (!_started) ...[
+                      MfmText(
+                        mfmText: play.title,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      MfmText(mfmText: play.summary),
+                      const SizedBox(height: 8),
+                      Text(
+                        '@${widget.account.i.username}@${widget.account.host}',
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     if (_started) ...[
                       ValueListenableBuilder<Map<String, AsUiComponent>>(
                         valueListenable: _components,
                         builder: (_, components, _) => Card(
                           child: Padding(
                             padding: const EdgeInsets.all(16),
-                            child: AsUiWidget(
-                              account: widget.account,
-                              components: components,
-                              onError: (error) {
-                                if (mounted) {
-                                  setState(() => _error = error.toString());
-                                }
-                              },
-                            ),
+                            child: switch (components["___root___"]) {
+                              AsUiComponent_Root(field0: final root)
+                                  when root.children.isNotEmpty =>
+                                AsUiWidget(
+                                  account: widget.account,
+                                  components: components,
+                                  onError: (error) {
+                                    if (!mounted) return;
+                                    setState(() => _error = error.toString());
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Playの操作に失敗しました。エラー表示を確認してください。',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              _ => Column(
+                                children: [
+                                  if (_executing)
+                                    const CircularProgressIndicator.adaptive(),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _executing
+                                        ? 'Playを準備しています…'
+                                        : 'このPlayはまだ画面を出力していません',
+                                  ),
+                                ],
+                              ),
+                            },
                           ),
                         ),
                       ),

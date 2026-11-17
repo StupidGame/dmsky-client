@@ -7,6 +7,8 @@ import "package:misskey_dart/misskey_dart.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 import "../model/account.dart";
+import "../view/common/misskey_notes/mfm_text.dart";
+import "../view/common/account_scope.dart";
 import "../model/misskey_emoji_data.dart";
 import "../providers.dart";
 import "../repository/emoji_repository.dart";
@@ -118,34 +120,40 @@ Future<AiScript> createAiScript(
           ? Future<void>.value()
           : showDialog<void>(
               context: context,
-              builder: (dialogContext) => AlertDialog(
-                title: Text(title),
-                content: SingleChildScrollView(child: SelectableText(text)),
-                actions: [
-                  FilledButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text("閉じる"),
-                  ),
-                ],
+              builder: (dialogContext) => AccountContextScope.as(
+                account: account,
+                child: AlertDialog(
+                  title: MfmText(mfmText: title),
+                  content: SingleChildScrollView(child: MfmText(mfmText: text)),
+                  actions: [
+                    FilledButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text("閉じる"),
+                    ),
+                  ],
+                ),
               ),
             ),
       confirm: (title, text, type) async {
         if (!active()) return false;
         return await showDialog<bool>(
               context: context,
-              builder: (dialogContext) => AlertDialog(
-                title: Text(title),
-                content: SelectableText(text),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(false),
-                    child: const Text("キャンセル"),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(true),
-                    child: const Text("続行"),
-                  ),
-                ],
+              builder: (dialogContext) => AccountContextScope.as(
+                account: account,
+                child: AlertDialog(
+                  title: MfmText(mfmText: title),
+                  content: SingleChildScrollView(child: MfmText(mfmText: text)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: const Text("キャンセル"),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: const Text("続行"),
+                    ),
+                  ],
+                ),
               ),
             ) ??
             false;
@@ -167,12 +175,16 @@ Future<AiScript> createAiScript(
               ? Map<String, dynamic>.from(decoded)
               : <String, dynamic>{};
           final targetHost = host ?? account.host;
-          final client = _misskeyForHost(
-            targetHost,
-            targetHost == account.host ? (apiToken ?? account.token) : apiToken,
-            scheme: targetHost == account.host ? account.scheme : null,
-            port: targetHost == account.host ? account.port : null,
-          );
+          final client =
+              targetHost == account.host &&
+                  (apiToken == null || apiToken == account.token)
+              ? ref.read(misskeyProvider(account))
+              : _misskeyForHost(
+                  targetHost,
+                  apiToken,
+                  scheme: targetHost == account.host ? account.scheme : null,
+                  port: targetHost == account.host ? account.port : null,
+                );
           final response = await client.apiService.post<dynamic>(
             endpoint,
             request,

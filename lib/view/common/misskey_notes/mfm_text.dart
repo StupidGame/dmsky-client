@@ -68,6 +68,7 @@ class MfmText extends ConsumerWidget {
   final Function(MisskeyEmojiData)? onEmojiTap;
   final bool isEnableAnimatedMFM;
   final int? maxLines;
+  final ValueChanged<String>? onClickEv;
 
   const MfmText({
     super.key,
@@ -82,6 +83,7 @@ class MfmText extends ConsumerWidget {
     this.onEmojiTap,
     this.isEnableAnimatedMFM = true,
     this.maxLines,
+    this.onClickEv,
   }) : assert(mfmText != null || mfmNode != null);
 
   Future<void> onSearch(String query) async {
@@ -180,6 +182,7 @@ class MfmText extends ConsumerWidget {
       prefixSpan: prefixSpan,
       isUseAnimation: isEnableAnimatedMFM,
       maxLines: maxLines,
+      onClickEv: onClickEv,
       defaultBorderColor: AppTheme.of(context).colorTheme.primary,
     );
   }

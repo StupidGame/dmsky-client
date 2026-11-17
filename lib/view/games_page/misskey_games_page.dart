@@ -4,6 +4,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/view/play_page/play_page.dart";
+import "package:dmsky_client/view/play_page/game_menu_card.dart";
 import "package:dmsky_client/view/common/account_scope.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
@@ -25,8 +26,9 @@ class MisskeyGamesPage extends ConsumerWidget implements AutoRouteWrapper {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).misskeyGames)),
-      body: Column(
-        children: [
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: <Widget>[
           ListTile(
             leading: const Icon(Icons.sports_esports),
             title: const Text("Play"),
@@ -64,7 +66,7 @@ class MisskeyGamesPage extends ConsumerWidget implements AutoRouteWrapper {
               mode: LaunchMode.externalApplication,
             ),
           ),
-        ],
+        ].map((game) => GameMenuCard(child: game)).toList(),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:defer_pointer/defer_pointer.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
@@ -30,13 +31,17 @@ class AsUiWidget extends StatelessWidget {
 
   Color? _color(String? value) {
     if (value == null || value.isEmpty) return null;
-    final normalized = value.replaceFirst("#", "");
-    try {
-      final parsed = int.parse(normalized, radix: 16);
-      return Color(normalized.length == 6 ? 0xFF000000 | parsed : parsed);
-    } catch (_) {
-      return null;
+    var hex = value.replaceFirst("#", "");
+    if (hex.length == 3 || hex.length == 4) {
+      hex = hex.split("").map((digit) => "$digit$digit").join();
     }
+    if (hex.length != 6 && hex.length != 8) return null;
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) return null;
+    // AiScript accepts CSS #RGB[A] and #RRGGBB[AA], with alpha last.
+    return hex.length == 6
+        ? Color(0xFF000000 | parsed)
+        : Color(((parsed & 0xFF) << 24) | (parsed >> 8));
   }
 
   Widget _child(String id) => AsUiWidget(
@@ -46,6 +51,8 @@ class AsUiWidget extends StatelessWidget {
     componentId: id,
     onError: onError,
   );
+
+  Widget _label(String text) => IgnorePointer(child: MfmText(mfmText: text));
 
   void _openPostForm(BuildContext context, PostFormPropsForAsUi? form) {
     if (form == null) return;
@@ -74,9 +81,11 @@ class AsUiWidget extends StatelessWidget {
     if (component == null) return const SizedBox.shrink();
 
     return switch (component) {
-      AsUiComponent_Root(field0: final root) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: root.children.map(_child).toList(),
+      AsUiComponent_Root(field0: final root) => DeferredPointerHandler(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: root.children.map(_child).toList(),
+        ),
       ),
       AsUiComponent_Container(field0: final box) =>
         box.hidden == true
@@ -95,46 +104,62 @@ class AsUiWidget extends StatelessWidget {
                           width: box.borderWidth!,
                         ),
                 ),
-                child: Column(
-                  crossAxisAlignment: switch (box.align) {
-                    "center" => CrossAxisAlignment.center,
-                    "right" || "end" => CrossAxisAlignment.end,
-                    _ => CrossAxisAlignment.start,
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(
+                    color: _color(box.fgColor),
+                    fontFamily: box.font,
+                  ),
+                  textAlign: switch (box.align) {
+                    "center" => TextAlign.center,
+                    "right" || "end" => TextAlign.right,
+                    _ => TextAlign.start,
                   },
-                  children: (box.children ?? const []).map(_child).toList(),
+                  child: Column(
+                    crossAxisAlignment: switch (box.align) {
+                      "center" => CrossAxisAlignment.center,
+                      "right" || "end" => CrossAxisAlignment.end,
+                      _ => CrossAxisAlignment.start,
+                    },
+                    children: (box.children ?? const []).map(_child).toList(),
+                  ),
                 ),
               ),
       AsUiComponent_Text(field0: final value) => Text(
         value.text ?? "",
         style: TextStyle(
           color: _color(value.color),
-          fontSize: value.size,
+          fontSize:
+              (DefaultTextStyle.of(context).style.fontSize ?? 14) *
+              (value.size ?? 1),
           fontWeight: value.bold == true ? FontWeight.bold : null,
           fontFamily: value.font,
         ),
       ),
-      AsUiComponent_Mfm(field0: final value) => InkWell(
-        onTap: value.onClickEv == null
+      AsUiComponent_Mfm(field0: final value) => MfmText(
+        mfmText: value.text ?? "",
+        onClickEv: value.onClickEv == null
             ? null
-            : () =>
-                  _invoke(() => value.onClickEv!.call(value: value.text ?? "")),
-        child: MfmText(
-          mfmText: value.text ?? "",
-          style: TextStyle(
-            color: _color(value.color),
-            fontSize: value.size,
-            fontWeight: value.bold == true ? FontWeight.bold : null,
-            fontFamily: value.font,
-          ),
+            : (event) => _invoke(() => value.onClickEv!.call(value: event)),
+        style: TextStyle(
+          color: _color(value.color),
+          fontSize:
+              (DefaultTextStyle.of(context).style.fontSize ?? 14) *
+              (value.size ?? 1),
+          fontWeight: value.bold == true ? FontWeight.bold : null,
+          fontFamily: value.font,
         ),
       ),
       AsUiComponent_Button(field0: final value) => Align(
-        alignment: Alignment.centerLeft,
+        alignment: switch (DefaultTextStyle.of(context).textAlign) {
+          TextAlign.center => Alignment.center,
+          TextAlign.right || TextAlign.end => Alignment.centerRight,
+          _ => Alignment.centerLeft,
+        },
         child: FilledButton(
           onPressed: value.disabled == true || value.onClick == null
               ? null
               : () => _invoke(value.onClick!.call),
-          child: Text(value.text ?? "実行"),
+          child: _label(value.text ?? "実行"),
         ),
       ),
       AsUiComponent_Buttons(field0: final value) => Wrap(
@@ -146,7 +171,7 @@ class AsUiWidget extends StatelessWidget {
                 onPressed: button.disabled == true || button.onClick == null
                     ? null
                     : () => _invoke(button.onClick!.call),
-                child: Text(button.text ?? "実行"),
+                child: _label(button.text ?? "実行"),
               ),
             )
             .toList(),
@@ -236,14 +261,14 @@ class AsUiWidget extends StatelessWidget {
                 },
         ),
       AsUiComponent_Folder(field0: final value) => ExpansionTile(
-        title: Text(value.title ?? "詳細"),
+        title: _label(value.title ?? "詳細"),
         initiallyExpanded: value.opened ?? false,
         children: (value.children ?? const []).map(_child).toList(),
       ),
       AsUiComponent_PostForm(field0: final value) => Card(
         child: ListTile(
           title: const Text("投稿フォーム"),
-          subtitle: Text(value.form?.text ?? ""),
+          subtitle: MfmText(mfmText: value.form?.text ?? ""),
           trailing: const Icon(Icons.open_in_new),
           onTap: () => _openPostForm(context, value.form),
         ),

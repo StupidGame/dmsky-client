@@ -1,4 +1,8 @@
+import 'package:dio/dio.dart';
+import 'package:dmsky_client/rust/api/aiscript.dart';
+import 'package:dmsky_client/rust/frb_generated.dart';
 import 'package:dmsky_client/providers.dart';
+import 'package:dmsky_client/view/common/misskey_notes/mfm_text.dart';
 import 'package:dmsky_client/view/common/account_scope.dart';
 import 'package:dmsky_client/view/common/misskey_notes/link_navigator.dart';
 import 'package:dmsky_client/view/play_page/play_page.dart';
@@ -56,23 +60,34 @@ class PlayApi extends Fake implements MisskeyFlash {
 }
 
 Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 150; i++) {
-    await tester.pump();
+  for (var i = 0; i < 500; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
     if (finder.evaluate().isNotEmpty) return;
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
   }
-  expect(finder, findsWidgets);
+  expect(
+    finder,
+    findsWidgets,
+    reason: tester
+        .widgetList<Text>(find.byType(Text))
+        .map((w) => w.data ?? w.textSpan?.toPlainText())
+        .join("\n"),
+  );
 }
 
 Widget playFixture(
   PlayApi api, {
   bool fromLink = false,
   String link = '/play/native-test',
+  Misskey? apiClient,
 }) {
   final misskey = MockMisskey();
   when(misskey.flash).thenReturn(api);
+  if (apiClient != null) {
+    when(misskey.apiService).thenReturn(apiClient.apiService);
+  }
   final emojis = MockEmojiRepository();
   when(emojis.emoji).thenReturn([]);
   return ProviderScope(
@@ -104,7 +119,21 @@ Widget playFixture(
 }
 
 void nativePlayScenario() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUpAll(() async {
+    // FRB creates its callback receive port lazily. Register it before a widget
+    // test enters FakeAsync, so later API callbacks use live timers rather than
+    // the already-finished zone of the first test.
+    if (!RustLib.instance.initialized) {
+      await RustLib.init();
+    }
+    final script = await AiScript.newInstance(read: (_) => '', write: (_) {});
+    await script.abort();
+    script.dispose();
+  });
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await SharedPreferences.getInstance();
+  });
 
   testWidgets(
     'Play link runs native UI, updates through Rust callbacks, and stops',
@@ -118,11 +147,16 @@ void nativePlayScenario() {
       await tester.tap(find.text('プレイ'));
       await pumpUntil(tester, find.text('カウント: 0'));
       expect(find.text(TestData.account.i.username), findsOneWidget);
-      await tester.tap(find.text('増やす'));
+      await tester.tap(
+        find.ancestor(
+          of: find.text('増やす', findRichText: true),
+          matching: find.byType(FilledButton),
+        ),
+      );
       await pumpUntil(tester, find.text('カウント: 1'));
       await tester.tap(find.text('終了'));
       await pumpUntil(tester, find.text('プレイ'));
-      expect(find.text('増やす'), findsNothing);
+      expect(find.text('増やす', findRichText: true), findsNothing);
       expect(tester.takeException(), isNull);
       verifyNever(launcher.launchUrl(any, any));
     },
@@ -170,6 +204,129 @@ Ui:render([label, toggle])
       tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
       isFalse,
     );
+  });
+
+  testWidgets(
+    'MFM game controls dispatch each event ID, including nested markup',
+    (tester) async {
+      final api = PlayApi(r'''
+/// @ 1.0.0
+let state = Ui:C:text({text: "未選択", size: 1, color: "#fff"})
+Ui:render([
+  Ui:C:mfm({
+    text: "<center><small>$[clickable.ev=0i1 **左**] $[clickable.ev=2i3 $[scale.x=1.2,y=1.2 右]]</small></center>"
+    size: 1
+    onClickEv: @(id) { state.update({text: id}) }
+  })
+  Ui:C:button({text: "**進める**", onClick: @(){ state.update({text: "ボタン成功"}) }})
+  state
+])
+''');
+      await tester.pumpWidget(playFixture(api));
+      await pumpUntil(tester, find.text('プレイ'));
+      await tester.tap(find.text('プレイ'));
+      await pumpUntil(tester, find.text('未選択'));
+      final mfm = tester
+          .widgetList<MfmText>(find.byType(MfmText))
+          .firstWhere((widget) => widget.mfmText!.contains('clickable'));
+      expect(mfm.style!.fontSize, greaterThanOrEqualTo(12));
+      expect(
+        tester.widget<Text>(find.text('未選択')).style!.fontSize,
+        greaterThanOrEqualTo(12),
+      );
+      expect(tester.widget<Text>(find.text('未選択')).style!.color, Colors.white);
+      await tester.tap(find.byKey(const ValueKey('mfm-click:0i1')));
+      await pumpUntil(tester, find.text('0i1'));
+      await tester.tap(find.byKey(const ValueKey('mfm-click:2i3')));
+      await pumpUntil(tester, find.text('2i3'));
+      await tester.tap(
+        find.ancestor(
+          of: find.text('進める', findRichText: true),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      await pumpUntil(tester, find.text('ボタン成功'));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'positioned MFM controls receive taps and delayed animations stop safely',
+    (tester) async {
+      final api = PlayApi(r'''
+/// @ 1.0.0
+let label = Ui:C:text({text: "操作待ち"})
+Ui:render([
+  Ui:C:mfm({text: "$[clickable.ev=board 盤面]", onClickEv: @(id){ label.update({text: id}) }})
+  Ui:C:mfm({text: "$[position.y=-1 $[clickable.ev=pet なでる]]", onClickEv: @(id){ label.update({text: id}) }})
+  Ui:C:mfm({text: "$[tada.delay=20s A] $[bounce.delay=20s B] $[jump.delay=20s C] $[jelly.delay=20s D] $[shake.delay=20s E] $[twitch.delay=20s F] $[spin.delay=20s G] $[rainbow.delay=20s H]"})
+  label
+])
+''');
+      await tester.pumpWidget(playFixture(api));
+      await pumpUntil(tester, find.text('プレイ'));
+      await tester.tap(find.text('プレイ'));
+      await pumpUntil(tester, find.text('操作待ち'));
+      await tester.tap(find.byKey(const ValueKey('mfm-click:pet')));
+      await pumpUntil(tester, find.text('pet'));
+      await tester.tap(find.text('終了'));
+      await pumpUntil(tester, find.text('プレイ'));
+      await tester.pump(const Duration(seconds: 25));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Play API, MFM dialogs and saved state survive restarting', (
+    tester,
+  ) async {
+    final client = Misskey(
+      host: TestData.account.host,
+      token: TestData.account.token,
+    );
+    var requests = 0;
+    client.apiService.dio.interceptors.clear();
+    client.apiService.dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          requests++;
+          expect(options.path, 'pages/show');
+          handler.resolve(
+            Response(requestOptions: options, data: {'value': '取得成功'}),
+          );
+        },
+      ),
+    );
+    final api = PlayApi(r'''
+/// @ 1.0.0
+let data = Mk:api("pages/show", {name: "game-data"})
+let saved = Mk:load("name")
+Ui:render([
+  Ui:C:text({text: if saved == null data.value else saved})
+  Ui:C:button({text: "保存", onClick: @(){
+    Mk:save("name", "保存済み")
+    Mk:dialog("**記録**", "<center>**保存完了**</center>")
+  }})
+])
+''');
+    await tester.pumpWidget(playFixture(api, apiClient: client));
+    await pumpUntil(tester, find.text('プレイ'));
+    await tester.tap(find.text('プレイ'));
+    await pumpUntil(tester, find.text('取得成功'));
+    await tester.tap(
+      find.ancestor(
+        of: find.text('保存', findRichText: true),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    await pumpUntil(tester, find.text('保存完了', findRichText: true));
+    await tester.tap(find.text('閉じる'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('終了'));
+    await pumpUntil(tester, find.text('プレイ'));
+    await tester.tap(find.text('プレイ'));
+    await pumpUntil(tester, find.text('保存済み'));
+    expect(requests, 2);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('fetch errors retry inside the app', (tester) async {
