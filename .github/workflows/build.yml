@@ -42,7 +42,7 @@ jobs:
         uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color
-      - name: Test signing certificate verification
+      - name: Test build tools
         run: python3 -m unittest discover -s tool -p 'test_*.py'
       - name: Test download links and artifact recovery
         run: node --test .github/scripts/downloads.test.cjs
@@ -97,6 +97,13 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            .fvmrc
+            pubspec.lock
+            android/**/*.gradle.kts
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
       - uses: ./.github/actions/setup-flutter
       - name: Select Android architecture
         run: |
@@ -112,11 +119,11 @@ jobs:
           ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
         run: python3 tool/decrypt_android_signing.py
       - name: Build APK
-        run: flutter build apk --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
+        run: python3 tool/run_with_download_retry.py flutter build apk --no-pub --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
       - name: Test Android background notification logic
         working-directory: android
         run: |
-          ./gradlew :app:testReleaseUnitTest -Ptarget-platform="$DMSKY_ANDROID_TARGETS" -Ptree-shake-icons=false --no-daemon
+          python3 ../tool/run_with_download_retry.py ./gradlew :app:testReleaseUnitTest -Ptarget-platform="$DMSKY_ANDROID_TARGETS" -Ptree-shake-icons=false --no-daemon
           test -s ../build/app/test-results/testReleaseUnitTest/TEST-app.dmsky.dmsky_client.notifications.NotificationBatchTest.xml
       - name: Upload Android test reports
         if: always() && hashFiles('build/app/test-results/**/*.xml') != ''
@@ -130,7 +137,7 @@ jobs:
           if-no-files-found: error
       - name: Build app bundle
         if: inputs.build_aab == true
-        run: flutter build appbundle --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
+        run: python3 tool/run_with_download_retry.py flutter build appbundle --no-pub --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
       - name: Verify the fixed certificate and selected ABIs
         run: python3 tool/verify_android_signature.py build/app/outputs/flutter-apk/app-release.apk --variant "$DMSKY_ANDROID_VARIANT"
       - name: Collect Android downloads
@@ -171,13 +178,20 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            .fvmrc
+            pubspec.lock
+            android/**/*.gradle.kts
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
       - uses: ./.github/actions/setup-flutter
       - name: Restore the fixed signing key
         env:
           ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
         run: python3 tool/decrypt_android_signing.py
       - name: Build the release APK for the emulator
-        run: flutter build apk --no-tree-shake-icons --release --target-platform android-x64 --build-number "${{ github.run_number }}"
+        run: python3 tool/run_with_download_retry.py flutter build apk --no-pub --no-tree-shake-icons --release --target-platform android-x64 --build-number "${{ github.run_number }}"
       - name: Free build memory before starting the emulator
         working-directory: android
         run: |
