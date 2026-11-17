@@ -13,6 +13,7 @@ import 'package:misskey_dart/misskey_dart.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+import 'package:url_launcher_platform_interface/link.dart';
 
 import 'default_root_widget.dart';
 import 'mock.mocks.dart';
@@ -31,6 +32,19 @@ let button = Ui:C:button({
 })
 Ui:render([label, button, Ui:C:text({text: USER_USERNAME})])
 ''';
+
+class RecordingUrlLauncher extends UrlLauncherPlatform {
+  int launches = 0;
+
+  @override
+  LinkDelegate? get linkDelegate => null;
+
+  @override
+  Future<bool> launchUrl(String url, LaunchOptions options) async {
+    launches++;
+    return true;
+  }
+}
 
 class PlayApi extends Fake implements MisskeyFlash {
   PlayApi(this.script);
@@ -70,10 +84,14 @@ Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
   expect(
     finder,
     findsWidgets,
-    reason: tester
-        .widgetList<Text>(find.byType(Text))
-        .map((w) => w.data ?? w.textSpan?.toPlainText())
-        .join("\n"),
+    reason: [
+      ...tester
+          .widgetList<Text>(find.byType(Text))
+          .map((w) => w.data ?? w.textSpan?.toPlainText()),
+      ...tester
+          .widgetList<SelectableText>(find.byType(SelectableText))
+          .map((w) => w.data ?? w.textSpan?.toPlainText()),
+    ].join("\n"),
   );
 }
 
@@ -138,8 +156,12 @@ void nativePlayScenario() {
   testWidgets(
     'Play link runs native UI, updates through Rust callbacks, and stops',
     (tester) async {
-      final launcher = MockUrlLauncherPlatform();
+      final previousLauncher = UrlLauncherPlatform.instance;
+      final launcher = RecordingUrlLauncher();
       UrlLauncherPlatform.instance = launcher;
+      addTearDown(() {
+        UrlLauncherPlatform.instance = previousLauncher;
+      });
       final api = PlayApi(counterScript);
       await tester.pumpWidget(playFixture(api, fromLink: true));
       await tester.tap(find.text('Playリンク'));
@@ -159,7 +181,7 @@ void nativePlayScenario() {
       await pumpUntil(tester, find.text('プレイ'));
       expect(find.text('増やす', findRichText: true), findsNothing);
       expect(tester.takeException(), isNull);
-      verifyNever(launcher.launchUrl(any, any));
+      expect(launcher.launches, 0);
     },
   );
 
@@ -294,15 +316,18 @@ Ui:render([
       host: TestData.account.host,
       token: TestData.account.token,
     );
-    var requests = 0;
+    final requests = <String>[];
     client.apiService.dio.interceptors.clear();
     client.apiService.dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          requests++;
-          expect(options.path, 'pages/show');
+          requests.add(options.path);
           handler.resolve(
-            Response(requestOptions: options, data: {'value': '取得成功'}),
+            Response(
+              statusCode: 200,
+              requestOptions: options,
+              data: {'value': '取得成功'},
+            ),
           );
         },
       ),
@@ -336,7 +361,7 @@ Ui:render([
     await pumpUntil(tester, find.text('プレイ'));
     await tester.tap(find.text('プレイ'));
     await pumpUntil(tester, find.text('保存済み'));
-    expect(requests, 2);
+    expect(requests, ['pages/show', 'pages/show']);
     expect(tester.takeException(), isNull);
   });
 
