@@ -1,7 +1,5 @@
 import "dart:async";
-import "dart:math";
 
-import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
@@ -12,6 +10,7 @@ import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/time_line_repository.dart";
 import "package:dmsky_client/view/common/misskey_notes/misskey_note.dart";
 import "package:dmsky_client/view/common/timeline_listview.dart";
+import "package:dmsky_client/view/time_line_page/timeline_items.dart";
 import "package:misskey_dart/misskey_dart.dart";
 
 class MisskeyTimeline extends HookConsumerWidget {
@@ -62,43 +61,23 @@ class MisskeyTimeline extends HookConsumerWidget {
       controller.scrollToTop();
     }
     final repository = ref.watch(timelineProvider(tabSetting));
+    final items = TimelineItems(
+      older: repository.olderNotes,
+      newer: repository.newerNotes,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: TimelineListView.builder(
         reverse: true,
         controller: controller,
-        itemCount:
-            repository.newerNotes.length + repository.olderNotes.length + 1,
+        itemCount: items.length + 1,
         itemBuilder: (context, index) {
-          // final corecctedIndex = index - 5;
-          final correctedNewer = [
-            if (timelineRepository.olderNotes.isNotEmpty)
-              ...timelineRepository.olderNotes
-                  .slice(0, min(5, timelineRepository.olderNotes.length))
-                  .reversed,
-            ...timelineRepository.newerNotes,
-          ];
-          final correctedOlder = [
-            if (timelineRepository.olderNotes.length > 5)
-              ...timelineRepository.olderNotes.slice(
-                5,
-                timelineRepository.olderNotes.length,
-              ),
-          ];
-
-          if (index > 0) {
-            if ((index - 1) >= correctedNewer.length) {
-              return null;
-            }
-
-            return NoteWrapper(
-              targetNote: correctedNewer[index - 1],
-              timeline: timelineRepository,
-            );
+          final note = items[index];
+          if (note != null) {
+            return NoteWrapper(targetNote: note, timeline: repository);
           }
-
-          if (-index == correctedOlder.length) {
+          if (index == -items.olderCount) {
             if (isLastLoaded.value) {
               return const SizedBox.shrink();
             }
@@ -135,14 +114,7 @@ class MisskeyTimeline extends HookConsumerWidget {
             );
           }
 
-          if (-index >= correctedOlder.length) {
-            return null;
-          }
-
-          return NoteWrapper(
-            targetNote: correctedOlder[-index],
-            timeline: timelineRepository,
-          );
+          return null;
         },
       ),
     );

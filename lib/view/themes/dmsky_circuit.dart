@@ -123,6 +123,24 @@ class DmskyPanel extends StatelessWidget {
   }
 }
 
+/// Decodes the shared emblem at its display resolution instead of full size.
+class DmskyEmblem extends StatelessWidget {
+  const DmskyEmblem({this.size = 48, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      "assets/branding/dmsky-emblem.png",
+      width: size,
+      height: size,
+      cacheWidth: (size * MediaQuery.devicePixelRatioOf(context)).ceil(),
+      excludeFromSemantics: true,
+    );
+  }
+}
+
 class DmskyBrand extends StatelessWidget {
   const DmskyBrand({this.large = false, super.key});
 
@@ -133,12 +151,7 @@ class DmskyBrand extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          "assets/branding/dmsky-emblem.png",
-          width: large ? 88 : 48,
-          height: large ? 88 : 48,
-          excludeFromSemantics: true,
-        ),
+        DmskyEmblem(size: large ? 88 : 48),
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -832,7 +832,7 @@ class TestData {
   );
 
   static Future<Uint8List> get binaryImage async => Uint8List.fromList(
-    (await rootBundle.load("assets/images/icon.png")).buffer.asUint8List(),
+    (await rootBundle.load("assets/branding/dmsky-emblem.png")).buffer.asUint8List(),
   );
 
   static Future<Response<Uint8List>> get binaryImageResponse async => Response(

@@ -11,6 +11,7 @@ import "package:dmsky_client/model/acct.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/repository/shared_preference_controller.dart";
 import "package:dmsky_client/util/server_utils.dart";
+import "package:dmsky_client/service/background_notification_service.dart";
 import "package:misskey_dart/misskey_dart.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:shared_preference_app_group/shared_preference_app_group.dart";
@@ -274,6 +275,7 @@ class AccountRepository extends _$AccountRepository {
   }
 
   Future<void> remove(Account account) async {
+    await ref.read(backgroundNotificationServiceProvider).remove(account);
     state = state.where((e) => e != account).toList();
     _validatedAccts.remove(account.acct);
     await ref.read(tabSettingsRepositoryProvider).removeAccount(account);

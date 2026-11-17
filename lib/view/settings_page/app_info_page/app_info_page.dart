@@ -5,6 +5,7 @@ import "package:dmsky_client/l10n/app_localizations.dart";
 import "package:dmsky_client/providers.dart";
 import "package:dmsky_client/view/common/account_scope.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
+import "package:dmsky_client/view/themes/dmsky_circuit.dart";
 import "package:package_info_plus/package_info_plus.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 
@@ -57,7 +58,7 @@ Aria を機能の比較対象にしています。独立した派生クライア
                     showLicensePage(
                       context: context,
                       applicationName: packageInfo?.appName.toString(),
-                      applicationIcon: Image.asset("assets/images/icon.png"),
+                      applicationIcon: const DmskyEmblem(),
                       applicationVersion:
                           "${packageInfo?.version ?? ""}+${packageInfo?.buildNumber.toString() ?? ""}",
                     );

@@ -194,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 初期状態では検索を促すメッセージが表示される
-      expect(find.text("入れてや"), findsOneWidget);
+      expect(find.text("入力してください"), findsOneWidget);
 
       // 検索フィールドを見つけてテキストを入力
       final searchField = find.widgetWithText(TextField, "検索");

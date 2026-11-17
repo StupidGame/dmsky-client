@@ -26,6 +26,9 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // AGP 9 creates unit tests only for this build type. Test the APK built in CI.
+    testBuildType = "release"
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -60,6 +63,7 @@ android {
 
     buildTypes {
         release {
+            proguardFiles("proguard-rules.pro")
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -75,4 +79,11 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+// Native periodic notifications follow the same WorkManager approach as HyperionRSSReader.
+dependencies {
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20250517")
 }

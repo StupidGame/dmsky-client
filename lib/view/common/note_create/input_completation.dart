@@ -35,8 +35,9 @@ class InputComplement extends HookConsumerWidget {
           ref.read(inputCompletionTypeProvider.notifier).state =
               controller.inputCompletionType;
       controller.addListener(updateType);
-      // 初回実行で現在の状態を反映（ビルド完了後に実行）
-      Future(() => updateType());
+      // 初回実行で現在の状態を反映（ビルド完了後のマイクロタスクで実行）
+      // Future() はテスト環境で未処理タイマーとして残ることがあるため使用しない
+      Future.microtask(updateType);
 
       return () => controller.removeListener(updateType);
     }, [controller]);
