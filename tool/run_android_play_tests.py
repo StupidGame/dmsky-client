@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import sys
+import subprocess
 import xml.etree.ElementTree as ET
 
 from run_with_download_retry import run_with_retry
@@ -9,13 +10,25 @@ from run_with_download_retry import run_with_retry
 
 def main():
     root = Path(__file__).resolve().parent.parent
-    code = run_with_retry([
-        str(root / "android/gradlew"), "--project-dir", str(root / "android"),
-        ":app:connectedReleaseAndroidTest",
-        "-Pdmsky-native-play-test=true",
-        f"-Ptarget={root / 'integration_test/native_play_test.dart'}",
-        "-Ptarget-platform=android-x64", "-Ptree-shake-icons=false", "--no-daemon",
-    ])
+    log_path = root / "build/app/outputs/androidTest-results/native-play-logcat.txt"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("w") as log:
+        capture = subprocess.Popen(["adb", "logcat", "-v", "threadtime"], stdout=log, stderr=subprocess.STDOUT)
+        try:
+            code = run_with_retry([
+                str(root / "android/gradlew"), "--project-dir", str(root / "android"),
+                ":app:connectedReleaseAndroidTest",
+                "-Pdmsky-native-play-test=true",
+                f"-Ptarget={root / 'integration_test/native_play_test.dart'}",
+                "-Ptarget-platform=android-x64", "-Ptree-shake-icons=false", "--no-daemon",
+            ])
+        finally:
+            capture.terminate()
+            try:
+                capture.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                capture.kill()
+                capture.wait()
     if code:
         return code
     reports = list((root / "build/app/outputs/androidTest-results").rglob("TEST-*.xml"))

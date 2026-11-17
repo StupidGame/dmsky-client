@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from verify_android_signature import validate_certificate_report
+from verify_android_signature import validate_certificate_report, validate_abis
 
 
 class CertificateReportTest(unittest.TestCase):
@@ -73,6 +73,20 @@ class CertificateReportTest(unittest.TestCase):
                 f"Signer (minSdkVersion=33, maxSdkVersion=2147483647) certificate SHA-256 digest: {self.other_key}\n",
                 self.key,
             )
+
+
+class ApkArchitectureTest(unittest.TestCase):
+    def test_arm64_plugin_libraries_for_other_cpus_are_rejected(self):
+        with self.assertRaises(SystemExit):
+            validate_abis({"lib/arm64-v8a/libapp.so", "lib/x86_64/libmedia.so"}, "arm64")
+
+    def test_each_universal_architecture_must_have_flutter_code(self):
+        files = {"lib/arm64-v8a/libapp.so", "lib/armeabi-v7a/libmedia.so", "lib/x86_64/libmedia.so"}
+        with self.assertRaises(SystemExit):
+            validate_abis(files, "universal")
+        files |= {"lib/armeabi-v7a/libapp.so", "lib/x86_64/libapp.so"}
+        validate_abis(files, "universal")
+        validate_abis({"lib/arm64-v8a/libapp.so", "lib/arm64-v8a/libmedia.so"}, "arm64")
 
 
 if __name__ == "__main__":

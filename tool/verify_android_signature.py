@@ -29,6 +29,16 @@ def validate_certificate_report(output, expected):
         )
 
 
+def validate_abis(files, variant):
+    expected = {"arm64-v8a"} if variant == "arm64" else {"armeabi-v7a", "arm64-v8a", "x86_64"}
+    actual = {name.split("/")[1] for name in files if name.startswith("lib/") and name.endswith(".so")}
+    if actual != expected:
+        raise SystemExit(f"APK architecture mismatch: expected {sorted(expected)}, found {sorted(actual)}")
+    for abi in expected:
+        if f"lib/{abi}/libapp.so" not in files:
+            raise SystemExit(f"APK is missing Flutter code for {abi}.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("apk", type=Path)
@@ -45,10 +55,7 @@ def main():
     apk = args.apk
     with zipfile.ZipFile(apk) as archive:
         files = set(archive.namelist())
-        abis = ["arm64-v8a"] if args.variant == "arm64" else ["armeabi-v7a", "arm64-v8a", "x86_64"]
-        for abi in abis:
-            if f"lib/{abi}/libapp.so" not in files:
-                raise SystemExit(f"APK is missing required architecture {abi}.")
+        validate_abis(files, args.variant)
     result = subprocess.run(
         [str(signer), "verify", "--verbose", "--print-certs", str(apk)],
         check=True, text=True, capture_output=True,

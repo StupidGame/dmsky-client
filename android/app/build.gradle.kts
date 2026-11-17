@@ -15,6 +15,18 @@ val buildingRelease = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
 }
 val nativePlayTest = providers.gradleProperty("dmsky-native-play-test").orNull == "true"
+val requestedAbis = providers.gradleProperty("target-platform")
+    .getOrElse("android-arm,android-arm64,android-x64")
+    .split(",").map { target ->
+        when (target.trim()) {
+            "android-arm" -> "armeabi-v7a"
+            "android-arm64" -> "arm64-v8a"
+            "android-x64" -> "x86_64"
+            else -> throw GradleException("Unsupported Android target: $target")
+        }
+    }
+val splitPerAbi = providers.gradleProperty("split-per-abi").orNull == "true"
+
 if (buildingRelease && !hasReleaseSigning) {
     throw GradleException(
         "Release signing is required. Run tool/decrypt_android_signing.py " +
@@ -43,6 +55,14 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
+        // Flutter's default filter includes all supported ABIs, including
+        // prebuilt libraries from plugins. Package only the requested targets.
+        if (!splitPerAbi) {
+            ndk {
+                abiFilters.clear()
+                abiFilters.addAll(requestedAbis)
+            }
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("boolean", "DMSKY_NATIVE_PLAY_TEST", nativePlayTest.toString())
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION

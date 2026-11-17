@@ -144,6 +144,7 @@ void nativePlayScenario() {
       await tester.pumpWidget(playFixture(api, fromLink: true));
       await tester.tap(find.text('Playリンク'));
       await pumpUntil(tester, find.text('プレイ'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('プレイ'));
       await pumpUntil(tester, find.text('カウント: 0'));
       expect(find.text(TestData.account.i.username), findsOneWidget);
@@ -171,6 +172,7 @@ void nativePlayScenario() {
       await pumpUntil(tester, find.byType(ListTile));
       await tester.tap(find.byType(ListTile).first);
       await pumpUntil(tester, find.text('プレイ'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('プレイ'));
       await pumpUntil(tester, find.text('カウント: 0'));
     },
