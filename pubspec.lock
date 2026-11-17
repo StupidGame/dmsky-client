@@ -356,10 +356,9 @@ packages:
   defer_pointer:
     dependency: "direct main"
     description:
-      name: defer_pointer
-      sha256: d69e6f8c1d0f052d2616cc1db3782e0ea73f42e4c6f6122fd1a548dfe79faf02
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/defer_pointer"
+      relative: true
+    source: path
     version: "0.0.2"
   device_info_plus:
     dependency: "direct main"

@@ -256,10 +256,12 @@ Ui:render([
       final api = PlayApi(r'''
 /// @ 1.0.0
 let label = Ui:C:text({text: "操作待ち"})
+let board = Ui:C:mfm({text: "", onClickEv: @(id){ label.update({text: id}) }})
 Ui:render([
-  Ui:C:mfm({text: "$[clickable.ev=board 盤面]", onClickEv: @(id){ label.update({text: id}) }})
+  board
   Ui:C:mfm({text: "$[position.y=-1 $[clickable.ev=pet なでる]]", onClickEv: @(id){ label.update({text: id}) }})
   Ui:C:mfm({text: "$[tada.delay=20s A] $[bounce.delay=20s B] $[jump.delay=20s C] $[jelly.delay=20s D] $[shake.delay=20s E] $[twitch.delay=20s F] $[spin.delay=20s G] $[rainbow.delay=20s H]"})
+  Ui:C:button({text: "盤面を描画", onClick: @(){board.update({text: "$[clickable.ev=board 盤面]"})}})
   label
 ])
 ''');
@@ -267,6 +269,13 @@ Ui:render([
       await pumpUntil(tester, find.text('プレイ'));
       await tester.tap(find.text('プレイ'));
       await pumpUntil(tester, find.text('操作待ち'));
+      await tester.tap(
+        find.ancestor(
+          of: find.text('盤面を描画', findRichText: true),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      await pumpUntil(tester, find.byKey(const ValueKey('mfm-click:board')));
       await tester.tap(find.byKey(const ValueKey('mfm-click:pet')));
       await pumpUntil(tester, find.text('pet'));
       await tester.tap(find.text('終了'));

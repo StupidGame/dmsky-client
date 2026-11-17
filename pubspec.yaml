@@ -8,7 +8,8 @@ environment:
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
-  defer_pointer: ^0.0.2
+  defer_pointer:
+    path: third_party/defer_pointer
   collection: ^1.16.0
   flutter:
     sdk: flutter
