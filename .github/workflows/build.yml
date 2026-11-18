@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, develop]
     tags: ["v*"]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
   pull_request:
   workflow_dispatch:
     inputs:
@@ -28,7 +31,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: build-${{ github.workflow }}-${{ github.ref }}
+  group: build-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -200,6 +203,10 @@ jobs:
         run: python3 tool/decrypt_android_signing.py
       - name: Build the release APK for the emulator
         run: python3 tool/run_with_download_retry.py flutter build apk --no-tree-shake-icons --release --target-platform android-x64 --build-number "${{ github.run_number }}"
+      - name: Preserve the distribution APK for startup checks
+        run: cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/dmsky-client-startup.apk"
+      - name: Build native Play instrumentation APKs before the emulator
+        run: python3 tool/run_android_play_tests.py --build-only
       - name: Free build memory before starting the emulator
         working-directory: android
         run: |
@@ -218,11 +225,23 @@ jobs:
           target: google_apis
           arch: x86_64
           ram-size: 2048M
-          emulator-options: -no-window -gpu software -no-snapshot -noaudio -no-boot-anim
+          # Avoid the automatic lavapipe/ANGLE backend on headless runners.
+          # https://developer.android.com/studio/run/emulator-troubleshooting
+          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
           script: |
-            python3 tool/smoke_android_startup.py build/app/outputs/flutter-apk/app-release.apk
+            python3 tool/smoke_android_startup.py "$RUNNER_TEMP/dmsky-client-startup.apk"
             python3 tool/run_android_play_tests.py
+      - name: Collect emulator host diagnostics
+        if: always()
+        run: |
+          mkdir -p test-results/android-startup
+          {
+            free -h
+            df -h
+            ps -eo pid,ppid,comm,rss --sort=-rss | head -30
+            sudo dmesg --ctime | tail -200
+          } > test-results/android-startup/host.txt 2>&1 || true
       - name: Upload Android Play integration reports
         if: always() && hashFiles('build/app/outputs/androidTest-results/**') != ''
         uses: actions/upload-artifact@v7
@@ -260,7 +279,7 @@ jobs:
         include:
           - target: ios
             name: iOS unsigned app
-            runner: macos-26
+            runner: macos-26-intel
             artifact: dmsky-client-ios-unsigned
             path: dmsky-client-ios-unsigned.tar.gz
             compression: 0

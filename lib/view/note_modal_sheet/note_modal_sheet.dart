@@ -141,10 +141,12 @@ class NoteModalSheetNotifier extends _$NoteModalSheetNotifier {
     );
 
     final xFile = XFile(path, mimeType: "image/png");
-    await Share.shareXFiles(
-      [xFile],
-      text: "https://$host/notes/${note.id}",
-      sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [xFile],
+        text: "https://$host/notes/${note.id}",
+        sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
+      ),
     );
   }
 

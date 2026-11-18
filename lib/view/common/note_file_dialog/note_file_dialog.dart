@@ -1,6 +1,5 @@
 import "package:dmsky_client/util/app_platform.dart";
 
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_hooks/flutter_hooks.dart";

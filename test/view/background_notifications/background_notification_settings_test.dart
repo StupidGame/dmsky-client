@@ -3,7 +3,7 @@ import "package:flutter_test/flutter_test.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/service/background_notification_service.dart";
-import "package:dmsky_client/view/several_account_settings_page/background_notifications/background_notification_settings.dart";
+import "package:dmsky_client/view/settings_page/background_notification_settings_page.dart";
 
 import "../../test_util/test_datas.dart";
 
@@ -46,12 +46,8 @@ class _Notifications extends BackgroundNotificationService {
 Widget widget(_Notifications service) => ProviderScope(
   overrides: [backgroundNotificationServiceProvider.overrideWithValue(service)],
   child: MaterialApp(
-    home: Scaffold(
-      body: SingleChildScrollView(
-        child: BackgroundNotificationSettings(
-          account: TestData.account.copyWith(token: "test-token"),
-        ),
-      ),
+    home: BackgroundNotificationSettingsPage(
+      account: TestData.account.copyWith(token: "test-token"),
     ),
   ),
 );

@@ -355,38 +355,36 @@ class TimeLinePageState extends ConsumerState<TimeLinePage> {
                 },
               ),
             ),
-            Container(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Focus(
-                      onKeyEvent: (node, event) {
-                        if (event is KeyDownEvent) {
-                          if (event.logicalKey == LogicalKeyboardKey.enter &&
-                              HardwareKeyboard.instance.isControlPressed) {
-                            ref
-                                .read(dialogStateProvider.notifier)
-                                .guard(() => note());
-                            return KeyEventResult.handled;
-                          }
+            Row(
+              children: [
+                Expanded(
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent) {
+                        if (event.logicalKey == LogicalKeyboardKey.enter &&
+                            HardwareKeyboard.instance.isControlPressed) {
+                          ref
+                              .read(dialogStateProvider.notifier)
+                              .guard(() => note());
+                          return KeyEventResult.handled;
                         }
-                        return KeyEventResult.ignored;
-                      },
-                      child: const TimelineNoteField(),
-                    ),
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: const TimelineNoteField(),
                   ),
-                  IconButton(
-                    onPressed: () => ref
-                        .read(dialogStateProvider.notifier)
-                        .guard(() => note()),
-                    icon: const Icon(Icons.send),
-                  ),
-                  IconButton(
-                    onPressed: noteCreateRoute,
-                    icon: const Icon(Icons.edit_note),
-                  ),
-                ],
-              ),
+                ),
+                IconButton(
+                  onPressed: () => ref
+                      .read(dialogStateProvider.notifier)
+                      .guard(() => note()),
+                  icon: const Icon(Icons.send),
+                ),
+                IconButton(
+                  onPressed: noteCreateRoute,
+                  icon: const Icon(Icons.edit_note),
+                ),
+              ],
             ),
             if (tabPosition == TabPosition.bottom &&
                 !ref.watch(timelineFocusNode).hasFocus)
