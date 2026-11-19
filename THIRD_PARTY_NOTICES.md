@@ -19,12 +19,14 @@ Original bundled notices are retained in `lib/licenses.dart` and assets.
 - Source: https://github.com/StupidGame/dmsky
 - License: GNU Affero General Public License v3.
 - Copyright: DMSKY contributors; syuilo and misskey-project for inherited work.
-- Assets: `dmsky-emblem.png`, `dmsky-icon.svg` from
-  `packages/frontend/assets/`.
 - Themes: `packages/frontend-shared/themes/l-dmsky.json5` and `d-dmsky.json5`.
 
-Launcher icons are resized versions of the DMSKY emblem. SVG notices are retained
-in `assets/branding/dmsky-icon.svg`.
+## DMSKY Client branding
+
+The conversation mark in `assets/branding/dmsky-icon.svg` was drawn for this
+client by DMSKY contributors and is licensed under AGPL-3.0-only. The app icon,
+transparent emblem, monochrome variant and platform launcher icons are exports
+of this SVG. The Android notification icon uses the same conversation mark.
 
 ## Dependencies
 
