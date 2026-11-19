@@ -19,7 +19,7 @@ Original bundled notices are retained in `lib/licenses.dart` and assets.
 - Source: https://github.com/StupidGame/dmsky
 - License: GNU Affero General Public License v3.
 - Copyright: DMSKY contributors; syuilo and misskey-project for inherited work.
-- Assets: `dmsky-city.png`, `dmsky-emblem.png`, `dmsky-icon.svg` from
+- Assets: `dmsky-emblem.png`, `dmsky-icon.svg` from
   `packages/frontend/assets/`.
 - Themes: `packages/frontend-shared/themes/l-dmsky.json5` and `d-dmsky.json5`.
 

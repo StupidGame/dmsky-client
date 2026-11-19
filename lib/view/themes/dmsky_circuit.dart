@@ -225,15 +225,6 @@ class DmskyBackdrop extends StatelessWidget {
     final isDark = dark ?? Theme.of(context).brightness == Brightness.dark;
     return DecoratedBox(
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: const ResizeImage(
-            AssetImage('assets/branding/dmsky-city.png'),
-            width: 1024,
-          ),
-          fit: BoxFit.cover,
-          opacity: isDark ? .12 : .24,
-          filterQuality: FilterQuality.low,
-        ),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

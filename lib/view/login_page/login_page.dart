@@ -14,65 +14,49 @@ class LoginPage extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              "assets/branding/dmsky-city.png",
-              fit: BoxFit.cover,
-              cacheWidth: 1024,
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0x660c315b), Color(0xcc06172c)],
-                ),
-              ),
-            ),
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final wide = constraints.maxWidth >= 960;
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(wide ? 48 : 20),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1120),
-                        child: wide
-                            ? Row(
-                                children: [
-                                  const Expanded(child: _Welcome()),
-                                  const SizedBox(width: 64),
-                                  SizedBox(width: 440, child: _LoginPanel()),
-                                ],
-                              )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const DmskyBrand(large: true),
-                                  const SizedBox(height: 28),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 440,
-                                    ),
-                                    child: _LoginPanel(),
+        body: DmskyBackdrop(
+          dark: true,
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 960;
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(wide ? 48 : 20),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: wide
+                          ? Row(
+                              children: [
+                                const Expanded(child: _Welcome()),
+                                const SizedBox(width: 64),
+                                SizedBox(width: 440, child: _LoginPanel()),
+                              ],
+                            )
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const DmskyBrand(large: true),
+                                const SizedBox(height: 28),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 440,
                                   ),
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                    "あなたのサーバーから、つながる世界へ。",
-                                    style: TextStyle(color: Color(0xffd7edfb)),
-                                  ),
-                                ],
-                              ),
-                      ),
+                                  child: _LoginPanel(),
+                                ),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  "あなたのサーバーから、つながる世界へ。",
+                                  style: TextStyle(color: Color(0xffd7edfb)),
+                                ),
+                              ],
+                            ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-          ],
+          ),
         ),
       ),
     );
