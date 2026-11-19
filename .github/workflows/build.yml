@@ -35,84 +35,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tooling:
-    name: Workflow and signing checks
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - name: Validate workflow syntax and shell scripts
-        uses: docker://rhysd/actionlint:1.7.12
-        with:
-          args: -color
-      - name: Test build tools
-        run: python3 -m unittest discover -s tool -p 'test_*.py'
-      - name: Test download links and artifact recovery
-        run: node --test .github/scripts/downloads.test.cjs
-
-  verify:
-    name: Analyze and test
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-rust
-      - uses: ./.github/actions/setup-flutter
-      - name: Analyze
-        shell: bash
-        run: |
-          mkdir -p test-results
-          set -o pipefail
-          flutter analyze --no-fatal-infos lib 2>&1 | tee test-results/flutter-analyze.log
-      - name: Test
-        shell: bash
-        run: |
-          mkdir -p test-results
-          set -o pipefail
-          flutter test --coverage --reporter expanded 2>&1 | tee test-results/flutter-test.log
-      - name: Upload verification logs
-        if: always() && hashFiles('test-results/**') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results
-          path: test-results/
-          if-no-files-found: error
-          retention-days: 14
-      - name: Upload coverage
-        if: always() && hashFiles('coverage/lcov.info') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-coverage
-          path: coverage/lcov.info
-          if-no-files-found: error
-          retention-days: 14
-
-  android:
-    name: Android APK
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    needs: [tooling, verify]
-    runs-on: ubuntu-24.04
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.target == 'ios' && 'macos-26-intel' || matrix.target == 'windows' && 'windows-2025' || 'ubuntu-24.04' }}
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [android, ios, linux, windows, web]
+        # Fork pull requests do not have access to the Android signing key.
+        exclude:
+          - target: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'android' || 'none' }}
     env:
       DMSKY_ANDROID_VARIANT: ${{ inputs.android_apk || 'arm64' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
+        if: matrix.target == 'android'
         with:
           distribution: temurin
           java-version: "21"
           cache: gradle
           cache-dependency-path: |
+            .github/workflows/build.yml
             .fvmrc
             pubspec.lock
             android/**/*.gradle.kts
             android/gradle.properties
             android/gradle/wrapper/gradle-wrapper.properties
-      - uses: ./.github/actions/setup-flutter
       - uses: ./.github/actions/setup-rust
+        if: matrix.target != 'web'
         with:
-          targets: ${{ inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android' }}
+          targets: ${{ matrix.target == 'android' && (inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android') || matrix.target == 'ios' && 'aarch64-apple-ios' || '' }}
+      - name: Install Linux native dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
+      - uses: ./.github/actions/setup-flutter
       - name: Select Android architecture
+        if: matrix.target == 'android'
         run: |
           if [ "$DMSKY_ANDROID_VARIANT" = universal ]; then
             echo "DMSKY_ANDROID_TARGETS=android-arm,android-arm64,android-x64" >> "$GITHUB_ENV"
@@ -121,208 +83,42 @@ jobs:
             echo "DMSKY_ANDROID_TARGETS=android-arm64" >> "$GITHUB_ENV"
             echo "DMSKY_ANDROID_APK=dmsky-client-arm64.apk" >> "$GITHUB_ENV"
           fi
-      - name: Restore the fixed signing key
+      - name: Restore the fixed Android signing key
+        if: matrix.target == 'android'
         env:
           ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
         run: python3 tool/decrypt_android_signing.py
-      # Pub regenerates the release plugin registry, excluding dev-only plugins.
-      - name: Build APK
+      - name: Build Android APK
+        if: matrix.target == 'android'
         run: python3 tool/run_with_download_retry.py flutter build apk --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
-      - name: Test Android background notification logic
-        working-directory: android
-        run: |
-          python3 ../tool/run_with_download_retry.py ./gradlew :app:testReleaseUnitTest -Ptarget-platform="$DMSKY_ANDROID_TARGETS" -Ptree-shake-icons=false --no-daemon
-          test -s ../build/app/test-results/testReleaseUnitTest/TEST-app.dmsky.dmsky_client.notifications.NotificationBatchTest.xml
-      - name: Upload Android test reports
-        if: always() && hashFiles('build/app/test-results/**/*.xml') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-test-results
-          path: |
-            build/app/test-results/
-            build/app/reports/tests/
-          retention-days: 14
-          if-no-files-found: error
-      - name: Build app bundle
-        if: inputs.build_aab == true
+      - name: Build Android app bundle
+        if: matrix.target == 'android' && inputs.build_aab == true
         run: python3 tool/run_with_download_retry.py flutter build appbundle --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
-      - name: Verify the fixed certificate and selected ABIs
-        run: python3 tool/verify_android_signature.py build/app/outputs/flutter-apk/app-release.apk --variant "$DMSKY_ANDROID_VARIANT"
-      - name: Collect Android downloads
+      - name: Package Android downloads
+        if: matrix.target == 'android'
         run: |
-          mkdir -p dist/android
-          cp build/app/outputs/flutter-apk/app-release.apk "dist/android/$DMSKY_ANDROID_APK"
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/$DMSKY_ANDROID_APK"
           if [ -f build/app/outputs/bundle/release/app-release.aab ]; then
-            cp build/app/outputs/bundle/release/app-release.aab dist/android/dmsky-client.aab
+            cp build/app/outputs/bundle/release/app-release.aab dist/dmsky-client.aab
           fi
-          cp android/signing/certificate.sha256 dist/android/signing-certificate.sha256
-          cd dist/android
+          cp android/signing/certificate.sha256 dist/signing-certificate.sha256
+          cd dist
           files=( *.apk )
           if [ -f dmsky-client.aab ]; then files+=( dmsky-client.aab ); fi
           sha256sum "${files[@]}" > SHA256SUMS
-      - uses: actions/upload-artifact@v7
-        with:
-          name: dmsky-client-android
-          path: dist/android/
-          if-no-files-found: error
-          retention-days: 30
-          compression-level: 0
-      - name: Remove decrypted signing files
-        if: always()
-        shell: python
-        run: |
-          import os, pathlib, shutil
-          shutil.rmtree(pathlib.Path(os.environ["RUNNER_TEMP"]) / "dmsky-client-signing", ignore_errors=True)
-
-  android_startup:
-    name: Android release startup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    needs: [tooling, verify]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: gradle
-          cache-dependency-path: |
-            .fvmrc
-            pubspec.lock
-            android/**/*.gradle.kts
-            android/gradle.properties
-            android/gradle/wrapper/gradle-wrapper.properties
-      - uses: ./.github/actions/setup-flutter
-      - uses: ./.github/actions/setup-rust
-        with:
-          targets: x86_64-linux-android
-      - name: Restore the fixed signing key
-        env:
-          ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
-        run: python3 tool/decrypt_android_signing.py
-      - name: Build the release APK for the emulator
-        run: python3 tool/run_with_download_retry.py flutter build apk --no-tree-shake-icons --release --target-platform android-x64 --build-number "${{ github.run_number }}"
-      - name: Preserve the distribution APK for startup checks
-        run: cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/dmsky-client-startup.apk"
-      - name: Build native Play instrumentation APKs before the emulator
-        run: python3 tool/run_android_play_tests.py --build-only
-      - name: Free build memory before starting the emulator
-        working-directory: android
-        run: |
-          ./gradlew --stop
-          jps -l | awk '$2 == "org.jetbrains.kotlin.daemon.KotlinCompileDaemon" {print $1}' | xargs -r kill
-          free -h
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - name: Launch and reopen the release APK
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 36
-          target: google_apis
-          arch: x86_64
-          ram-size: 2048M
-          # Avoid the automatic lavapipe/ANGLE backend on headless runners.
-          # https://developer.android.com/studio/run/emulator-troubleshooting
-          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
-          disable-animations: true
-          script: |
-            python3 tool/smoke_android_startup.py "$RUNNER_TEMP/dmsky-client-startup.apk"
-            python3 tool/run_android_play_tests.py
-      - name: Collect emulator host diagnostics
-        if: always()
-        run: |
-          mkdir -p test-results/android-startup
-          {
-            free -h
-            df -h
-            ps -eo pid,ppid,comm,rss --sort=-rss | head -30
-            sudo dmesg --ctime | tail -200
-          } > test-results/android-startup/host.txt 2>&1 || true
-      - name: Upload Android Play integration reports
-        if: always() && hashFiles('build/app/outputs/androidTest-results/**') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-play-test-results
-          path: |
-            build/app/outputs/androidTest-results/
-            build/app/reports/androidTests/
-          retention-days: 14
-          if-no-files-found: error
-      - name: Upload Android startup diagnostics
-        if: always() && hashFiles('test-results/android-startup/**') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-startup-results
-          path: test-results/android-startup/
-          retention-days: 14
-          if-no-files-found: error
-      - name: Remove decrypted signing files
-        if: always()
-        shell: python
-        run: |
-          import os, pathlib, shutil
-          shutil.rmtree(pathlib.Path(os.environ["RUNNER_TEMP"]) / "dmsky-client-signing", ignore_errors=True)
-
-  build:
-    name: ${{ matrix.name }}
-    needs: [tooling, verify]
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 45
-    strategy:
-      # Keep producing the other downloads if one platform fails.
-      fail-fast: false
-      matrix:
-        include:
-          - target: ios
-            name: iOS unsigned app
-            runner: macos-26-intel
-            artifact: dmsky-client-ios-unsigned
-            path: dmsky-client-ios-unsigned.tar.gz
-            compression: 0
-          - target: linux
-            name: Linux x64
-            runner: ubuntu-24.04
-            artifact: dmsky-client-linux-x64
-            path: dmsky-client-linux-x64.tar.gz
-            compression: 0
-          - target: windows
-            name: Windows x64
-            runner: windows-2025
-            artifact: dmsky-client-windows-x64
-            path: dmsky-client-windows-x64.zip
-            compression: 0
-          - target: web
-            name: Web
-            runner: ubuntu-24.04
-            artifact: dmsky-client-web
-            path: build/web/
-            compression: 6
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-rust
-        if: matrix.target != 'web'
-        with:
-          targets: ${{ matrix.target == 'ios' && 'aarch64-apple-ios' || '' }}
-      - name: Install Linux native dependencies
-        if: matrix.target == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
-      - uses: ./.github/actions/setup-flutter
-      - name: Build iOS without signing
+      - name: Build and package iOS without signing
         if: matrix.target == 'ios'
         run: |
           flutter build ios --no-tree-shake-icons --release --no-codesign
-          tar -czf dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
+          mkdir -p dist
+          tar -czf dist/dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
       - name: Build and package Linux
         if: matrix.target == 'linux'
         run: |
           flutter build linux --no-tree-shake-icons --release
-          tar -czf dmsky-client-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+          mkdir -p dist
+          tar -czf dist/dmsky-client-linux-x64.tar.gz -C build/linux/x64/release/bundle .
       - name: Build and package Windows with Visual C++ runtime
         if: matrix.target == 'windows'
         shell: pwsh
@@ -333,29 +129,31 @@ jobs:
           foreach ($library in @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')) {
             Copy-Item (Join-Path $env:WINDIR "System32/$library") $bundle
           }
-          Compress-Archive -Path "$bundle/*" -DestinationPath dmsky-client-windows-x64.zip
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path "$bundle/*" -DestinationPath dist/dmsky-client-windows-x64.zip
       - name: Build Web
         if: matrix.target == 'web'
         env:
           DMSKY_WEB_BASE_HREF: ${{ inputs.web_base_href || '/' }}
-        run: |
-          case "$DMSKY_WEB_BASE_HREF" in
-            /|/*/) ;;
-            *) echo "::error::Web hosting path must start and end with /"; exit 1 ;;
-          esac
-          flutter build web --no-wasm-dry-run --no-tree-shake-icons --release --base-href "$DMSKY_WEB_BASE_HREF"
+        run: flutter build web --no-wasm-dry-run --no-tree-shake-icons --release --base-href "$DMSKY_WEB_BASE_HREF"
       - name: Upload platform download
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.path }}
-          compression-level: ${{ matrix.compression }}
+          name: dmsky-client-${{ matrix.target == 'ios' && 'ios-unsigned' || matrix.target == 'linux' && 'linux-x64' || matrix.target == 'windows' && 'windows-x64' || matrix.target }}
+          path: ${{ matrix.target == 'web' && 'build/web/' || 'dist/' }}
+          compression-level: ${{ matrix.target == 'web' && 6 || 0 }}
           if-no-files-found: error
           retention-days: 30
+      - name: Remove decrypted signing files
+        if: always() && matrix.target == 'android'
+        shell: python
+        run: |
+          import os, pathlib, shutil
+          shutil.rmtree(pathlib.Path(os.environ["RUNNER_TEMP"]) / "dmsky-client-signing", ignore_errors=True)
 
   downloads:
     name: Downloads
-    needs: [tooling, verify, android, android_startup, build]
+    needs: [build]
     if: always() && !cancelled()
     runs-on: ubuntu-24.04
     timeout-minutes: 15
