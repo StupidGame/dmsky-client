@@ -32,7 +32,8 @@ import "package:dmsky_client/view/common/misskey_notes/note_vote.dart";
 import "package:dmsky_client/view/common/misskey_notes/reaction_button.dart";
 import "package:dmsky_client/view/dialogs/simple_confirm_dialog.dart";
 import "package:dmsky_client/view/themes/app_theme.dart";
-import "package:misskey_dart/misskey_dart.dart";
+import "package:dmsky_client/view/themes/dmsky_circuit.dart";
+import "package:misskey_dart/misskey_dart.dart" hide Clip;
 
 class MisskeyNote extends HookConsumerWidget {
   final Note note;
@@ -479,6 +480,10 @@ class MisskeyNote extends HookConsumerWidget {
     final buildParent = useCallback<Widget Function({required Widget child})>(({
       required child,
     }) {
+      final framed =
+          recursive == 1 &&
+          isDisplayBorder &&
+          isDmskyTheme(AppTheme.of(context).colorTheme);
       return MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: recursive > 1
@@ -491,11 +496,15 @@ class MisskeyNote extends HookConsumerWidget {
             alignment: Alignment.center,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 800),
-              padding: EdgeInsets.only(
-                top: MediaQuery.textScalerOf(context).scale(5),
-                bottom: MediaQuery.textScalerOf(context).scale(5),
-              ),
-              decoration: isDisplayBorder
+              padding: framed
+                  ? EdgeInsets.zero
+                  : EdgeInsets.only(
+                      top: MediaQuery.textScalerOf(context).scale(5),
+                      bottom: MediaQuery.textScalerOf(context).scale(5),
+                    ),
+              decoration: framed
+                  ? null
+                  : isDisplayBorder
                   ? BoxDecoration(
                       //TODO: 動いていないっぽい
                       // color: widget.recursive == 1 &&
@@ -514,7 +523,21 @@ class MisskeyNote extends HookConsumerWidget {
                           ? Theme.of(context).scaffoldBackgroundColor
                           : null,
                     ),
-              child: child,
+              child: framed
+                  ? DmskyPanel(
+                      style: DmskyPanelStyle.surface,
+                      clipBehavior: Clip.none,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 5,
+                      ),
+                      child: child,
+                    )
+                  : child,
             ),
           ),
         ),

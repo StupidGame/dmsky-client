@@ -7,6 +7,7 @@ import "package:flutter_hooks/flutter_hooks.dart";
 import "package:dmsky_client/view/aiscript/play_editor_page.dart";
 import "package:dmsky_client/view/common/misskey_notes/mfm_text.dart";
 import "package:dmsky_client/view/search_page/play_search.dart";
+import "package:dmsky_client/view/themes/dmsky_circuit.dart";
 import "package:misskey_dart/misskey_dart.dart";
 
 /// Misskey Play のおすすめ・自分の作品・お気に入り・検索をまとめた画面。
@@ -24,8 +25,7 @@ class ExplorePlay extends ConsumerWidget {
       length: 4,
       child: Column(
         children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
+          DmskyHeader(
             child: Row(
               children: [
                 const Expanded(

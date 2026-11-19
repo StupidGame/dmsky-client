@@ -17,13 +17,17 @@ class LoginPage extends StatelessWidget {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset("assets/branding/dmsky-city.png", fit: BoxFit.cover),
+            Image.asset(
+              "assets/branding/dmsky-city.png",
+              fit: BoxFit.cover,
+              cacheWidth: 1024,
+            ),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xb3081321), Color(0xeb081321)],
+                  colors: [Color(0x660c315b), Color(0xcc06172c)],
                 ),
               ),
             ),
@@ -138,39 +142,24 @@ class _FeatureChip extends StatelessWidget {
 class _LoginPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xffd0e0e9), dmskySilver, Color(0xff254158)],
-        ),
-        boxShadow: const [BoxShadow(color: Color(0x66000814), blurRadius: 30)],
-      ),
+    return DmskyPanel(
+      style: DmskyPanelStyle.surface,
       child: Material(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(3),
-        clipBehavior: Clip.antiAlias,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xff195f9c), Color(0xff103e80)],
-                ),
-                border: Border(bottom: BorderSide(color: dmskyCyan)),
-              ),
-              child: Text(
-                S.of(context).login,
-                style: const TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            DmskyHeader(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  S.of(context).login,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: dmskyGoldLight,
+                  ),
                 ),
               ),
             ),
