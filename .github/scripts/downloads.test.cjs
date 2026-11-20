@@ -58,13 +58,13 @@ function fixture(t, artifacts = original, started = firstStart) {
 test("chooses the newest usable artifact and ignores diagnostics and expired copies", () => {
   const artifacts = [
     ...original,
-    { ...original[0], id: 6, created_at: "2026-11-13T08:00:00Z" },
-    { ...original[0], id: 7, created_at: "2026-11-13T08:01:00Z", expired: true },
-    { ...original[0], id: 8, name: "android-startup-results" },
+    { ...original[0], id: 21, created_at: "2026-11-13T08:00:00Z" },
+    { ...original[0], id: 22, created_at: "2026-11-13T08:01:00Z", expired: true },
+    { ...original[0], id: 23, name: "android-startup-results" },
   ];
-  assert.equal(selectArtifacts(artifacts)[0].artifact.id, 6);
+  assert.equal(selectArtifacts(artifacts)[0].artifact.id, 21);
   assert.equal(artifacts[0].id, 1);
-  assert.equal(selectArtifacts(artifacts).length, 5);
+  assert.equal(selectArtifacts(artifacts).length, platforms.length);
 });
 
 test("first build uses the original downloads without duplicate uploads", async (t) => {
@@ -80,7 +80,7 @@ test("first build uses the original downloads without duplicate uploads", async 
 test("job retry recovers every platform's binary byte for byte", async (t) => {
   const f = fixture(t, original, retryStart);
   await prepare(f);
-  assert.deepEqual(f.calls, [1, 2, 3, 4, 5]);
+  assert.deepEqual(f.calls, original.map(({ id }) => id));
   for (const { key } of platforms) {
     assert.equal(f.outputs[`restore_${key}`], "true");
     assert.deepEqual(fs.readFileSync(path.join(f.directory, key, "app.apk")), payload);
@@ -92,7 +92,7 @@ test("mixed retry only recovers platforms which did not rebuild in this attempt"
   const f = fixture(t, [...original, fresh], retryStart);
   await prepare(f);
   assert.equal(f.outputs.restore_android, "false");
-  assert.deepEqual(f.calls, [2, 3, 4, 5]);
+  assert.deepEqual(f.calls, original.slice(1).map(({ id }) => id));
   assert.equal(fs.existsSync(path.join(f.directory, "android")), false);
 });
 
@@ -103,8 +103,8 @@ test("summary links to the republished artifacts in the latest attempt", async (
     `restore_${key}`, { outcome: "success", outputs: { "artifact-id": String(101 + i) } },
   ]));
   await publishSummary({ ...f, steps, needs: { build: { result: "success" } } });
-  for (let id = 101; id <= 105; id++) assert.match(f.summaries[0], new RegExp(`artifacts/${id}\\)`));
-  assert.doesNotMatch(f.summaries[0], /artifacts\/[1-5]\)/);
+  for (let id = 101; id < 101 + platforms.length; id++) assert.match(f.summaries[0], new RegExp(`artifacts/${id}\\)`));
+  assert.doesNotMatch(f.summaries[0], /artifacts\/[1-6]\)/);
   assert.doesNotMatch(f.summaries[0], /起動・再表示テスト/);
   assert.equal(f.failures.length, 0);
 });
@@ -133,7 +133,7 @@ test("failed artifact recovery is reported while the source link stays usable", 
   const f = fixture(t, original, retryStart);
   await prepare(f);
   await publishSummary({ ...f, steps: {} });
-  assert.equal(f.failures.length, 5);
+  assert.equal(f.failures.length, platforms.length);
   assert.match(f.summaries[0], /artifacts\/1/);
 });
 

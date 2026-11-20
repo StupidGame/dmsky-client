@@ -5,6 +5,7 @@ const { execFileSync } = require("node:child_process");
 const platforms = [
   { key: "android", name: "dmsky-client-android", label: "Android", description: "署名済み APK（ZIPを展開してインストール）" },
   { key: "ios", name: "dmsky-client-ios-unsigned", label: "iOS", description: "未署名の Runner.app" },
+  { key: "macos", name: "dmsky-client-macos-universal", label: "macOS（Apple Silicon・Intel）", description: "macOS 12以降用 .app（アドホック署名・未公証）" },
   { key: "linux", name: "dmsky-client-linux-x64", label: "Linux x64", description: "アプリ・共有ライブラリ・データ一式" },
   { key: "windows", name: "dmsky-client-windows-x64", label: "Windows x64", description: "EXE・DLL・データ一式" },
   { key: "web", name: "dmsky-client-web", label: "Web", description: "Webサーバーへ配置するファイル一式" },
@@ -70,7 +71,7 @@ function renderSummary({ rows, serverUrl, repository, runId }) {
     lines.push(`| ${row.label} | ${link} | ${row.description} |`);
   }
   lines.push("",
-    "iOSの実機インストールにはAppleの署名が必要です。成果物の保存期間は30日です。", "");
+    "iOSの実機インストールにはAppleの署名が必要です。macOS版はDeveloper ID署名・公証を行っていません。成果物の保存期間は30日です。", "");
   return lines.join("\n");
 }
 

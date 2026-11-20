@@ -37,12 +37,12 @@ concurrency:
 jobs:
   build:
     name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.target == 'ios' && 'macos-26-intel' || matrix.target == 'windows' && 'windows-2025' || 'ubuntu-24.04' }}
+    runs-on: ${{ (matrix.target == 'ios' || matrix.target == 'macos') && 'macos-26-intel' || matrix.target == 'windows' && 'windows-2025' || 'ubuntu-24.04' }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        target: [android, ios, linux, windows, web]
+        target: [android, ios, macos, linux, windows, web]
         # Fork pull requests do not have access to the Android signing key.
         exclude:
           - target: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'android' || 'none' }}
@@ -66,7 +66,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
         if: matrix.target != 'web'
         with:
-          targets: ${{ matrix.target == 'android' && (inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android') || matrix.target == 'ios' && 'aarch64-apple-ios' || '' }}
+          targets: ${{ matrix.target == 'android' && (inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android') || matrix.target == 'ios' && 'aarch64-apple-ios' || matrix.target == 'macos' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - name: Install Linux native dependencies
         if: matrix.target == 'linux'
         run: |
@@ -113,6 +113,14 @@ jobs:
           flutter build ios --no-tree-shake-icons --release --no-codesign
           mkdir -p dist
           tar -czf dist/dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
+      - name: Build and package macOS for Apple Silicon and Intel
+        if: matrix.target == 'macos'
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "12.0"
+        run: |
+          flutter build macos --no-tree-shake-icons --release --build-number "${{ github.run_number }}"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "build/macos/Build/Products/Release/DMSKY Client.app" dist/dmsky-client-macos-universal.zip
       - name: Build and package Linux
         if: matrix.target == 'linux'
         run: |
@@ -139,7 +147,7 @@ jobs:
       - name: Upload platform download
         uses: actions/upload-artifact@v7
         with:
-          name: dmsky-client-${{ matrix.target == 'ios' && 'ios-unsigned' || matrix.target == 'linux' && 'linux-x64' || matrix.target == 'windows' && 'windows-x64' || matrix.target }}
+          name: dmsky-client-${{ matrix.target == 'ios' && 'ios-unsigned' || matrix.target == 'macos' && 'macos-universal' || matrix.target == 'linux' && 'linux-x64' || matrix.target == 'windows' && 'windows-x64' || matrix.target }}
           path: ${{ matrix.target == 'web' && 'build/web/' || 'dist/' }}
           compression-level: ${{ matrix.target == 'web' && 6 || 0 }}
           if-no-files-found: error
@@ -185,6 +193,16 @@ jobs:
         with:
           name: dmsky-client-ios-unsigned
           path: ${{ runner.temp }}/dmsky-downloads/ios/
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+      - name: Restore macOS download to this attempt
+        if: steps.prepare.outputs.restore_macos == 'true'
+        id: restore_macos
+        uses: actions/upload-artifact@v7
+        with:
+          name: dmsky-client-macos-universal
+          path: ${{ runner.temp }}/dmsky-downloads/macos/
           retention-days: 30
           compression-level: 0
           if-no-files-found: error
