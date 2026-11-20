@@ -57,9 +57,13 @@ class MisskeyTimeline extends HookConsumerWidget {
       });
     }, [isDownDirectionLoading]);
 
-    if (controller.positions.isNotEmpty) {
-      controller.scrollToTop();
-    }
+    useEffect(() {
+      if (controller.positions.isNotEmpty) {
+        controller.scrollToTop();
+      }
+      return null;
+    }, [controller, tabSetting]);
+
     final repository = ref.watch(timelineProvider(tabSetting));
     final items = TimelineItems(
       older: repository.olderNotes,

@@ -65,10 +65,7 @@ class TabSettingsListPage extends ConsumerWidget {
                     );
                   }
                 },
-                onReorder: (oldIndex, newIndex) async {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
+                onReorderItem: (oldIndex, newIndex) async {
                   final item = tabSettings.removeAt(oldIndex);
                   tabSettings.insert(newIndex, item);
                   await ref

@@ -483,10 +483,9 @@ class AccountRepository extends _$AccountRepository {
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
-    final actualIndex = newIndex - (oldIndex < newIndex ? 1 : 0);
     final newState = state.toList();
     final item = newState.removeAt(oldIndex);
-    newState.insert(actualIndex, item);
+    newState.insert(newIndex, item);
     state = newState;
 
     await _save();

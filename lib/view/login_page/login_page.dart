@@ -14,61 +14,49 @@ class LoginPage extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset("assets/branding/dmsky-city.png", fit: BoxFit.cover),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xb3081321), Color(0xeb081321)],
-                ),
-              ),
-            ),
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final wide = constraints.maxWidth >= 960;
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(wide ? 48 : 20),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1120),
-                        child: wide
-                            ? Row(
-                                children: [
-                                  const Expanded(child: _Welcome()),
-                                  const SizedBox(width: 64),
-                                  SizedBox(width: 440, child: _LoginPanel()),
-                                ],
-                              )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const DmskyBrand(large: true),
-                                  const SizedBox(height: 28),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 440,
-                                    ),
-                                    child: _LoginPanel(),
+        body: DmskyBackdrop(
+          dark: true,
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 960;
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(wide ? 48 : 20),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: wide
+                          ? Row(
+                              children: [
+                                const Expanded(child: _Welcome()),
+                                const SizedBox(width: 64),
+                                SizedBox(width: 440, child: _LoginPanel()),
+                              ],
+                            )
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const DmskyBrand(large: true),
+                                const SizedBox(height: 28),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 440,
                                   ),
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                    "あなたのサーバーから、つながる世界へ。",
-                                    style: TextStyle(color: Color(0xffd7edfb)),
-                                  ),
-                                ],
-                              ),
-                      ),
+                                  child: _LoginPanel(),
+                                ),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  "あなたのサーバーから、つながる世界へ。",
+                                  style: TextStyle(color: Color(0xffd7edfb)),
+                                ),
+                              ],
+                            ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -138,39 +126,24 @@ class _FeatureChip extends StatelessWidget {
 class _LoginPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xffd0e0e9), dmskySilver, Color(0xff254158)],
-        ),
-        boxShadow: const [BoxShadow(color: Color(0x66000814), blurRadius: 30)],
-      ),
+    return DmskyPanel(
+      style: DmskyPanelStyle.surface,
       child: Material(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(3),
-        clipBehavior: Clip.antiAlias,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xff195f9c), Color(0xff103e80)],
-                ),
-                border: Border(bottom: BorderSide(color: dmskyCyan)),
-              ),
-              child: Text(
-                S.of(context).login,
-                style: const TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            DmskyHeader(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  S.of(context).login,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: dmskyGoldLight,
+                  ),
                 ),
               ),
             ),

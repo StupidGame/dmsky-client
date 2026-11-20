@@ -53,13 +53,13 @@ class ImageViewer extends HookConsumerWidget {
                 final v = transformationController.toScene(position);
 
                 transformationController.value = Matrix4.identity()
-                  ..scale(provider.scale);
+                  ..scaleByDouble(provider.scale, provider.scale, provider.scale, 1);
 
                 final v2 = transformationController.toScene(position) - v;
 
                 transformationController.value =
                     transformationController.value.clone()
-                      ..translate(v2.dx, v2.dy);
+                      ..translateByDouble(v2.dx, v2.dy, 0, 1);
               }
               if (commentVisibility.value == VisibilityStatus.visible) {
                 commentVisibility.value = VisibilityStatus.hiding;
@@ -99,8 +99,8 @@ class ImageViewer extends HookConsumerWidget {
                       .lastTapLocalPosition;
                   if (position == null) return;
                   transformationController.value = Matrix4.identity()
-                    ..translate(-position.dx * 2, -position.dy * 2)
-                    ..scale(3.0);
+                    ..translateByDouble(-position.dx * 2, -position.dy * 2, 0, 1)
+                    ..scaleByDouble(3, 3, 3, 1);
                   ref
                       .read(imageViewerInfoProvider.notifier)
                       .update(

@@ -58,13 +58,13 @@ function fixture(t, artifacts = original, started = firstStart) {
 test("chooses the newest usable artifact and ignores diagnostics and expired copies", () => {
   const artifacts = [
     ...original,
-    { ...original[0], id: 6, created_at: "2026-11-13T08:00:00Z" },
-    { ...original[0], id: 7, created_at: "2026-11-13T08:01:00Z", expired: true },
-    { ...original[0], id: 8, name: "android-startup-results" },
+    { ...original[0], id: 21, created_at: "2026-11-13T08:00:00Z" },
+    { ...original[0], id: 22, created_at: "2026-11-13T08:01:00Z", expired: true },
+    { ...original[0], id: 23, name: "android-startup-results" },
   ];
-  assert.equal(selectArtifacts(artifacts)[0].artifact.id, 6);
+  assert.equal(selectArtifacts(artifacts)[0].artifact.id, 21);
   assert.equal(artifacts[0].id, 1);
-  assert.equal(selectArtifacts(artifacts).length, 5);
+  assert.equal(selectArtifacts(artifacts).length, platforms.length);
 });
 
 test("first build uses the original downloads without duplicate uploads", async (t) => {
@@ -72,15 +72,15 @@ test("first build uses the original downloads without duplicate uploads", async 
   await prepare(f);
   assert.deepEqual(f.calls, []);
   assert.ok(Object.values(f.outputs).every((value) => value === "false"));
-  await publishSummary({ ...f, needs: { android: { result: "success" }, build: { result: "success" } } });
+  await publishSummary({ ...f, needs: { build: { result: "success" } } });
   assert.equal(f.failures.length, 0);
   assert.match(f.summaries[0], /runs\/293\/artifacts\/1/);
 });
 
-test("test-only retry recovers every platform's binary byte for byte", async (t) => {
+test("job retry recovers every platform's binary byte for byte", async (t) => {
   const f = fixture(t, original, retryStart);
   await prepare(f);
-  assert.deepEqual(f.calls, [1, 2, 3, 4, 5]);
+  assert.deepEqual(f.calls, original.map(({ id }) => id));
   for (const { key } of platforms) {
     assert.equal(f.outputs[`restore_${key}`], "true");
     assert.deepEqual(fs.readFileSync(path.join(f.directory, key, "app.apk")), payload);
@@ -92,7 +92,7 @@ test("mixed retry only recovers platforms which did not rebuild in this attempt"
   const f = fixture(t, [...original, fresh], retryStart);
   await prepare(f);
   assert.equal(f.outputs.restore_android, "false");
-  assert.deepEqual(f.calls, [2, 3, 4, 5]);
+  assert.deepEqual(f.calls, original.slice(1).map(({ id }) => id));
   assert.equal(fs.existsSync(path.join(f.directory, "android")), false);
 });
 
@@ -102,17 +102,17 @@ test("summary links to the republished artifacts in the latest attempt", async (
   const steps = Object.fromEntries(platforms.map(({ key }, i) => [
     `restore_${key}`, { outcome: "success", outputs: { "artifact-id": String(101 + i) } },
   ]));
-  await publishSummary({ ...f, steps, needs: { android_startup: { result: "success" } } });
-  for (let id = 101; id <= 105; id++) assert.match(f.summaries[0], new RegExp(`artifacts/${id}\\)`));
-  assert.doesNotMatch(f.summaries[0], /artifacts\/[1-5]\)/);
-  assert.match(f.summaries[0], /起動・再表示テスト: \*\*成功\*\*/);
+  await publishSummary({ ...f, steps, needs: { build: { result: "success" } } });
+  for (let id = 101; id < 101 + platforms.length; id++) assert.match(f.summaries[0], new RegExp(`artifacts/${id}\\)`));
+  assert.doesNotMatch(f.summaries[0], /artifacts\/[1-6]\)/);
+  assert.doesNotMatch(f.summaries[0], /起動・再表示テスト/);
   assert.equal(f.failures.length, 0);
 });
 
 test("missing outputs fail a successful build but keep the available download links", async (t) => {
   const f = fixture(t, original.slice(1));
   await prepare(f);
-  await publishSummary({ ...f, needs: { android: { result: "success" }, build: { result: "success" } } });
+  await publishSummary({ ...f, needs: { build: { result: "success" } } });
   assert.equal(f.failures.length, 1);
   assert.match(f.failures[0], /Android/);
   assert.match(f.summaries[0], /未作成・期限切れ/);
@@ -122,7 +122,10 @@ test("missing outputs fail a successful build but keep the available download li
 test("skipped Android on a fork does not fail the other platform downloads", async (t) => {
   const f = fixture(t, original.slice(1));
   await prepare(f);
-  await publishSummary({ ...f, needs: { android: { result: "skipped" }, build: { result: "success" } } });
+  await publishSummary({ ...f, context: {
+    ...context, eventName: "pull_request",
+    payload: { pull_request: { head: { repo: { full_name: "fork/client" } } } },
+  }, needs: { build: { result: "success" } } });
   assert.equal(f.failures.length, 0);
 });
 
@@ -130,7 +133,7 @@ test("failed artifact recovery is reported while the source link stays usable", 
   const f = fixture(t, original, retryStart);
   await prepare(f);
   await publishSummary({ ...f, steps: {} });
-  assert.equal(f.failures.length, 5);
+  assert.equal(f.failures.length, platforms.length);
   assert.match(f.summaries[0], /artifacts\/1/);
 });
 
@@ -140,12 +143,12 @@ test("invalid retry metadata fails before downloading binaries", async (t) => {
   assert.deepEqual(f.calls, []);
 });
 
-test("summary uses direct artifact URLs and distinguishes failed startup checks", () => {
+test("summary uses direct artifact URLs without removed verification results", () => {
   const markdown = renderSummary({
     rows: selectArtifacts(original), serverUrl: "https://github.example.test",
-    repository: "example/client", runId: 293, needs: { android_startup: { result: "failure" } },
+    repository: "example/client", runId: 293,
   });
   assert.match(markdown, /https:\/\/github.example.test\/example\/client\/actions\/runs\/293\/artifacts\/1/);
-  assert.match(markdown, /起動・再表示テスト: \*\*失敗\*\*/);
+  assert.doesNotMatch(markdown, /起動・再表示テスト|検証/);
   assert.match(markdown, /未署名/);
 });

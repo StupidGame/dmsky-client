@@ -151,7 +151,7 @@ class UserNotes extends HookConsumerWidget {
                       UsersNotesRequest(
                         userId: remoteUserId ?? userId,
                         withFiles: isFileOnly.value,
-                        // 後方互換性のため
+                        // Keep legacy flags for servers that still read them.
                         includeReplies: withReply.value,
                         includeMyRenotes: renote.value,
                         withReplies: withReply.value,
@@ -186,6 +186,7 @@ class UserNotes extends HookConsumerWidget {
                         userId: remoteUserId ?? userId,
                         untilId: lastElement.id,
                         withFiles: isFileOnly.value,
+                        // Keep legacy flags for servers that still read them.
                         includeReplies: withReply.value,
                         includeMyRenotes: renote.value,
                         withReplies: withReply.value,

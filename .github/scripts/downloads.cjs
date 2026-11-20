@@ -5,6 +5,7 @@ const { execFileSync } = require("node:child_process");
 const platforms = [
   { key: "android", name: "dmsky-client-android", label: "Android", description: "署名済み APK（ZIPを展開してインストール）" },
   { key: "ios", name: "dmsky-client-ios-unsigned", label: "iOS", description: "未署名の Runner.app" },
+  { key: "macos", name: "dmsky-client-macos-universal", label: "macOS（Apple Silicon・Intel）", description: "macOS 12以降用 .app（アドホック署名・未公証）" },
   { key: "linux", name: "dmsky-client-linux-x64", label: "Linux x64", description: "アプリ・共有ライブラリ・データ一式" },
   { key: "windows", name: "dmsky-client-windows-x64", label: "Windows x64", description: "EXE・DLL・データ一式" },
   { key: "web", name: "dmsky-client-web", label: "Web", description: "Webサーバーへ配置するファイル一式" },
@@ -56,10 +57,8 @@ async function prepare({
   fs.writeFileSync(path.join(directory, "manifest.json"), JSON.stringify(rows));
 }
 
-function renderSummary({ rows, serverUrl, repository, runId, needs }) {
+function renderSummary({ rows, serverUrl, repository, runId }) {
   const runUrl = `${serverUrl}/${repository}/actions/runs/${runId}`;
-  const status = { success: "成功", failure: "失敗", skipped: "未実施", cancelled: "中止" };
-  const startup = status[needs.android_startup?.result] ?? "未実施";
   const lines = [
     "## ダウンロード", "",
     "GitHubにログインしてリンクを開いてください。AndroidはZIPを展開してAPKをインストールできます。", "",
@@ -71,8 +70,8 @@ function renderSummary({ rows, serverUrl, repository, runId, needs }) {
       : "未作成・期限切れ";
     lines.push(`| ${row.label} | ${link} | ${row.description} |`);
   }
-  lines.push("", `Androidの起動・再表示テスト: **${startup}**。`, "",
-    "iOSの実機インストールにはAppleの署名が必要です。成果物の保存期間は30日です。", "");
+  lines.push("",
+    "iOSの実機インストールにはAppleの署名が必要です。macOS版はDeveloper ID署名・公証を行っていません。成果物の保存期間は30日です。", "");
   return lines.join("\n");
 }
 
@@ -92,13 +91,15 @@ async function publishSummary({
       core.setFailed(`${row.label} の成果物を最新画面に再掲できませんでした`);
     }
   }
-  const missing = rows.filter((row) => !row.artifact &&
-    (row.key === "android" ? needs.android?.result === "success" : needs.build?.result === "success"));
+  const forkPullRequest = context.eventName === "pull_request" &&
+    context.payload?.pull_request?.head?.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`;
+  const missing = rows.filter((row) => !row.artifact && needs.build?.result === "success" &&
+    !(row.key === "android" && forkPullRequest));
   if (missing.length) {
     core.setFailed(`ビルド成功後の成果物がありません: ${missing.map((row) => row.label).join(", ")}`);
   }
   await core.summary.addRaw(renderSummary({
-    rows, needs, serverUrl: process.env.GITHUB_SERVER_URL || "https://github.com",
+    rows, serverUrl: process.env.GITHUB_SERVER_URL || "https://github.com",
     repository: `${context.repo.owner}/${context.repo.repo}`, runId: context.runId,
   })).write();
 }

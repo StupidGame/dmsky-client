@@ -1,37 +1,39 @@
 <!-- SPDX-FileCopyrightText: 2026 DMSKY contributors -->
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">DMSKY</title>
+  <title id="title">DMSKY — connected conversations</title>
   <defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#e0eff7"/>
-      <stop offset=".28" stop-color="#7d93a6"/>
-      <stop offset=".52" stop-color="#d2e4ee"/>
-      <stop offset=".7" stop-color="#3f566d"/>
-      <stop offset="1" stop-color="#a5c6dc"/>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#174a78"/>
+      <stop offset=".5" stop-color="#0b2747"/>
+      <stop offset="1" stop-color="#07182d"/>
     </linearGradient>
-    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#144883"/>
-      <stop offset="1" stop-color="#081c3a"/>
+    <linearGradient id="cyan" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#64edff"/>
+      <stop offset="1" stop-color="#1187c8"/>
     </linearGradient>
-    <linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#a6ffff"/>
-      <stop offset=".45" stop-color="#21d6fa"/>
-      <stop offset="1" stop-color="#2871dd"/>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#d8eff8"/>
+      <stop offset=".45" stop-color="#4783ab"/>
+      <stop offset="1" stop-color="#153c60"/>
     </linearGradient>
-    <path id="frame" d="m256 64 166 96v192l-166 96L90 352V160z"/>
+    <g id="mark">
+      <path fill="url(#cyan)" d="M120 104h198l38 38v154l-34 34h-92l-44 36v-36h-66l-30-30V134z"/>
+      <path fill="#07182d" opacity=".25" d="M194 170h180l38 38v144l-32 32h-88l-56 42v-42h-42l-30-30V200z"/>
+      <path fill="#f0fbff" d="M194 180h180l38 38v134l-32 32h-88l-56 42v-42h-42l-30-30V210z"/>
+      <path fill="#0a2b4b" d="M208 332v-96h18l46 42 46-42h18v96h-22v-60l-42 38-42-38v60z"/>
+      <path fill="#ffcf5b" d="m390 96 22 22-22 22-22-22z"/>
+    </g>
+    <g id="monochrome">
+      <path fill="#fff" d="M120 104h198l38 38v14h-22v-5l-25-25H129l-17 17v148l17 17h19v22h-28l-30-30V134z"/>
+      <path fill="#fff" fill-rule="evenodd" d="M194 180h180l38 38v134l-32 32h-88l-56 42v-42h-42l-30-30V210z M208 332v-96h18l46 42 46-42h18v96h-22v-60l-42 38-42-38v60z"/>
+      <path fill="#fff" d="m390 96 22 22-22 22-22-22z"/>
+    </g>
   </defs>
-  <path fill="#071426" d="M0 0h512v512H0z"/>
-  <use href="#frame" fill="url(#screen)" stroke="#020a16" stroke-width="32" stroke-linejoin="bevel"/>
-  <use href="#frame" fill="none" stroke="url(#metal)" stroke-width="22" stroke-linejoin="bevel"/>
-  <use href="#frame" fill="none" stroke="#d9f6ff" stroke-width="2"/>
-  <path fill="none" stroke="#39dffa" stroke-width="4" d="m256 84 148 85v174l-148 85-148-85V169z"/>
-  <path fill="none" stroke="#17344f" stroke-width="5" d="m256 101 133 77v156l-133 77-133-77V178z"/>
-  <path fill="url(#crystal)" stroke="#9cffff" stroke-width="2" d="m256 132 31 70 75-8-43 62 43 62-75-8-31 70-31-70-75 8 43-62-43-62 75 8z"/>
-  <path fill="#c2ffff" d="m256 132-31 70 31 54zM150 194l43 62h63zM150 318l75-8 31-54z"/>
-  <path fill="#1469bf" d="m256 380 31-70-31-54zM362 318l-43-62h-63zM362 194l-75 8-31 54z"/>
-  <path fill="#55eaf9" d="m256 132 31 70-31 54zM362 194l-43 62h-63zM256 380l-31-70 31-54z"/>
-  <path fill="#eefeff" stroke="#f6cc6b" stroke-width="4" d="m256 230 23 13v26l-23 13-23-13v-26z"/>
-  <path fill="none" stroke="#f5cb6c" stroke-width="7" stroke-linecap="square" d="m229 79 27-15 27 15m-54 354 27 15 27-15"/>
-  <path fill="none" stroke="#8ff6ff" stroke-width="6" d="M90 192v40m332 48v40"/>
+  <g id="tile">
+    <path fill="url(#navy)" d="M0 0h512v512H0z"/>
+    <path fill="none" stroke="url(#silver)" stroke-width="4" d="M84 40h344l44 44v344l-44 44H84l-44-44V84z"/>
+    <path fill="none" stroke="#51edff" stroke-opacity=".22" stroke-width="2" d="M90 52h332l38 38v332l-38 38H90l-38-38V90z"/>
+  </g>
+  <use href="#mark"/>
 </svg>
