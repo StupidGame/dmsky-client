@@ -1,4 +1,5 @@
 name: Build all platforms
+run-name: "Build app files #${{ github.run_number }} · ${{ github.event.pull_request.head.ref || github.ref_name }}"
 
 on:
   push:
@@ -30,28 +31,29 @@ on:
 permissions:
   contents: read
 
+env:
+  DMSKY_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  DMSKY_RETENTION_DAYS: "14"
+
 concurrency:
   group: build-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ (matrix.target == 'ios' || matrix.target == 'macos') && 'macos-26-intel' || matrix.target == 'windows' && 'windows-2025' || 'ubuntu-24.04' }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [android, ios, macos, linux, windows, web]
-        # Fork pull requests do not have access to the Android signing key.
-        exclude:
-          - target: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'android' || 'none' }}
+  android:
+    name: Signed Android release APK
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     env:
       DMSKY_ANDROID_VARIANT: ${{ inputs.android_apk || 'arm64' }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        if: matrix.target == 'android'
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare android
+      - name: Set up Java
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: "21"
@@ -63,105 +65,239 @@ jobs:
             android/**/*.gradle.kts
             android/gradle.properties
             android/gradle/wrapper/gradle-wrapper.properties
-      - uses: ./.github/actions/setup-rust
-        if: matrix.target != 'web'
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
         with:
-          targets: ${{ matrix.target == 'android' && (inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android') || matrix.target == 'ios' && 'aarch64-apple-ios' || matrix.target == 'macos' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-      - name: Install Linux native dependencies
-        if: matrix.target == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
-      - uses: ./.github/actions/setup-flutter
+          targets: ${{ inputs.android_apk == 'universal' && 'armv7-linux-androideabi,aarch64-linux-android,x86_64-linux-android' || 'aarch64-linux-android' }}
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
       - name: Select Android architecture
-        if: matrix.target == 'android'
         run: |
           if [ "$DMSKY_ANDROID_VARIANT" = universal ]; then
             echo "DMSKY_ANDROID_TARGETS=android-arm,android-arm64,android-x64" >> "$GITHUB_ENV"
-            echo "DMSKY_ANDROID_APK=dmsky-client-universal.apk" >> "$GITHUB_ENV"
+            echo "DMSKY_ANDROID_APK=dmsky-client-universal-$DMSKY_BUILD_ID.apk" >> "$GITHUB_ENV"
           else
             echo "DMSKY_ANDROID_TARGETS=android-arm64" >> "$GITHUB_ENV"
-            echo "DMSKY_ANDROID_APK=dmsky-client-arm64.apk" >> "$GITHUB_ENV"
+            echo "DMSKY_ANDROID_APK=dmsky-client-arm64-$DMSKY_BUILD_ID.apk" >> "$GITHUB_ENV"
           fi
       - name: Restore the fixed Android signing key
-        if: matrix.target == 'android'
         env:
           ANDROID_SIGNING_PASSPHRASE: ${{ secrets.ANDROID_SIGNING_PASSPHRASE }}
         run: python3 tool/decrypt_android_signing.py
-      - name: Build Android APK
-        if: matrix.target == 'android'
+      - name: Build the signed APK
         run: python3 tool/run_with_download_retry.py flutter build apk --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
       - name: Build Android app bundle
-        if: matrix.target == 'android' && inputs.build_aab == true
+        if: inputs.build_aab == true
         run: python3 tool/run_with_download_retry.py flutter build appbundle --no-tree-shake-icons --release --target-platform "$DMSKY_ANDROID_TARGETS" --build-number "${{ github.run_number }}"
-      - name: Package Android downloads
-        if: matrix.target == 'android'
+      - name: Package Android files
         run: |
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-release.apk "dist/$DMSKY_ANDROID_APK"
           if [ -f build/app/outputs/bundle/release/app-release.aab ]; then
-            cp build/app/outputs/bundle/release/app-release.aab dist/dmsky-client.aab
+            cp build/app/outputs/bundle/release/app-release.aab "dist/dmsky-client-$DMSKY_BUILD_ID.aab"
           fi
           cp android/signing/certificate.sha256 dist/signing-certificate.sha256
           cd dist
           files=( *.apk )
-          if [ -f dmsky-client.aab ]; then files+=( dmsky-client.aab ); fi
+          for file in *.aab; do
+            if [ -f "$file" ]; then files+=( "$file" ); fi
+          done
           sha256sum "${files[@]}" > SHA256SUMS
-      - name: Build and package iOS without signing
-        if: matrix.target == 'ios'
-        run: |
-          flutter build ios --no-tree-shake-icons --release --no-codesign
-          mkdir -p dist
-          tar -czf dist/dmsky-client-ios-unsigned.tar.gz -C build/ios/iphoneos Runner.app
-      - name: Build and package macOS for Apple Silicon and Intel
-        if: matrix.target == 'macos'
-        env:
-          MACOSX_DEPLOYMENT_TARGET: "12.0"
-        run: |
-          flutter build macos --no-tree-shake-icons --release --build-number "${{ github.run_number }}"
-          mkdir -p dist
-          ditto -c -k --sequesterRsrc --keepParent "build/macos/Build/Products/Release/DMSKY Client.app" dist/dmsky-client-macos-universal.zip
-      - name: Build and package Linux
-        if: matrix.target == 'linux'
-        run: |
-          flutter build linux --no-tree-shake-icons --release
-          mkdir -p dist
-          tar -czf dist/dmsky-client-linux-x64.tar.gz -C build/linux/x64/release/bundle .
-      - name: Build and package Windows with Visual C++ runtime
-        if: matrix.target == 'windows'
-        shell: pwsh
-        run: |
-          flutter build windows --no-tree-shake-icons --release
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $bundle = 'build/windows/x64/runner/Release'
-          foreach ($library in @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')) {
-            Copy-Item (Join-Path $env:WINDIR "System32/$library") $bundle
-          }
-          New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path "$bundle/*" -DestinationPath dist/dmsky-client-windows-x64.zip
-      - name: Build Web
-        if: matrix.target == 'web'
-        env:
-          DMSKY_WEB_BASE_HREF: ${{ inputs.web_base_href || '/' }}
-        run: flutter build web --no-wasm-dry-run --no-tree-shake-icons --release --base-href "$DMSKY_WEB_BASE_HREF"
-      - name: Upload platform download
-        uses: actions/upload-artifact@v7
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata android
+      - name: Upload android files
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-${{ matrix.target == 'ios' && 'ios-unsigned' || matrix.target == 'macos' && 'macos-universal' || matrix.target == 'linux' && 'linux-x64' || matrix.target == 'windows' && 'windows-x64' || matrix.target }}
-          path: ${{ matrix.target == 'web' && 'build/web/' || 'dist/' }}
-          compression-level: ${{ matrix.target == 'web' && 6 || 0 }}
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 0
           if-no-files-found: error
-          retention-days: 30
       - name: Remove decrypted signing files
-        if: always() && matrix.target == 'android'
+        if: always()
         shell: python
         run: |
           import os, pathlib, shutil
           shutil.rmtree(pathlib.Path(os.environ["RUNNER_TEMP"]) / "dmsky-client-signing", ignore_errors=True)
 
+  ios:
+    name: Unsigned iOS files
+    runs-on: macos-26-intel
+    timeout-minutes: 90
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare ios
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          targets: aarch64-apple-ios
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
+      - name: Build the unsigned device app
+        run: |
+          flutter build ios --no-tree-shake-icons --release --no-codesign --build-number "$GITHUB_RUN_NUMBER"
+      - name: Package the unsigned IPA
+        run: |
+          package_root="$RUNNER_TEMP/dmsky-ios-unsigned"
+          mkdir -p "$package_root/Payload" dist
+          /usr/bin/ditto build/ios/iphoneos/Runner.app "$package_root/Payload/DMSKY Client.app"
+          (
+            cd "$package_root"
+            /usr/bin/zip -qry "$GITHUB_WORKSPACE/dist/dmsky-client-ios-unsigned-$DMSKY_BUILD_ID.ipa" Payload
+          )
+          cat > dist/ARTIFACTS.txt <<'INFO'
+          The IPA is unsigned. Install it on a device after signing it with an Apple certificate and provisioning profile.
+          This workflow does not use Apple credentials.
+          See BUILD_INFO.json for the Actions run ID, source commit and build attempt.
+          INFO
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata ios
+      - name: Upload ios files
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 0
+          if-no-files-found: error
+
+  macos:
+    name: macOS desktop app
+    runs-on: macos-26-intel
+    timeout-minutes: 120
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare macos
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
+      - name: Build the Universal macOS app
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "12.0"
+        run: |
+          flutter build macos --no-tree-shake-icons --release --build-number "$GITHUB_RUN_NUMBER"
+      - name: Package the macOS app
+        run: |
+          mkdir -p dist
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "build/macos/Build/Products/Release/DMSKY Client.app" "dist/dmsky-client-macos-$DMSKY_BUILD_ID.zip"
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata macos
+      - name: Upload macos files
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 0
+          if-no-files-found: error
+
+  linux:
+    name: Linux desktop app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare linux
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libstdc++-12-dev liblzma-dev nasm
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
+      - name: Build the Linux app
+        run: |
+          flutter build linux --no-tree-shake-icons --release --build-number "$GITHUB_RUN_NUMBER"
+      - name: Package the Linux app
+        run: |
+          package_root="$RUNNER_TEMP/dmsky-client-linux"
+          cp -a build/linux/x64/release/bundle "$package_root"
+          mkdir -p dist
+          tar -C "$RUNNER_TEMP" -czf "dist/dmsky-client-linux-x64-$DMSKY_BUILD_ID.tar.gz" dmsky-client-linux
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata linux
+      - name: Upload linux files
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 0
+          if-no-files-found: error
+
+  windows:
+    name: Windows desktop app
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare windows
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
+      - name: Build the Windows app with Visual C++ runtime
+        shell: pwsh
+        run: |
+          flutter build windows --no-tree-shake-icons --release --build-number $env:GITHUB_RUN_NUMBER
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $bundle = 'build/windows/x64/runner/Release'
+          foreach ($library in @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')) {
+            Copy-Item (Join-Path $env:WINDIR "System32/$library") $bundle
+          }
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata windows
+      - name: Upload windows files
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 6
+          if-no-files-found: error
+
+  web:
+    name: Web app files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Prepare build identity
+        run: node .github/scripts/build-artifacts.cjs prepare web
+      - name: Set up Flutter and locked packages
+        uses: ./.github/actions/setup-flutter
+      - name: Build the Web app
+        env:
+          DMSKY_WEB_BASE_HREF: ${{ inputs.web_base_href || '/' }}
+        run: |
+          flutter build web --no-wasm-dry-run --no-tree-shake-icons --release --build-number "$GITHUB_RUN_NUMBER" --base-href "$DMSKY_WEB_BASE_HREF"
+      - name: Write artifact information
+        run: node .github/scripts/build-artifacts.cjs metadata web
+      - name: Upload web files
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DMSKY_ARTIFACT_NAME }}
+          path: ${{ env.DMSKY_ARTIFACT_PATH }}
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 6
+          if-no-files-found: error
+
   downloads:
     name: Downloads
-    needs: [build]
+    needs: [android, ios, macos, linux, windows, web]
     if: always() && !cancelled()
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -169,7 +305,7 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Find downloads from every attempt of this run
         id: prepare
         uses: actions/github-script@v9
@@ -179,61 +315,61 @@ jobs:
       - name: Restore Android download to this attempt
         if: steps.prepare.outputs.restore_android == 'true'
         id: restore_android
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-android
+          name: ${{ steps.prepare.outputs.artifact_name_android }}
           path: ${{ runner.temp }}/dmsky-downloads/android/
-          retention-days: 30
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
           compression-level: 0
           if-no-files-found: error
       - name: Restore iOS download to this attempt
         if: steps.prepare.outputs.restore_ios == 'true'
         id: restore_ios
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-ios-unsigned
+          name: ${{ steps.prepare.outputs.artifact_name_ios }}
           path: ${{ runner.temp }}/dmsky-downloads/ios/
-          retention-days: 30
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
           compression-level: 0
           if-no-files-found: error
       - name: Restore macOS download to this attempt
         if: steps.prepare.outputs.restore_macos == 'true'
         id: restore_macos
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-macos-universal
+          name: ${{ steps.prepare.outputs.artifact_name_macos }}
           path: ${{ runner.temp }}/dmsky-downloads/macos/
-          retention-days: 30
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
           compression-level: 0
           if-no-files-found: error
       - name: Restore Linux download to this attempt
         if: steps.prepare.outputs.restore_linux == 'true'
         id: restore_linux
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-linux-x64
+          name: ${{ steps.prepare.outputs.artifact_name_linux }}
           path: ${{ runner.temp }}/dmsky-downloads/linux/
-          retention-days: 30
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
           compression-level: 0
           if-no-files-found: error
       - name: Restore Windows download to this attempt
         if: steps.prepare.outputs.restore_windows == 'true'
         id: restore_windows
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-windows-x64
+          name: ${{ steps.prepare.outputs.artifact_name_windows }}
           path: ${{ runner.temp }}/dmsky-downloads/windows/
-          retention-days: 30
-          compression-level: 0
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
+          compression-level: 6
           if-no-files-found: error
       - name: Restore Web download to this attempt
         if: steps.prepare.outputs.restore_web == 'true'
         id: restore_web
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dmsky-client-web
+          name: ${{ steps.prepare.outputs.artifact_name_web }}
           path: ${{ runner.temp }}/dmsky-downloads/web/
-          retention-days: 30
+          retention-days: ${{ env.DMSKY_RETENTION_DAYS }}
           compression-level: 6
           if-no-files-found: error
       - name: Show downloads on the run summary
