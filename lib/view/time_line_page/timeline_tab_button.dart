@@ -66,7 +66,9 @@ class TimelineTabButton extends StatelessWidget {
           onPressed: onPressed,
           style: TextButton.styleFrom(
             foregroundColor: color,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: const Size(48, 48),
+            shape: dmskyFrameShape,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 220),

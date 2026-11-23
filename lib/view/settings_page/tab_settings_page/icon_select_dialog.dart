@@ -93,7 +93,7 @@ class IconSelectDialog extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 5),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).appBarTheme.backgroundColor,
                   ),
                   child: TabBar(
                     tabs: [

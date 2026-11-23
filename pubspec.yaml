@@ -173,18 +173,23 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/branding/dmsky-emblem.png"
-  adaptive_icon_background: "#081321"
+  image_path: "assets/branding/dmsky-app-icon.png"
+  adaptive_icon_background: "#07182d"
   adaptive_icon_foreground: "assets/branding/dmsky-emblem.png"
+  adaptive_icon_foreground_inset: 18
+  adaptive_icon_monochrome: "assets/branding/dmsky-monochrome.png"
   remove_alpha_ios: true
-  background_color_ios: "#081321"
+  background_color_ios: "#07182d"
   min_sdk_android: 24
   windows:
     generate: true
-    image_path: "assets/branding/dmsky-emblem.png"
+    image_path: "assets/branding/dmsky-app-icon.png"
     icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/branding/dmsky-app-icon.png"
   web:
     generate: true
-    image_path: "assets/branding/dmsky-emblem.png"
-    background_color: "#081321"
-    theme_color: "#081321"
+    image_path: "assets/branding/dmsky-app-icon.png"
+    background_color: "#07182d"
+    theme_color: "#07182d"

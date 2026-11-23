@@ -3,6 +3,7 @@ import "dart:math";
 
 import "package:collection/collection.dart";
 import "package:flutter/foundation.dart";
+import "package:dmsky_client/log.dart";
 import "package:dmsky_client/extensions/date_time_extension.dart";
 import "package:dmsky_client/model/account.dart";
 import "package:dmsky_client/providers.dart";
@@ -115,10 +116,9 @@ abstract class SocketTimelineRepository extends TimelineRepository {
         final resultNotes = await requestNotes();
         olderNotes.addAll(resultNotes);
         notifyListeners();
-      } catch (e, s) {
+      } catch (e) {
         if (kDebugMode) {
-          print(e);
-          print(s);
+          logger.warning(e);
         }
       }
     } else {
@@ -156,7 +156,7 @@ abstract class SocketTimelineRepository extends TimelineRepository {
         mainSubscription?.cancel() ?? Future.value(),
       ).wait;
     } catch (e) {
-      print(e);
+      logger.warning(e);
     }
 
     try {

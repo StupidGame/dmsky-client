@@ -1,6 +1,7 @@
 import "dart:math" as math;
 
 import "package:flutter/gestures.dart" show DragStartBehavior;
+import "package:flutter/foundation.dart" show precisionErrorTolerance;
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
@@ -24,7 +25,7 @@ class TimelineListView extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
-    this.cacheExtent,
+    this.scrollCacheExtent,
     this.anchor = 0.0,
     this.dragStartBehavior = DragStartBehavior.start,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
@@ -46,7 +47,7 @@ class TimelineListView extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
-    this.cacheExtent,
+    this.scrollCacheExtent,
     this.anchor = 0.0,
     this.dragStartBehavior = DragStartBehavior.start,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
@@ -81,8 +82,8 @@ class TimelineListView extends StatefulWidget {
   /// See: [ListView.itemExtent]
   final double? itemExtent;
 
-  /// See: [ScrollView.cacheExtent]
-  final double? cacheExtent;
+  /// See: [ScrollView.scrollCacheExtent]
+  final ScrollCacheExtent? scrollCacheExtent;
 
   /// See: [ScrollView.anchor]
   final double anchor;
@@ -119,6 +120,41 @@ class _TimelineListViewState extends State<TimelineListView> {
       widget.controller ?? _controller!;
 
   _InfiniteScrollPosition? _negativeOffset;
+  ViewportOffset? _observedOffset;
+  VoidCallback? _offsetListener;
+  bool _extentUpdateScheduled = false;
+
+  void _syncOffsetListener(
+    ViewportOffset offset,
+    _InfiniteScrollPosition negativeOffset,
+  ) {
+    final previousOffset = _observedOffset;
+    final previousListener = _offsetListener;
+    if (previousOffset != null && previousListener != null) {
+      previousOffset.removeListener(previousListener);
+    }
+
+    void listener() => negativeOffset._forceNegativePixels(offset.pixels);
+    _observedOffset = offset;
+    _offsetListener = listener;
+    offset.addListener(listener);
+  }
+
+  void _scheduleExtentUpdate() {
+    if (_extentUpdateScheduled) return;
+    _extentUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _extentUpdateScheduled = false;
+      if (!mounted) return;
+      final negativeOffset = _negativeOffset;
+      if (negativeOffset == null) return;
+      final extent = negativeOffset.hasContentDimensions
+          ? negativeOffset.maxScrollExtent
+          : null;
+      negativeOffset._minMaxExtent = -(extent ?? 0);
+      _effectiveController._offset = -(extent ?? 0);
+    });
+  }
 
   void timingCallback(_) {
     final negativeOffset = _negativeOffset;
@@ -126,6 +162,7 @@ class _TimelineListViewState extends State<TimelineListView> {
     final extent = negativeOffset.maxScrollExtent;
     negativeOffset._minMaxExtent = -extent;
     _effectiveController._offset = -extent;
+    _effectiveController._followLatestIfAtTop();
   }
 
   @override
@@ -150,6 +187,13 @@ class _TimelineListViewState extends State<TimelineListView> {
 
   @override
   void dispose() {
+    final observedOffset = _observedOffset;
+    final offsetListener = _offsetListener;
+    if (observedOffset != null && offsetListener != null) {
+      observedOffset.removeListener(offsetListener);
+    }
+    _observedOffset = null;
+    _offsetListener = null;
     _controller?.dispose();
     super.dispose();
     WidgetsBinding.instance.removeTimingsCallback(timingCallback);
@@ -181,14 +225,9 @@ class _TimelineListViewState extends State<TimelineListView> {
             _negativeOffset = negativeOffset;
 
             /// Keep the negative scrolling [Viewport] positioned to the [ScrollPosition].
-            offset.addListener(() {
-              negativeOffset._forceNegativePixels(offset.pixels);
-            });
+            _syncOffsetListener(offset, negativeOffset);
 
-            final cacheExtent = widget.cacheExtent;
-            final scrollCacheExtent = cacheExtent == null
-                ? null
-                : ScrollCacheExtent.pixels(cacheExtent);
+            final scrollCacheExtent = widget.scrollCacheExtent;
 
             /// Stack the two [Viewport]s on top of each other so they move in sync.
             return Stack(
@@ -247,15 +286,7 @@ class _TimelineListViewState extends State<TimelineListView> {
   SliverChildDelegate get negativeChildrenDelegate {
     return SliverChildBuilderDelegate(
       (context, index) {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          final negativeOffset = _negativeOffset;
-          if (negativeOffset == null) return;
-          final extent = negativeOffset.hasContentDimensions
-              ? negativeOffset.maxScrollExtent
-              : null;
-          negativeOffset._minMaxExtent = -(extent ?? 0);
-          _controller?._offset = -(extent ?? 0);
-        });
+        _scheduleExtentUpdate();
         final separatorBuilder = widget.separatorBuilder;
         if (separatorBuilder != null) {
           final itemIndex = (-1 - index) ~/ 2;
@@ -330,7 +361,11 @@ class _TimelineListViewState extends State<TimelineListView> {
       )
       ..add(DoubleProperty("itemExtent", widget.itemExtent, defaultValue: null))
       ..add(
-        DoubleProperty("cacheExtent", widget.cacheExtent, defaultValue: null),
+        DiagnosticsProperty<ScrollCacheExtent>(
+          "scrollCacheExtent",
+          widget.scrollCacheExtent,
+          defaultValue: null,
+        ),
       );
   }
 }
@@ -375,12 +410,12 @@ class TimelineScrollController extends ScrollController {
   void forceScrollToTop() {
     if (isDisposed) return;
     if (positions.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        forceScrollToTop();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!isDisposed) forceScrollToTop();
       });
+      return;
     }
     jumpTo(position.maxScrollExtent);
-    scrollToTop();
   }
 
   bool isDisposed = false;
@@ -393,31 +428,31 @@ class TimelineScrollController extends ScrollController {
   }
 
   void scrollToTop() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (isDisposed) return;
-
-      if (positions.isEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          if (isDisposed) return;
-          scrollToTop();
-        });
-        return;
-      }
-      if (_previousPosition == _previousMaxExtent &&
-          position.maxScrollExtent != position.pixels) {
-        jumpTo(position.maxScrollExtent);
-        _previousPosition = position.maxScrollExtent;
-        _previousMaxExtent = position.maxScrollExtent;
-      }
-
-      if (_previousPosition == _previousMaxExtent) {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          if (isDisposed) return;
-
-          scrollToTop();
-        });
-      }
+    if (isDisposed || positions.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isDisposed || positions.isEmpty) return;
+      jumpTo(position.maxScrollExtent);
     });
+  }
+
+  /// Follow newly inserted notes only while the reader is already at the latest edge.
+  /// This is checked during the existing frame callback instead of scheduling an
+  /// endless chain of post-frame callbacks.
+  void _followLatestIfAtTop() {
+    if (isDisposed || positions.isEmpty) return;
+
+    final current = position;
+    final wasAtLatest =
+        (_previousPosition - _previousMaxExtent).abs() <= precisionErrorTolerance;
+    if (wasAtLatest &&
+        current.hasContentDimensions &&
+        (current.maxScrollExtent - current.pixels).abs() >
+            precisionErrorTolerance) {
+      jumpTo(current.maxScrollExtent);
+    }
+
+    _previousPosition = current.pixels;
+    _previousMaxExtent = current.maxScrollExtent;
   }
 }
 

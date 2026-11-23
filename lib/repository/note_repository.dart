@@ -76,7 +76,9 @@ class NoteRepository extends ChangeNotifier {
           hardMuteWordRegExps.add(
             RegExp(regExp.substring(1, regExp.length - 1)),
           );
-        } catch (e) {}
+        } catch (e) {
+          logger.warning('Invalid hard mute regular expression: $e');
+        }
       }
     }
   }

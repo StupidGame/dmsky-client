@@ -68,7 +68,7 @@ class ExploreUsers extends HookConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: exploreUserType == ExploreUserType.pinned
+                    onPressed: exploreUserType.value == ExploreUserType.pinned
                         ? null
                         : () => isDetailOpen.value = !isDetailOpen.value,
                     icon: Icon(

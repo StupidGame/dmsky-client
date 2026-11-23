@@ -35,7 +35,7 @@ class ChannelSelectDialog extends StatelessWidget implements AutoRouteWrapper {
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).appBarTheme.backgroundColor,
                   ),
                   child: Align(
                     child: TabBar(

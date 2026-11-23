@@ -502,7 +502,9 @@ class AppThemeScopeState extends ConsumerState<AppThemeScope> {
                   )
                 : null,
           ),
-          child: widget.child,
+          child: isDmskyTheme(foundColorTheme)
+              ? DmskyBackdrop(child: widget.child)
+              : widget.child,
         ),
       ),
     );

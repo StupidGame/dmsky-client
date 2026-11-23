@@ -3559,18 +3559,40 @@ class ServerDetailRouteArgs {
 
 /// generated route for
 /// [SettingsPage]
-class SettingsRoute extends PageRouteInfo<void> {
-  const SettingsRoute({List<PageRouteInfo>? children})
-    : super(SettingsRoute.name, initialChildren: children);
+class SettingsRoute extends PageRouteInfo<SettingsRouteArgs> {
+  SettingsRoute({required Account account, List<PageRouteInfo>? children})
+    : super(
+        SettingsRoute.name,
+        args: SettingsRouteArgs(account: account),
+        initialChildren: children,
+      );
 
   static const String name = 'SettingsRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const SettingsPage();
+      final args = data.argsAs<SettingsRouteArgs>();
+      return SettingsPage(account: args.account);
     },
   );
+}
+
+class SettingsRouteArgs {
+  const SettingsRouteArgs({required this.account});
+
+  final Account account;
+
+  @override
+  String toString() => 'SettingsRouteArgs{account: $account}';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SettingsRouteArgs && account == other.account;
+
+  @override
+  int get hashCode => account.hashCode;
 }
 
 /// generated route for

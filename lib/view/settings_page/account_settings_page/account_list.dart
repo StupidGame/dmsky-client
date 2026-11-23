@@ -52,7 +52,7 @@ class AccountListPage extends ConsumerWidget {
                     );
                   }
                 },
-                onReorder: ref.read(accountRepositoryProvider.notifier).reorder,
+                onReorderItem: ref.read(accountRepositoryProvider.notifier).reorder,
               ),
             ),
             Align(
